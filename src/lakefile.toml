@@ -1,0 +1,38 @@
+name = "FLYWHEEL"
+version = "0.1.0"
+defaultTargets = ["SVD"]
+
+[[require]]
+name = "mathlib"
+git = "https://github.com/leanprover-community/mathlib4"
+rev = "master"
+
+[[lean_lib]]
+name = "SVD"
+
+[[lean_lib]]
+name = "KroneckerRearrangement"
+
+[[lean_lib]]
+name = "MatrixNormRelations"
+
+[[lean_lib]]
+name = "FrobeniusNorm"
+
+[[lean_lib]]
+name = "CourantFischer"
+
+[[lean_lib]]
+name = "WeylInequality"
+
+[[lean_lib]]
+name = "SpectralNormGap"
+
+[[lean_lib]]
+name = "CoherenceCharacterization"
+
+[[lean_lib]]
+name = "TightBounds"
+
+[[lean_lib]]
+name = "TruncatedSVDRank1"
