@@ -496,9 +496,6 @@ lemma eigenvalues₀_zero_from_rank_bound {A : Matrix n n ℂ} (hA : A.PosSemide
     j.val h_card_bound j (Nat.le_refl _)
 
 omit [Nonempty n] in
-/-- **Singular values are zero beyond matrix rank** (square case).
-
-For a square n × n complex matrix A with rank r:
 /-- For rank(A) = r, singular values σⱼ(A) = 0 for j ≥ r. -/
 theorem singularValues₀_zero_beyond_rank (A : Matrix n n ℂ)
     (j : Fin (Fintype.card n)) (hj : A.rank ≤ j.val) :
@@ -810,9 +807,6 @@ theorem singularValue_perturbation_zero_at_j (A C : Matrix n n ℂ)
 
 end WeylSingularValue
 
-/-! ## Thompson's Singular Value Interlacing
-
-Thompson's theorem provides stronger bounds than Weyl perturbation when one matrix
 /-! ## Thompson's Singular Value Interlacing
 
 For rank(B) ≤ r: σ_{i+r}(A) ≤ σ_i(A + B).

@@ -464,8 +464,6 @@ the Frobenius-optimal approximation may not be spectrally optimal, its
 spectral error is explicitly bounded.
 -/
 
-/-! ## Tightness Analysis
-
 /-! ## Tightness
 
 For rank-1 M: ‖M‖₂ = σ₁ = ‖M‖_F, so bound is tight.
