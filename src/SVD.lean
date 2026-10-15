@@ -2293,18 +2293,6 @@ lemma singularValues_eq_singularValueFromEigenvalue (A : Matrix m n ℂ) (j : n)
   -- eigenvaluesBijection is definitionally the bijection used by Mathlib's eigenvalues
   simp only [singularValues, singularValueFromEigenvalue]
   congr 1
-  -- Goal: eigenvalues₀ (Fin.castLE .. ⟨(eigenvaluesBijection n j).val, h_in_min⟩) = eigenvalues j
-  -- Use eigenvalues_at_embedMinToN_eq_eigenvalues₀_castLE with k = ⟨(eigenvaluesBijection n j).val, h_in_min⟩
-  have h_bridge := eigenvalues_at_embedMinToN_eq_eigenvalues₀_castLE
-    A ⟨(eigenvaluesBijection n j).val, h_in_min⟩
-  -- h_bridge: eigenvalues (embedMinToN k) = eigenvalues₀ (castLE k)
-  -- We need the reverse: eigenvalues₀ (castLE k) = eigenvalues j
-  rw [← h_bridge]
-  congr 1
-  -- Goal: embedMinToN ⟨↑((eigenvaluesBijection n) j), h_in_min⟩ = j
-  -- Use embedMinToN_eigenvaluesBijection_inverse and then Equiv.symm_apply_apply
-  rw [embedMinToN_eigenvaluesBijection_inverse (eigenvaluesBijection n j) h_in_min]
-  exact Equiv.symm_apply_apply (eigenvaluesBijection n) j
 
 /-- The j-th left singular vector for rectangular A (when σⱼ ≠ 0).
     Output type is m → ℂ (m-dimensional vector).
