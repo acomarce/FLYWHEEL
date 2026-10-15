@@ -321,25 +321,42 @@ theorem truncatedSVD_rect_rank_le {m' n' : Type*} [Fintype m'] [Fintype n']
               SVD.Rectangular.rank_le_min_card D
           _ ≤ k := hk_large
       · -- Case: k < min(#m', #n')
-        -- The truncated diagonal D has nonzero entries only at positions (i, j) where
-        -- eigenvaluesBijection(i) = eigenvaluesBijection(j) < k
-        -- This means D has at most k "active" diagonal positions
-        -- The rank of such a matrix is at most k
-        --
-        -- We use: rank(D) ≤ min(#rows, #cols) and the fact that D factors through
-        -- a k-dimensional space (only k columns can contribute to the column space)
-        --
-        -- More precisely: Let J = {j : eigenvaluesBijection(j) < k} ⊆ n'
-        -- Then D restricted to columns outside J is zero
-        -- So rank(D) ≤ #J ≤ k
-        push_neg at hk_large
-        -- rank(D) ≤ k by showing D has at most k nonzero columns
-        -- Each column j has D(_, j) nonzero only if eigenvaluesBijection(j) < k
-        -- There are exactly k such columns (since eigenvaluesBijection is a bijection)
-        -- Therefore rank(D) ≤ k
-        calc D.rank ≤ min (Fintype.card m') (Fintype.card n') :=
-              SVD.Rectangular.rank_le_min_card D
-          _ ≤ k := le_of_lt hk_large
+        -- Column j of D vanishes unless eigenvaluesBijection(j) < k, so D = D * P
+        -- with P the diagonal 0/1 projection onto those columns, and
+        -- rank(D) ≤ rank(P) = #{j | eigenvaluesBijection(j) < k} ≤ k.
+        classical
+        have hDP : D = D * diagonal (fun j : n' =>
+            if (SVD.Rectangular.eigenvaluesBijection n' j).val < k then (1 : ℂ) else 0) := by
+          ext i j
+          rw [mul_diagonal]
+          by_cases hj : (SVD.Rectangular.eigenvaluesBijection n' j).val < k
+          · rw [if_pos hj, mul_one]
+          · rw [if_neg hj, mul_zero]
+            show truncatedSingularDiagonal_rect A k i j = 0
+            simp only [truncatedSingularDiagonal_rect]
+            rw [dif_neg]
+            rintro ⟨heq, -, hlt⟩
+            omega
+        have hP : (diagonal (fun j : n' =>
+            if (SVD.Rectangular.eigenvaluesBijection n' j).val < k then (1 : ℂ) else 0)).rank
+              ≤ k := by
+          rw [rank_diagonal]
+          calc Fintype.card {j : n' // (if (SVD.Rectangular.eigenvaluesBijection n' j).val < k
+                  then (1 : ℂ) else 0) ≠ 0}
+              ≤ Fintype.card (Fin k) :=
+                Fintype.card_le_of_injective
+                  (fun j => ⟨(SVD.Rectangular.eigenvaluesBijection n' j.1).val, by
+                    by_contra h
+                    exact j.2 (if_neg h)⟩)
+                  (fun a b hab => Subtype.ext
+                    ((SVD.Rectangular.eigenvaluesBijection n').injective
+                      (Fin.ext (congrArg Fin.val hab))))
+            _ = k := Fintype.card_fin k
+        calc D.rank = (D * diagonal (fun j : n' =>
+              if (SVD.Rectangular.eigenvaluesBijection n' j).val < k then (1 : ℂ) else 0)).rank := by
+              rw [← hDP]
+          _ ≤ _ := rank_mul_le_right _ _
+          _ ≤ k := hP
   calc (U * D * star V).rank = (D * star V).rank := h1
     _ = D.rank := h2
     _ ≤ k := h3
