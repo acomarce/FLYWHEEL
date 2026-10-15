@@ -1757,15 +1757,15 @@ noncomputable def frobeniusOptimalKronecker
 For any matrix A, there exists a rank-1 matrix M* in the rearranged space
 that minimizes the spectral norm ‖R(A) - M‖₂ over all rank-1 matrices M.
 
-This follows from:
-1. The set of rank-1 matrices with bounded norm is compact
-2. The spectral norm is continuous
-3. Extreme value theorem (continuous function on compact set attains minimum) -/
-axiom exists_spectral_minimizer_rank1 (A : Matrix n n ℂ) :
-  ∃ M : Matrix n n ℂ, M.rank ≤ 1 ∧
-    ∀ N : Matrix n n ℂ, N.rank ≤ 1 → ‖A - M‖ ≤ ‖A - N‖
+The rank-1 truncated SVD is such a minimizer, by the spectral-norm
+Eckart-Young theorem (`eckart_young_spectral`). -/
+theorem exists_spectral_minimizer_rank1 (A : Matrix n n ℂ) :
+    ∃ M : Matrix n n ℂ, M.rank ≤ 1 ∧
+      ∀ N : Matrix n n ℂ, N.rank ≤ 1 → ‖A - M‖ ≤ ‖A - N‖ :=
+  ⟨Matrix.SVD.truncatedSVD A 1, Matrix.SVD.truncatedSVD_rank_le A 1,
+    fun N hN => eckart_young_spectral A 1 N hN⟩
 
-/-- The spectral-optimal rank-1 approximation (chosen via axiom of choice). -/
+/-- The spectral-optimal rank-1 approximation (chosen via `Classical.choose`). -/
 noncomputable def spectralOptimalRank1 (A : Matrix n n ℂ) : Matrix n n ℂ :=
   Classical.choose (exists_spectral_minimizer_rank1 A)
 

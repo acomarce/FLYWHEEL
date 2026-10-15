@@ -20,11 +20,8 @@ Counter-example for spectral preservation: anti-diagonal permutation.
 
 ## Implementation Status
 
-Mostly done but there's one `sorry` at the end that I couldn't figure out.
-The issue is with relating rectangular SVD to square SVD when the dimensions
-don't match up nicely. Might need a helper lemma from Mathlib that I couldn't find.
-
-Last updated: 2025-01-03 (still broken)
+Complete: no `sorry`. The former Part 5 coherence claim was false and has been
+replaced by a note with an explicit counterexample.
 -/
 
 import MatrixNormRelations
@@ -1225,33 +1222,19 @@ end TightKroneckerBound
 
 /-! ## Part 5: Coherence and Spectral-Frobenius Coincidence
 
-When do Frobenius-optimal and spectral-optimal coincide exactly?
-Characterized by coherence of the error term.
+A previous draft stated that high coherence of the rearranged error
+`E' = R(C) - truncatedSVD_rect (R C) 1` (`μ(E') ≥ 0.9`) forces
+`‖E‖₂ ≥ 0.9 · ‖E‖_F` for the original-space error `E = R⁻¹(E')`. That statement
+is false and has been removed:
+
+* High coherence bounds the spectral norm from *above* relative to Frobenius
+  (`‖E'‖_F / ‖E'‖₂ = √rank · μ(E')`, see `frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect`).
+* `R` preserves the Frobenius norm but not the spectral norm.
+
+Counterexample with `m = n = p = q = Fin 2`: let `R(C) = vec(I₂) vec(I₂)ᵀ + 3 e e ᵀ`
+with `e` the basis vector at index `(0, 1)`. The singular values are `3 > 2`, so the
+rank-1 truncation is `3 e eᵀ` and `E' = vec(I₂) vec(I₂)ᵀ` has rank 1 and `μ(E') = 1`.
+But `E = R⁻¹(E') = I₄`, with `‖E‖₂ = 1 < 0.9 · 2 = 0.9 · ‖E‖_F`.
 -/
-
-section CoherenceCoincidence
-
--- Enable L2 operator norm instances locally
-attribute [local instance] Matrix.instL2OpNormedAddCommGroup
-attribute [local instance] Matrix.instL2OpNormedSpace
-attribute [local instance] Matrix.instL2OpNormedRing
-attribute [local instance] Matrix.instL2OpNormedAlgebra
-attribute [local instance] Matrix.instL2OpMetricSpace
-attribute [local instance] Matrix.instCStarRing
-
-/-- When coherence factor μ → 1, spectral ≈ Frobenius error. -/
-theorem frobenius_spectral_coincide_high_coherence
-    (h_dim : 0 < min (Fintype.card (m × p)) (Fintype.card (n × q)))
-    (C : Matrix (m × n) (p × q) ℂ)
-    (hC : C ≠ 0)
-    (μ_threshold : ℝ) (hμ : 0.9 ≤ μ_threshold)
-    (h_coh : μ_threshold ≤ coherenceFactorRect
-               (KroneckerRearrangement.R C - truncatedSVD_rect (KroneckerRearrangement.R C) 1)) :
-    ‖C - KroneckerRearrangement.R_inv (truncatedSVD_rect (KroneckerRearrangement.R C) 1)‖ ≥
-    0.9 * frobeniusNormRect
-           (C - KroneckerRearrangement.R_inv (truncatedSVD_rect (KroneckerRearrangement.R C) 1)) :=
-  sorry -- TODO
-
-end CoherenceCoincidence
 
 end Matrix.TightBounds

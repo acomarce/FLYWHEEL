@@ -1974,11 +1974,11 @@ noncomputable def leftUnitary (A : Matrix m n ℂ) : unitaryGroup m ℂ :=
   (posSemidef_self_mul_conjTranspose A).isHermitian.eigenvectorUnitary
 
 /-- The bijection used by eigenvalues to map a Fintype to `Fin (card α)`.
-    This is equivalent to `Fintype.equivFin` and matches how Mathlib's
-    `eigenvalues` is defined in terms of `eigenvalues₀`.
-    We define this directly as `equivFin` for better proof interaction. -/
+    This is exactly the bijection in Mathlib's definition
+    `eigenvalues i = eigenvalues₀ ((Fintype.equivOfCardEq (Fintype.card_fin _)).symm i)`,
+    so the two indexings agree definitionally. -/
 noncomputable def eigenvaluesBijection (α : Type*) [Fintype α] : α ≃ Fin (Fintype.card α) :=
-  Fintype.equivFin α
+  (Fintype.equivOfCardEq (Fintype.card_fin (Fintype.card α))).symm
 
 /-! ### Rectangular "Diagonal" Matrix -/
 
@@ -2010,26 +2010,26 @@ plus adapting square-case column norm proofs to rectangular index types.
 /-! #### Index Embedding Helpers
 
 These functions cleanly map indices from `Fin (min #m #n)` to the abstract types m and n.
-They compose `Fin.castLE` with `Fintype.equivFin` for canonical bijections. -/
+They compose `Fin.castLE` with `eigenvaluesBijection` for canonical bijections. -/
 
 /-- Embed an index from `Fin (min #m #n)` into the type `m`.
-    This uses the canonical bijection `Fintype.equivFin m` and `Fin.castLE`. -/
+    This uses the bijection `eigenvaluesBijection m` and `Fin.castLE`. -/
 noncomputable def embedMinToM (k : Fin (min (Fintype.card m) (Fintype.card n))) : m :=
-  (Fintype.equivFin m).symm (Fin.castLE (Nat.min_le_left _ _) k)
+  (eigenvaluesBijection m).symm (Fin.castLE (Nat.min_le_left _ _) k)
 
 /-- Embed an index from `Fin (min #m #n)` into the type `n`.
-    This uses the canonical bijection `Fintype.equivFin n` and `Fin.castLE`. -/
+    This uses the bijection `eigenvaluesBijection n` and `Fin.castLE`. -/
 noncomputable def embedMinToN (k : Fin (min (Fintype.card m) (Fintype.card n))) : n :=
-  (Fintype.equivFin n).symm (Fin.castLE (Nat.min_le_right _ _) k)
+  (eigenvaluesBijection n).symm (Fin.castLE (Nat.min_le_right _ _) k)
 
 set_option linter.unusedSectionVars false in
 /-- The embedding `embedMinToM` is injective. -/
 theorem embedMinToM_injective : Function.Injective (embedMinToM (m := m) (n := n)) := by
   intro k₁ k₂ h
   simp only [embedMinToM] at h
-  have h1 : (Fintype.equivFin m).symm (Fin.castLE (Nat.min_le_left _ _) k₁) =
-            (Fintype.equivFin m).symm (Fin.castLE (Nat.min_le_left _ _) k₂) := h
-  have h2 := (Fintype.equivFin m).symm.injective h1
+  have h1 : (eigenvaluesBijection m).symm (Fin.castLE (Nat.min_le_left _ _) k₁) =
+            (eigenvaluesBijection m).symm (Fin.castLE (Nat.min_le_left _ _) k₂) := h
+  have h2 := (eigenvaluesBijection m).symm.injective h1
   exact Fin.castLE_injective _ h2
 
 set_option linter.unusedSectionVars false in
@@ -2037,50 +2037,20 @@ set_option linter.unusedSectionVars false in
 theorem embedMinToN_injective : Function.Injective (embedMinToN (m := m) (n := n)) := by
   intro k₁ k₂ h
   simp only [embedMinToN] at h
-  have h1 : (Fintype.equivFin n).symm (Fin.castLE (Nat.min_le_right _ _) k₁) =
-            (Fintype.equivFin n).symm (Fin.castLE (Nat.min_le_right _ _) k₂) := h
-  have h2 := (Fintype.equivFin n).symm.injective h1
+  have h1 : (eigenvaluesBijection n).symm (Fin.castLE (Nat.min_le_right _ _) k₁) =
+            (eigenvaluesBijection n).symm (Fin.castLE (Nat.min_le_right _ _) k₂) := h
+  have h2 := (eigenvaluesBijection n).symm.injective h1
   exact Fin.castLE_injective _ h2
-
-/-! #### Type Coercion Bridge Lemmas -/
-
-/-- Fintype.equivFin α equals (equivOfCardEq (card_fin _)).symm.
-
-    Both are noncomputable bijections `α ≃ Fin (card α)` obtained via `Trunc.out`.
-    This is a technical lemma needed to bridge between different ways Mathlib
-    constructs equivalences to Fin types.
-
-    NOTE: This relies on the internal implementation details of how Mathlib
-    constructs these equivalences. Both ultimately use the same enumeration
-    from `Fintype.elems`, so they should agree. -/
-lemma equivFin_eq_equivOfCardEq_symm (α : Type*) [Fintype α] :
-    Fintype.equivFin α = (Fintype.equivOfCardEq (Fintype.card_fin (Fintype.card α))).symm := by
-  -- This is a definitional equality at the Trunc level - both are built from
-  -- truncEquivFin which uses the same underlying enumeration.
-  -- However, the composed Trunc operations make this non-trivially definitional.
-  --
-  -- Technical note: Both equivFin and equivOfCardEq.symm produce α ≃ Fin (card α)
-  -- by extracting from Trunc values. The key insight is that:
-  -- 1. truncEquivFin α produces Trunc (α ≃ Fin (card α)) from univ enumeration
-  -- 2. truncEquivOfCardEq composes truncEquivFin with itself (for Fin types)
-  -- 3. When β = Fin (card α), the composition simplifies to identity on Fin
-  --
-  -- The proof requires showing that truncEquivFin.out composed with its own
-  -- inverse (via equivOfCardEq) gives the identity, which holds by construction.
-  sorry
 
 omit [DecidableEq m] [DecidableEq n] in
 /-- The eigenvalues bijection composed with embedMinToN recovers castLE.
     This is the fundamental bridge: `eigenvaluesBijection n' (embedMinToN k) = castLE k`.
 
-    Mathematical insight: Both `eigenvaluesBijection` (via equivOfCardEq.symm) and
-    `embedMinToN` (via equivFin.symm) are noncomputable bijections chosen via Trunc.out.
-    This lemma states they compose to give the expected castLE result. -/
+    Since `embedMinToN` is defined via `(eigenvaluesBijection n).symm`, this is
+    `Equiv.apply_symm_apply`. -/
 theorem eigenvaluesBijection_embedMinToN (k : Fin (min (Fintype.card m) (Fintype.card n))) :
     eigenvaluesBijection n (embedMinToN k) = Fin.castLE (Nat.min_le_right _ _) k := by
   unfold embedMinToN eigenvaluesBijection
-  -- eigenvaluesBijection = equivFin, embedMinToN uses equivFin.symm
-  -- So: equivFin ((equivFin).symm (castLE k)) = castLE k by apply/symm cancel
   simp only [Equiv.apply_symm_apply]
 
 omit [DecidableEq m] [DecidableEq n] in
@@ -2090,7 +2060,6 @@ theorem embedMinToN_eigenvaluesBijection_inverse
     (i : Fin (Fintype.card n)) (hi : i.val < min (Fintype.card m) (Fintype.card n)) :
     embedMinToN (m := m) ⟨i.val, hi⟩ = (eigenvaluesBijection n).symm i := by
   unfold embedMinToN eigenvaluesBijection
-  -- Goal: (equivFin n).symm (castLE ⟨i.val, hi⟩) = (equivFin n).symm i
   -- castLE ⟨i.val, hi⟩ = i (both have the same val), so congr closes it
   congr 1
 
@@ -2106,12 +2075,8 @@ theorem eigenvalues_at_embedMinToN_eq_eigenvalues₀_castLE
   -- So we need: (equivOfCardEq ...).symm (embedMinToN k) = castLE k
   simp only [Matrix.IsHermitian.eigenvalues]
   congr 1
-  -- eigenvaluesBijection = equivFin = (equivOfCardEq ...).symm by equivFin_eq_equivOfCardEq_symm
   have h := eigenvaluesBijection_embedMinToN (m := m) k
   unfold eigenvaluesBijection at h
-  -- h : equivFin n (embedMinToN k) = castLE k
-  -- Need: (equivOfCardEq ...).symm (embedMinToN k) = castLE k
-  rw [equivFin_eq_equivOfCardEq_symm] at h
   exact h
 
 /-- For j : n' with eigenvaluesBijection(j).val < min, we can convert j to a Fin min index. -/
@@ -2126,7 +2091,6 @@ theorem embedMinToN_finMinOfAbstract (j : n)
     (hj : (eigenvaluesBijection n j).val < min (Fintype.card m) (Fintype.card n)) :
     embedMinToN (m := m) (finMinOfAbstract j hj) = j := by
   unfold finMinOfAbstract embedMinToN eigenvaluesBijection
-  simp_rw [equivFin_eq_equivOfCardEq_symm]
   -- Goal: (equivOfCardEq ..) (castLE ⟨(equivOfCardEq ..).symm j, hj⟩) = j
   -- Key: castLE preserves value, and equivOfCardEq (equivOfCardEq.symm j) = j
   conv_lhs => rw [show Fin.castLE _ ⟨((Fintype.equivOfCardEq (Fintype.card_fin _)).symm j).val, _⟩ =
@@ -2326,8 +2290,7 @@ lemma singularValues_eq_singularValueFromEigenvalue (A : Matrix m n ℂ) (j : n)
     (h_in_min : (eigenvaluesBijection n j).val < min (Fintype.card m) (Fintype.card n)) :
     singularValues A ⟨(eigenvaluesBijection n j).val, h_in_min⟩ = singularValueFromEigenvalue A j := by
   -- After architectural change: both singularValues and singularValueFromEigenvalue use Aᴴ*A
-  -- Since eigenvaluesBijection = equivFin and eigenvalues uses equivOfCardEq.symm bijection,
-  -- we need to bridge via our equivFin_eq_equivOfCardEq_symm lemma
+  -- eigenvaluesBijection is definitionally the bijection used by Mathlib's eigenvalues
   simp only [singularValues, singularValueFromEigenvalue]
   congr 1
   -- Goal: eigenvalues₀ (Fin.castLE .. ⟨(eigenvaluesBijection n j).val, h_in_min⟩) = eigenvalues j
@@ -3558,12 +3521,11 @@ theorem AV_eq_US_rectangular (A : Matrix m n ℂ) :
       -- because AᴴA has at most m nonzero eigenvalues
       unfold singularValueFromEigenvalue
       -- eigenvalues j = eigenvalues₀ (equivOfCardEq.symm j) by Mathlib definition
-      -- eigenvaluesBijection = equivFin = equivOfCardEq.symm by our bridge lemma
+      -- eigenvaluesBijection is this bijection by definition
       have h_eq : (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues j =
                   (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀
                     (eigenvaluesBijection n j) := by
         unfold eigenvaluesBijection
-        simp_rw [equivFin_eq_equivOfCardEq_symm]
         rfl
       rw [h_eq]
       -- Use eigenvalues₀_zero_beyond_rank since (eigenvaluesBijection n j).val ≥ card m
