@@ -1,0 +1,45 @@
+name: Lean build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Lean and fetch Mathlib cache
+        uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: src
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: true
+
+      - name: Build all libraries
+        working-directory: src
+        run: |
+          set -o pipefail
+          lake build SVD KroneckerRearrangement MatrixNormRelations FrobeniusNorm \
+            CourantFischer WeylInequality SpectralNormGap CoherenceCharacterization \
+            TightBounds TruncatedSVDRank1 2>&1 | tee build.log
+
+      - name: Check for sorry and axioms
+        working-directory: src
+        run: |
+          if grep -n "declaration uses 'sorry'" build.log; then
+            echo "::error::Build contains sorry"; exit 1
+          fi
+          if grep -nE "^\s*(axiom|sorry\b)|\bsorry\b|\badmit\b" --include=*.lean -r . --exclude-dir=.lake; then
+            echo "::error::Source contains axiom/sorry/admit"; exit 1
+          fi
