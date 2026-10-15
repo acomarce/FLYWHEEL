@@ -348,9 +348,12 @@ theorem truncatedSVD_rect_rank_le {m' n' : Type*} [Fintype m'] [Fintype n']
                   (fun j => ⟨(SVD.Rectangular.eigenvaluesBijection n' j.1).val, by
                     by_contra h
                     exact j.2 (if_neg h)⟩)
-                  (fun a b hab => Subtype.ext
-                    ((SVD.Rectangular.eigenvaluesBijection n').injective
-                      (Fin.ext (congrArg Fin.val hab))))
+                  (fun a b hab => by
+                    apply Subtype.ext
+                    apply (SVD.Rectangular.eigenvaluesBijection n').injective
+                    apply Fin.ext
+                    have h := congrArg Fin.val hab
+                    simpa using h)
             _ = k := Fintype.card_fin k
         calc D.rank = (D * diagonal (fun j : n' =>
               if (SVD.Rectangular.eigenvaluesBijection n' j).val < k then (1 : ℂ) else 0)).rank := by
