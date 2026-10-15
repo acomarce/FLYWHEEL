@@ -20,7 +20,7 @@ Counter-example for spectral preservation: anti-diagonal permutation.
 
 ## Implementation Status
 
-Complete: no `sorry`. The former Part 5 coherence claim was false and has been
+Complete: no unproved goals. The former Part 5 coherence claim was false and has been
 replaced by a note with an explicit counterexample.
 -/
 
