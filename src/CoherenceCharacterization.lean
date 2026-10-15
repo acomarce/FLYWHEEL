@@ -1761,7 +1761,7 @@ theorem exists_spectral_minimizer_rank1 (A : Matrix n n ℂ) :
     ∃ M : Matrix n n ℂ, M.rank ≤ 1 ∧
       ∀ N : Matrix n n ℂ, N.rank ≤ 1 → ‖A - M‖ ≤ ‖A - N‖ :=
   ⟨Matrix.SVD.truncatedSVD A 1, Matrix.SVD.truncatedSVD_rank_le A 1,
-    fun N hN => eckart_young_spectral A 1 N hN⟩
+    fun N hN => Matrix.SVD.Rectangular.eckart_young_spectral A 1 N hN⟩
 
 /-- The spectral-optimal rank-1 approximation (chosen via `Classical.choose`). -/
 noncomputable def spectralOptimalRank1 (A : Matrix n n ℂ) : Matrix n n ℂ :=
