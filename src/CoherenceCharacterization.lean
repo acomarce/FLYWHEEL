@@ -1382,9 +1382,7 @@ theorem coherence_effectiveRank_relation (E : Matrix n n ℂ) (hE : E ≠ 0) :
 
 end IncoherentCase
 
-/-! ## Kronecker Coherence -/
-
-section KroneckerCoherence
+/-! ## Kronecker Coherence
 
 ### References
 

@@ -124,8 +124,6 @@ end EigenspaceDimension
 -- Rayleigh quotient R(x) = ⟨Ax, x⟩ / ‖x‖², central to eigenvalue charaterization
 section RayleighQuotient
 
-section RayleighQuotient
-
 variable {n : Type*} [DecidableEq n] [Fintype n] [Nonempty n]
 
 /-! ### Core Identity: Rayleigh quotient as weighted sum of eigenvalues -/
