@@ -2,27 +2,28 @@
 Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
+-/
+import MatrixNormRelations
 
-# Spectral Norm Gap for Kronecker Approximation
+/-!
+# Spectral Norm Bounds for Kronecker Approximation
 
-Key bound: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖. This is an upper bound only, and it is not tight
-in general: R⁻¹(vec I₂ (vec I₂)ᵀ) = I₂ ⊗ I₂ = I₄ has spectral norm 1, while
-‖vec I₂‖·‖vec I₂‖ = 2.
-Enables spectral error control via Frobenius-space SVD.
+`R⁻¹` is a Frobenius isometry (`R_inv_frobenius_norm_eq`) but not a spectral one, so spectral
+errors transfer through it only as upper bounds:
+- `R_inv_spectral_le_frobenius`: ‖R⁻¹ M‖₂ ≤ ‖M‖_F;
+- `spectral_error_bound_via_R`: ‖C - R⁻¹ M‖₂ ≤ ‖R C - M‖_F;
+- `R_inv_outerProduct_spectral_bound`: ‖R⁻¹(uv*)‖₂ ≤ ‖u‖·‖v‖.
+
+The first bound is attained when R⁻¹ M has rank one
+(`Matrix.Coherence.R_inv_spectral_eq_frobenius_R_outerProduct`), and it is not tight in general:
+for M = R(1), ‖R⁻¹ M‖₂ = 1 < √(#m · #n) = ‖M‖_F (`R_inv_spectral_lt_frobenius_R_one`). With
+m = n = Fin 2 this is R⁻¹(vec I₂ (vec I₂)ᵀ) = I₄.
 
 ## References
 
 [1] Van Loan & Pitsianis (1993). NATO ASI Series E vol 232.
 [2] Golub & Van Loan (2013). Matrix Computations, 4th ed.
-
-## Warning
-
-The nlinarith calls in this file are slow (~2-3s each). I tried to find cleaner
-proofs but nlinarith was the only thing that worked. If someone knows a better
-approach please let me know!
 -/
-
-import MatrixNormRelations
 
 open scoped ComplexOrder Matrix
 open Matrix
@@ -117,8 +118,8 @@ the spectral norm is bounded using the Frobenius isometry property.
 **The Key Mathematical Insight:**
 ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖
 
-For unit vectors u, v this gives ‖R⁻¹(uv*)‖₂ ≤ 1. The bound is an upper bound only; see the
-`Tightness` section for an example where it is not attained.
+For unit vectors u, v this gives ‖R⁻¹(uv*)‖₂ ≤ 1. The bound is an upper bound only; see
+`R_inv_spectral_lt_frobenius_R_one` for an example where it is not attained.
 -/
 
 section Rank1SpectralBound
@@ -270,7 +271,9 @@ end Rank1SpectralBound
 
 /-! ## Upper Bound for Spectral Norm of Kronecker Approximation Error
 
-‖C - A_F ⊗ B_F‖₂ ≤ √(Σᵢ≥2 σ̃ᵢ²) where σ̃ᵢ are singular values of R(C).
+‖C - R⁻¹ M‖₂ ≤ ‖R C - M‖_F for every M. For M the rank-1 truncated SVD of R(C), the right
+side is √(Σᵢ≥₁ σᵢ²) over the singular values σᵢ of R(C), 0-indexed
+(`Matrix.TightBounds.kroneckerApprox_error_sq`).
 -/
 
 section UpperBound
@@ -294,21 +297,11 @@ lemma R_inv_sub (M N : Matrix (m × p) (n × q) ℂ) :
   ext ⟨i, j⟩ ⟨k, l⟩
   simp only [KroneckerRearrangement.R_inv, sub_apply]
 
-/-! ### Spectral norm bound for general matrix differences via R⁻¹ -/
-
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
-
-/-- **Key spectral bound via R⁻¹ Frobenius isometry:**
-    For any matrix M, the spectral norm of R⁻¹(M) is bounded by the Frobenius norm of M.
-    This is the fundamental bridge between Frobenius-space optimization and spectral bounds. -/
-theorem spectral_norm_R_inv_le_frobenius (M : Matrix (m × p) (n × q) ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (KroneckerRearrangement.R_inv M) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm M :=
-  R_inv_spectral_le_frobenius M
 
 /-! ### Main Upper Bound Theorem -/
 
-/-- **Main Upper Bound Theorem (Main):**
+/-- **Main Upper Bound Theorem:**
     For a matrix C and any matrix M in the rearranged space, the spectral norm
     of C - R⁻¹(M) is bounded by the Frobenius norm of R(C) - M.
 
@@ -316,8 +309,9 @@ theorem spectral_norm_R_inv_le_frobenius (M : Matrix (m × p) (n × q) ℂ) :
     - Spectral norm approximation quality of Kronecker decomposition
     - Frobenius norm error in the rearranged SVD space
 
-    In particular, when M = truncatedSVD (R C) 1 (the rank-1 truncated SVD of R(C)),
-    we get the Frobenius-optimal Kronecker approximation bound.
+    In particular, for M = truncatedSVD_rect (R C) 1 (the rank-1 truncated SVD of R(C)),
+    C - R⁻¹ M is the error of the Frobenius-optimal Kronecker approximation
+    (`Matrix.TightBounds.kroneckerApprox`).
 
     Proof:
     ‖C - R⁻¹(M)‖₂ = ‖R⁻¹(R(C)) - R⁻¹(M)‖₂      [R⁻¹ ∘ R = id]
@@ -346,77 +340,21 @@ theorem spectral_error_bound_via_R
     _ ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (KroneckerRearrangement.R C - M) :=
         R_inv_spectral_le_frobenius _
 
-/-! ### Kronecker Approximation Upper Bound
-
-The Frobenius-optimal Kronecker approximation in the rearranged space is the
-rank-1 truncated SVD of R(C). We define the spectral error bound using this.
-
-Note: We work with square matrices for R(C) : Matrix (m × p) (n × q) ℂ.
-When m × p and n × q have the same cardinality (i.e., mp = nq), the SVD
-theorems from SVD.lean apply directly.
-
-For the general rectangular case, we would need rectangular SVD theory,
-which is partially developed in MatrixNormRelations.lean. For now, we
-state the bound in terms of the Frobenius error of ANY matrix M.
--/
-
-/-- **General Kronecker Spectral Error Bound:**
-    For any target approximation M in the rearranged space, the spectral norm error
-    of the induced Kronecker approximation C - R⁻¹(M) is bounded by the Frobenius
-    error ‖R(C) - M‖_F.
-
-    When M is the rank-1 truncated SVD of R(C), we get the optimal bound
-    √(Σᵢ≥₂ σ̃ᵢ²) by Eckart-Young.
-
-    This theorem is stated generally to avoid requiring square matrix SVD. -/
-theorem kronecker_spectral_error_le_frobenius_error
-    (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - KroneckerRearrangement.R_inv M) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (KroneckerRearrangement.R C - M) :=
-  spectral_error_bound_via_R C M
-
 end UpperBound
 
 /-! ## Square Matrix Specialization
 
-When the rearranged matrix R(C) is square (i.e., Fintype.card (m × p) = Fintype.card (n × q)),
-we can apply the full SVD machinery and Eckart-Young theorem to get explicit bounds
-in terms of singular values.
+For a square matrix A, the spectral error of the rank-k truncated SVD is at most its Frobenius
+error √(Σᵢ≥ₖ σᵢ²). It is in fact exactly σₖ
+(`Matrix.SVD.Rectangular.spectral_error_truncatedSVD`).
 -/
 
 section SquareCase
 
-variable {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
+variable {n' : Type*} [Fintype n'] [DecidableEq n']
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
-omit [Nonempty n'] in
-/-- **Kronecker Spectral Error with Explicit Singular Value Bound (Square Case):**
-    For a square rearranged matrix R(C) : Matrix n' n' ℂ, the spectral error of
-    the rank-k Kronecker approximation equals the Frobenius tail error.
-
-    ‖C - R⁻¹(truncatedSVD (R C) k)‖₂ ≤ √(Σᵢ≥ₖ σ̃ᵢ²)
-
-    where σ̃ᵢ are the singular values of R(C).
-
-    Note: This requires C to have index structure such that R(C) is square,
-    which happens when Fintype.card (m × p) = Fintype.card (n × q).
-    We state this for a direct square matrix input. -/
-theorem kronecker_spectral_error_truncatedSVD
-    (C : Matrix n' n' ℂ) (k : ℕ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - Matrix.SVD.truncatedSVD C k) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (C - Matrix.SVD.truncatedSVD C k) :=
-  l2_opNorm_le_frobenius _
-
-omit [Nonempty n'] in
-/-- **The Frobenius error of truncated SVD equals sum of squared tail singular values.**
-    Re-exported from FrobeniusNorm.lean for convenience. -/
-theorem frobenius_error_truncatedSVD_sq (A : Matrix n' n' ℂ) (k : ℕ) :
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (A - Matrix.SVD.truncatedSVD A k) ^ 2 =
-    ∑ i : n', (Matrix.SVD.truncatedSingularValues_tail A k i) ^ 2 :=
-  FrobeniusNorm.frobenius_error_truncatedSVD A k
-
-omit [Nonempty n'] in
 /-- **Combined Spectral-Frobenius Bound:**
     The spectral norm of the truncated SVD error is bounded by the square root of
     the sum of squared tail singular values.
@@ -427,7 +365,7 @@ theorem spectral_error_le_sqrt_sum_tail_sq (A : Matrix n' n' ℂ) (k : ℕ) :
     Real.sqrt (∑ i : n', (Matrix.SVD.truncatedSingularValues_tail A k i) ^ 2) := by
   -- ‖A - Aₖ‖₂ ≤ ‖A - Aₖ‖_F = √(Σ tail²)
   have h_spectral_le_frob := l2_opNorm_le_frobenius (A - Matrix.SVD.truncatedSVD A k)
-  have h_frob_sq := frobenius_error_truncatedSVD_sq A k
+  have h_frob_sq := FrobeniusNorm.frobenius_error_truncatedSVD A k
   -- ‖A - Aₖ‖_F = √(‖A - Aₖ‖_F²) = √(Σ tail²)
   have h_frob_eq : @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
       (A - Matrix.SVD.truncatedSVD A k) =
@@ -440,53 +378,18 @@ theorem spectral_error_le_sqrt_sum_tail_sq (A : Matrix n' n' ℂ) (k : ℕ) :
         h_spectral_le_frob
     _ = Real.sqrt (∑ i : n', (Matrix.SVD.truncatedSingularValues_tail A k i) ^ 2) := h_frob_eq
 
-omit [Nonempty n'] in
-/-- **Rank-1 Approximation Bound:**
-    For k = 1 (rank-1 approximation), the spectral error is bounded by
-    √(σ₂² + σ₃² + ⋯ + σₙ²). -/
-theorem spectral_error_rank1_bound (A : Matrix n' n' ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (A - Matrix.SVD.truncatedSVD A 1) ≤
-    Real.sqrt (∑ i : n', (Matrix.SVD.truncatedSingularValues_tail A 1 i) ^ 2) :=
-  spectral_error_le_sqrt_sum_tail_sq A 1
-
 end SquareCase
 
-/-! ## Summary: Complete
+/-! ## Outer Product Bounds
 
-The main results of are:
-
-1. `spectral_error_bound_via_R`: The general bound
-   ‖C - R⁻¹(M)‖₂ ≤ ‖R(C) - M‖_F
-
-2. `kronecker_spectral_error_le_frobenius_error`: The Kronecker-specific version
-
-3. `spectral_error_le_sqrt_sum_tail_sq`: For square matrices with SVD,
-   ‖A - truncatedSVD A k‖₂ ≤ √(Σᵢ≥ₖ σᵢ²)
-
-4. `spectral_error_rank1_bound`: The rank-1 case specialization
-
-These results establish that the Frobenius-optimal Kronecker approximation
-(obtained via SVD of the rearranged matrix) has spectral error bounded by
-the Frobenius tail error √(Σᵢ≥₂ σ̃ᵢ²).
-
-This is the key result for the Spectral Norm Gap attack, showing that while
-the Frobenius-optimal approximation may not be spectrally optimal, its
-spectral error is explicitly bounded.
+Bounds for outer products u v* and for R⁻¹ applied to them. The R⁻¹ bound
+‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖ is not tight in general: write u = vec A and v = vec B, so
+R⁻¹(outerProduct u v) = A ⊗ B (by `R_kronecker`), whose spectral norm ‖A‖₂·‖B‖₂ is less than
+‖A‖_F·‖B‖_F = ‖u‖·‖v‖ unless A or B is 0 or both have rank 1.
+`R_inv_spectral_lt_frobenius_R_one` formalizes the case A = B = 1.
 -/
 
-/-! ## Tightness
-
-Despite the section name, no result in this section shows that a bound is attained. The
-results are upper bounds (`≤`), norm identities and helper lemmas.
-
-The R⁻¹ bound ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖ is not tight in general. Write u = vec A and
-v = vec B. Then R⁻¹(outerProduct u v) = A ⊗ B (by `R_kronecker`), whose spectral norm
-‖A‖₂·‖B‖₂ is less than ‖A‖_F·‖B‖_F = ‖u‖·‖v‖ unless A or B is 0 or both have rank 1 (this
-is not formalized). For example, A = B = I₂ gives R⁻¹(vec I₂ (vec I₂)ᵀ) = I₄, with spectral
-norm 1 < 2.
--/
-
-section Tightness
+section OuterProductBounds
 
 /-! ### Part A: Rank-1 Matrix Norm Bounds
 
@@ -533,30 +436,8 @@ theorem outerProduct_spectral_le_frobenius (u : EuclideanSpace ℂ m) (v : Eucli
 
 /-! ### Part B: R⁻¹ Bounds for Outer Products
 
-Upper bounds for ‖R⁻¹(uv*)‖₂. They are not tight in general: see the counterexample at the
-start of the `Tightness` section.
+Upper bounds for ‖R⁻¹(uv*)‖₂, and an example where ‖R⁻¹ M‖₂ ≤ ‖M‖_F is strict.
 -/
-
-/-- The R⁻¹ bound for outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖u‖·‖v‖.
-    The proof uses spectral ≤ Frobenius and the R isometry:
-    ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖.
-
-    Despite the name, nothing shows the bound is achieved; it is not tight in general
-    (see the `Tightness` section). -/
-theorem R_inv_bound_achievable_rank1 (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) ≤
-    ‖u‖ * ‖v‖ := by
-  -- ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖
-  calc @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-        (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v))
-      ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) :=
-        l2_opNorm_le_frobenius _
-    _ = @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.outerProduct u v) :=
-        R_inv_frobenius_norm_eq _
-    _ = ‖u‖ * ‖v‖ := outerProduct_frobenius_norm' u v
 
 /-- The R⁻¹ bound against the Frobenius norm of the outer product: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F. -/
 theorem R_inv_outerProduct_le_outerProduct_frobenius
@@ -574,15 +455,41 @@ theorem R_inv_outerProduct_le_outerProduct_frobenius
           (KroneckerRearrangement.outerProduct u v) :=
         R_inv_frobenius_norm_eq _
 
+/-- **The bound ‖R⁻¹ M‖₂ ≤ ‖M‖_F is not tight in general.** For M = R(1), with 1 the identity
+    of Matrix (m × n) (m × n) ℂ and #m · #n ≥ 2:
+    ‖R⁻¹ M‖₂ = ‖1‖₂ = 1 < √(#m · #n) = ‖1‖_F = ‖M‖_F.
+    For m = n = Fin 2 this is R⁻¹(vec I₂ (vec I₂)ᵀ) = I₄. -/
+theorem R_inv_spectral_lt_frobenius_R_one [Nonempty m] [Nonempty n]
+    (h : 1 < Fintype.card (m × n)) :
+    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
+      (KroneckerRearrangement.R_inv (KroneckerRearrangement.R (1 : Matrix (m × n) (m × n) ℂ))) <
+    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
+      (KroneckerRearrangement.R (1 : Matrix (m × n) (m × n) ℂ)) := by
+  rw [KroneckerRearrangement.R_inv_R]
+  -- ‖1‖₂ = 1, the C*-norm of the identity
+  have h_one : @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
+      (1 : Matrix (m × n) (m × n) ℂ) = 1 := CStarRing.norm_one
+  -- ‖R 1‖_F² = ‖1‖_F² = #m · #n
+  have h_frob_sq : @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
+      (KroneckerRearrangement.R (1 : Matrix (m × n) (m × n) ℂ)) ^ 2 = Fintype.card (m × n) := by
+    rw [KroneckerRearrangement.R_frobenius_norm_eq, ← Matrix.diagonal_one,
+      FrobeniusNorm.frobenius_norm_sq_diagonal]
+    simp
+  have h_card : (1 : ℝ) < Fintype.card (m × n) := by exact_mod_cast h
+  have h_nonneg : 0 ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
+      (KroneckerRearrangement.R (1 : Matrix (m × n) (m × n) ℂ)) := norm_nonneg _
+  rw [h_one]
+  nlinarith
+
 /-! ### Part C: Coherence and Gap Characterization
 
 The "gap" between spectral and Frobenius norms for a matrix A is characterized by:
   gap(A) = ‖A‖_F / ‖A‖₂ = √(Σᵢ σᵢ²) / σ₁
 
-This ratio is always ≥ 1 (`frobenius_spectral_ratio_ge_one`). Only that inequality is
-proved here. CoherenceCharacterization proves that outer products attain it
-(`Matrix.Coherence.rank_one_spectral_eq_frobenius`); the converse (equality only for rank 1)
-is not formalized.
+This ratio is always ≥ 1 (`frobenius_spectral_ratio_ge_one`) and at most √rank(A)
+(`Matrix.Coherence.coherenceFactor_le_one`). CoherenceCharacterization proves that outer
+products attain 1 (`Matrix.Coherence.rank_one_spectral_eq_frobenius`); the converse (equality
+only for rank 1) is not formalized.
 -/
 
 /-- The ratio ‖A‖_F / ‖A‖₂ is always at least 1 (for nonzero A).
@@ -593,7 +500,7 @@ is not formalized.
     Only the inequality is proved here. Outer products attain it
     (`Matrix.Coherence.rank_one_spectral_eq_frobenius`); the converse (equality only for
     rank 1) is not formalized. -/
-theorem frobenius_spectral_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
+theorem frobenius_spectral_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n']
     (A : Matrix n' n' ℂ) (hA : A ≠ 0) :
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A /
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≥ 1 := by
@@ -606,88 +513,20 @@ theorem frobenius_spectral_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n
   rw [ge_iff_le, one_le_div h_spectral_pos]
   exact h_le
 
-omit [DecidableEq m] [DecidableEq n] in
-/-- The Frobenius norm of an outer product: ‖uv*‖_F = ‖u‖·‖v‖.
-    This restates `outerProduct_frobenius_norm'`; it does not compute a coherence ratio. -/
-theorem coherence_ratio_outerProduct_frobenius (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.outerProduct u v) = ‖u‖ * ‖v‖ :=
-  outerProduct_frobenius_norm' u v
-
-/-- Spectral ≤ Frobenius for an approximation error: ‖C - M‖₂ ≤ ‖C - M‖_F.
-    Only this inequality is proved here; it says nothing about how the gap depends on
-    the singular values of C - M. -/
-theorem kronecker_error_gap_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (C M : Matrix n' n' ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - M) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (C - M) :=
-  l2_opNorm_le_frobenius _
-
-/-- The R⁻¹ bound for rank-1 outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F.
-
-    Despite the name, this proves only the upper bound. It has the same statement as
-    `R_inv_outerProduct_le_outerProduct_frobenius`. The bound is not tight in general:
-    R⁻¹(vec I₂ (vec I₂)ᵀ) = I₄ has spectral norm 1, while ‖vec I₂ (vec I₂)ᵀ‖_F = 2. -/
-theorem bound_tight_rank1 (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.outerProduct u v) := by
-  calc @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-        (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v))
-      ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) :=
-        l2_opNorm_le_frobenius _
-    _ = @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.outerProduct u v) :=
-        R_inv_frobenius_norm_eq _
-
-end Tightness
-
-/-! ## Summary: Complete
-
-The main results of are:
-
-1. `outerProduct_spectral_norm_le`: ‖uv*‖₂ ≤ ‖u‖·‖v‖ (upper bound on spectral norm of rank-1)
-
-2. `outerProduct_spectral_le_frobenius`: Spectral ≤ Frobenius for outer products
-
-3. `R_inv_bound_achievable_rank1`: ‖R⁻¹(uv*)‖₂ ≤ ‖u‖·‖v‖ (the bound)
-
-4. `R_inv_outerProduct_le_outerProduct_frobenius`: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F
-
-5. `frobenius_spectral_ratio_ge_one`: The coherence ratio is always ≥ 1
-
-6. `bound_tight_rank1`: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F (an upper bound only, despite the name)
-
-All of these are upper bounds or norm identities. None of them shows that a bound is
-attained, and the R⁻¹ bounds are not tight in general (see the start of `Tightness`).
--/
+end OuterProductBounds
 
 end Matrix.Kronecker.SpectralGap
 
-/-! ## Spectral vs Frobenius Gap Characterization
+/-! ## Rank and Frobenius Identities
 
-This section establishes bounds on the gap between Frobenius-optimal and spectral-optimal
-Kronecker approximations, addressing the question: when does VLP (Van Loan-Pitsianis)
-fail to find the spectral-optimal approximation?
+`R(A ⊗ B)` has rank at most 1 (`rank_R_kronecker_le_one`), and the Frobenius norm squared is
+the sum of the squared singular values (`frobenius_norm_sq_eq_sum_singularValues_sq`).
 
-**Key insight from Paper 1 (Spectral Norm Optimization):**
-The Frobenius-optimal rank-1 approximation may not be spectrally optimal.
-The gap is characterized by the distribution of singular values.
-
-### Main Results
-
-* `spectral_error_eq_next_singularValue`: ‖A - Aₖ‖₂ = σₖ (spectral error is exact)
-* `frobenius_optimal_spectral_gap`: The gap between Frobenius-optimal and spectral-optimal
-
-**Mathematical Background:**
-For a matrix A with singular values σ₀ ≥ σ₁ ≥ ... ≥ σₙ₋₁:
-- Frobenius error of rank-k approx: √(Σᵢ≥ₖ σᵢ²)
-- Spectral error of rank-k approx: σₖ
-
-The Frobenius-optimal may differ from spectral-optimal when the tail singular values
-have different distributions. The ratio ‖A‖_F / ‖A‖₂ = √(Σσᵢ²)/σ₀ characterizes this.
+The Frobenius-optimal Kronecker approximation (Van Loan–Pitsianis, `Matrix.TightBounds.kroneckerApprox`)
+need not minimize the spectral error ‖C - A ⊗ B‖₂, because R does not preserve the spectral
+norm. In the rearranged space there is no such gap: the rank-1 truncated SVD of R(C) is
+optimal in both norms (`Matrix.TightBounds.eckart_young_frobenius_rect`,
+`Matrix.TightBounds.eckart_young_spectral_rect`).
 -/
 
 namespace Matrix.Kronecker.SpectralGapCharacterization
@@ -720,11 +559,7 @@ theorem rank_R_kronecker_le_one (A : Matrix m p ℂ) (B : Matrix n q ℂ) :
 
 end RankBounds
 
-/-! ### Part B: Spectral-Frobenius Gap for General Matrices
-
-For any matrix, the spectral norm is bounded by the Frobenius norm.
-The gap between them characterizes the "spread" of singular values.
--/
+/-! ### Part B: Frobenius Norm and Singular Values -/
 
 section GapCharacterization
 
@@ -733,7 +568,7 @@ attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 /-- The Frobenius norm squared equals the sum of squared singular values.
     This is a fundamental identity connecting norms and singular values. -/
 theorem frobenius_norm_sq_eq_sum_singularValues_sq {n' : Type*} [Fintype n'] [DecidableEq n']
-    [Nonempty n'] (A : Matrix n' n' ℂ) :
+    (A : Matrix n' n' ℂ) :
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A ^ 2 =
     ∑ i, SVD.singularValues A i ^ 2 := by
   -- The proof connects:
@@ -770,103 +605,6 @@ theorem frobenius_norm_sq_eq_sum_singularValues_sq {n' : Type*} [Fintype n'] [De
   simp only [Complex.star_def, Complex.mul_re, Complex.conj_re, Complex.conj_im]
   ring
 
-/-- **Frobenius-to-Spectral Gap Bound:**
-    The spectral norm of a matrix is at most its Frobenius norm, with the gap
-    determined by the distribution of singular values.
-
-    ‖A‖₂ = σ₀ ≤ √(Σᵢ σᵢ²) = ‖A‖_F
-
-    The ratio ‖A‖_F / ‖A‖₂ = √(1 + Σᵢ≥₁ (σᵢ/σ₀)²) measures the "effective rank".
-    Only ‖A‖₂ ≤ ‖A‖_F is proved here, not the ratio formula or the rank-1 equality
-    case. -/
-theorem spectral_le_frobenius_with_gap {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (A : Matrix n' n' ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A :=
-  SpectralGap.l2_opNorm_le_frobenius A
-
-/-- **Coherence Ratio Bound:**
-    For any nonzero matrix, the ratio of Frobenius to spectral norm is at least 1.
-    Only the inequality is proved here. Outer products attain it
-    (`Matrix.Coherence.rank_one_spectral_eq_frobenius`); the converse is not formalized.
-
-    This ratio is sometimes called the "stable rank" or "effective rank". -/
-theorem coherence_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (A : Matrix n' n' ℂ) (hA : A ≠ 0) :
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A /
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≥ 1 :=
-  SpectralGap.frobenius_spectral_ratio_ge_one A hA
-
 end GapCharacterization
-
-/-! ### Part C: Frobenius-Optimal vs Spectral-Optimal Kronecker Approximation
-
-The key theorem: the spectral error of the Frobenius-optimal Kronecker approximation
-is bounded by the Frobenius error, with the gap characterized by effective rank.
--/
-
-section KroneckerOptimality
-
-attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
-
-/-- **Main Gap Bound for Kronecker Approximation:**
-    For a matrix C and its Frobenius-optimal rank-1 Kronecker approximation A_F ⊗ B_F:
-
-    ‖C - A_F ⊗ B_F‖₂ ≤ ‖C - A_F ⊗ B_F‖_F
-
-    The Frobenius error equals the square root of sum of squared tail singular values
-    of R(C). The spectral error is bounded by this but may be strictly smaller.
-
-    **When are they equal?** When the error C - A_F ⊗ B_F has rank 1, which happens
-    when C itself is rank-1 in the rearranged space.
-
-    **When is the gap large?** When the error has many comparable singular values,
-    i.e., when C requires multiple Kronecker terms for good approximation. -/
-theorem kronecker_approx_spectral_le_frobenius
-    (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (C - KroneckerRearrangement.R_inv M) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.R C - M) :=
-  SpectralGap.kronecker_spectral_error_le_frobenius_error C M
-
-/-- **Explicit Gap Bound via Effective Rank:**
-    The ratio of spectral to Frobenius error for Kronecker approximation is bounded
-    by the effective rank of the error matrix.
-
-    If the error R(C) - M has r significant singular values of comparable magnitude,
-    then the spectral error is approximately 1/√r times the Frobenius error.
-
-    This theorem provides an upper bound: spectral ≤ Frobenius (ratio ≤ 1). -/
-theorem spectral_frobenius_error_ratio_le_one
-    (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (C - KroneckerRearrangement.R_inv M) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.R C - M) :=
-  kronecker_approx_spectral_le_frobenius C M
-
-end KroneckerOptimality
-
-/-! ### Part D: Application to Best Rank-1 Kronecker Approximation
-
-Combining the above results, we characterize when the Frobenius-optimal
-rank-1 Kronecker approximation is also spectrally optimal (or near-optimal).
--/
-
-section Rank1Application
-
-/-- For rank-1 approximations, the Frobenius-optimal choice via SVD of R(C) gives:
-    - Frobenius error = √(σ₂² + σ₃² + ⋯ + σₙ²) where σᵢ are singular values of R(C)
-    - Spectral error ≤ Frobenius error, with gap depending on σ₁ vs tail ratio
-
-    This theorem provides the explicit bound for the rank-1 case. -/
-theorem rank1_kronecker_spectral_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (C : Matrix n' n' ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - SVD.truncatedSVD C 1) ≤
-    Real.sqrt (∑ i : n', (SVD.truncatedSingularValues_tail C 1 i) ^ 2) :=
-  SpectralGap.spectral_error_rank1_bound C
-
-end Rank1Application
 
 end Matrix.Kronecker.SpectralGapCharacterization

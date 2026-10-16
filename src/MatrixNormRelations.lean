@@ -2,7 +2,20 @@
 Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
+-/
+import Mathlib.Analysis.Matrix.Spectrum
+import Mathlib.Analysis.Matrix.PosDef
+import Mathlib.Analysis.Matrix.Order
+import Mathlib.Analysis.CStarAlgebra.Matrix
+import Mathlib.Analysis.CStarAlgebra.Spectrum
+import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
+import Mathlib.Analysis.Matrix.Normed
+import Mathlib.LinearAlgebra.Matrix.Kronecker
+import Mathlib.Analysis.Complex.Order
+import FrobeniusNorm
+import KroneckerRearrangement
 
+/-!
 # Matrix Norm Relations and Eckart-Young
 
 Spectral norm ‖A‖₂ = σ₁(A). The Eckart-Young theorem for optimal
@@ -27,18 +40,6 @@ the explicit frobeniusNorm' function instead of ‖·‖.
 I wasted an entire afternoon debugging a proof that was silently using
 the wrong norm instance. Don't be like me.
 -/
-
-import Mathlib.Analysis.Matrix.Spectrum
-import Mathlib.Analysis.Matrix.PosDef
-import Mathlib.Analysis.Matrix.Order
-import Mathlib.Analysis.CStarAlgebra.Matrix
-import Mathlib.Analysis.CStarAlgebra.Spectrum
-import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
-import Mathlib.Analysis.Matrix.Normed
-import Mathlib.LinearAlgebra.Matrix.Kronecker
-import Mathlib.Analysis.Complex.Order
-import FrobeniusNorm
-import KroneckerRearrangement
 
 open Matrix
 open scoped ComplexOrder BigOperators
@@ -1192,13 +1193,9 @@ theorem kronecker_estimation_perturbation_bound [Nonempty p] [Nonempty q]
         · exact mul_le_mul_of_nonneg_right hB (norm_nonneg _)
         · exact mul_le_mul_of_nonneg_left hC (norm_nonneg _)
 
-/-- **Relative Kronecker Perturbation Bound:**
-    A normalized version useful for analyzing relative errors:
-    ‖B ⊗ C - B' ⊗ C'‖ / (‖B‖ · ‖C‖) ≤ (‖B - B'‖/‖B‖) + (‖C - C'‖/‖C‖) + O(ε²)
-
-    For small perturbations, this shows the relative error in the Kronecker product
-    is approximately the sum of relative errors in the factors. -/
-theorem kronecker_relative_perturbation [Nonempty p] [Nonempty q]
+/-- **Kronecker difference bound in terms of the unperturbed factors:**
+    ‖B ⊗ C - B' ⊗ C'‖₂ ≤ ‖B - B'‖·‖C‖ + ‖B‖·‖C - C'‖ + ‖B - B'‖·‖C - C'‖. -/
+theorem kronecker_sub_spectral_norm_bound_cross [Nonempty p] [Nonempty q]
     (B B' : Matrix m p ℂ) (C C' : Matrix n q ℂ) :
     ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖ ≤
     ‖B - B'‖ * ‖C‖ + ‖B‖ * ‖C - C'‖ + ‖B - B'‖ * ‖C - C'‖ := by
@@ -1219,12 +1216,34 @@ theorem kronecker_relative_perturbation [Nonempty p] [Nonempty q]
         linarith
     _ = ‖B - B'‖ * ‖C‖ + ‖B‖ * ‖C - C'‖ + ‖B - B'‖ * ‖C - C'‖ := by ring
 
-/-- **First-Order Approximation:**
-    For small perturbations, the leading-order error is:
-    ‖B ⊗ C - B' ⊗ C'‖ ≈ ‖B - B'‖ · ‖C‖ + ‖B‖ · ‖C - C'‖
+/-- **Relative Kronecker Perturbation Bound:** for B ≠ 0 and C ≠ 0, with relative errors
+    εB = ‖B - B'‖ / ‖B‖ and εC = ‖C - C'‖ / ‖C‖,
 
-    This bound is achieved (up to the cross term) and is tight when perturbations are small.
-    The theorem below gives an upper bound without the cross term when one factor is unchanged. -/
+    ‖B ⊗ C - B' ⊗ C'‖₂ / ‖B ⊗ C‖₂ ≤ εB + εC + εB · εC.
+
+    To first order, the relative error of the Kronecker product is the sum of the relative
+    errors of the factors. -/
+theorem kronecker_relative_perturbation [Nonempty p] [Nonempty q]
+    (B B' : Matrix m p ℂ) (C C' : Matrix n q ℂ) (hB : B ≠ 0) (hC : C ≠ 0) :
+    ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖ / ‖kroneckerMap (· * ·) B C‖ ≤
+      ‖B - B'‖ / ‖B‖ + ‖C - C'‖ / ‖C‖ + (‖B - B'‖ / ‖B‖) * (‖C - C'‖ / ‖C‖) := by
+  have hB_pos : 0 < ‖B‖ := norm_pos_iff.mpr hB
+  have hC_pos : 0 < ‖C‖ := norm_pos_iff.mpr hC
+  -- ‖B ⊗ C‖ = ‖B‖ · ‖C‖ > 0, so clear the denominator
+  rw [KroneckerRearrangement.l2_opNorm_kronecker B C, div_le_iff₀ (mul_pos hB_pos hC_pos)]
+  calc ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖
+      ≤ ‖B - B'‖ * ‖C‖ + ‖B‖ * ‖C - C'‖ + ‖B - B'‖ * ‖C - C'‖ :=
+        kronecker_sub_spectral_norm_bound_cross B B' C C'
+    _ = (‖B - B'‖ / ‖B‖ * ‖B‖) * ‖C‖ + ‖B‖ * (‖C - C'‖ / ‖C‖ * ‖C‖) +
+        (‖B - B'‖ / ‖B‖ * ‖B‖) * (‖C - C'‖ / ‖C‖ * ‖C‖) := by
+        rw [div_mul_cancel₀ _ hB_pos.ne', div_mul_cancel₀ _ hC_pos.ne']
+    _ = (‖B - B'‖ / ‖B‖ + ‖C - C'‖ / ‖C‖ + (‖B - B'‖ / ‖B‖) * (‖C - C'‖ / ‖C‖)) *
+        (‖B‖ * ‖C‖) := by ring
+
+/-- **Single-factor perturbation in B:** when C is unchanged,
+    ‖B ⊗ C - B' ⊗ C‖₂ = ‖B - B'‖ · ‖C‖.
+
+    So the term ‖B - B'‖ · ‖C‖ of `kronecker_sub_spectral_norm_bound` is attained. -/
 theorem kronecker_perturbation_single_factor_B [Nonempty p] [Nonempty q]
     (B B' : Matrix m p ℂ) (C : Matrix n q ℂ) :
     ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C‖ = ‖B - B'‖ * ‖C‖ := by
@@ -1260,23 +1279,28 @@ section WeylConnection
 
 attribute [local instance] Matrix.instL2OpNormedAddCommGroup
 
-/-- **Kronecker Product Singular Value Perturbation:**
-    If ‖E‖ is small, then the singular values of B ⊗ C + E are close to those of B ⊗ C.
+/-- **Kronecker Product Singular Value Perturbation:** for square factors
+    B, B' : Matrix r r ℂ and C, C' : Matrix s s ℂ, every sorted singular value of B ⊗ C moves
+    by at most ‖B - B'‖·‖C‖ + ‖B'‖·‖C - C'‖:
 
-    By Weyl's theorem (from WeylInequality.lean):
-    |σᵢ(B ⊗ C + E) - σᵢ(B ⊗ C)| ≤ ‖E‖
+    |σₖ(B ⊗ C) - σₖ(B' ⊗ C')| ≤ ‖B - B'‖·‖C‖ + ‖B'‖·‖C - C'‖.
 
-    Combined with our Kronecker perturbation bounds, if E = B̂ ⊗ Ĉ - B ⊗ C:
-    |σᵢ(B̂ ⊗ Ĉ) - σᵢ(B ⊗ C)| ≤ ‖B - B̂‖·‖C‖ + ‖B̂‖·‖C - Ĉ‖
-
-    This theorem states the composition of these bounds. -/
-theorem kronecker_singularValue_perturbation [Nonempty p] [Nonempty q]
-    (B B' : Matrix m p ℂ) (C C' : Matrix n q ℂ) :
-    -- The spectral norm error bounds the singular value perturbation
-    ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖ ≤
-    ‖B - B'‖ * ‖C‖ + ‖B'‖ * ‖C - C'‖ :=
-  -- Direct application of our main perturbation bound
-  kronecker_sub_spectral_norm_bound B B' C C'
+    Proof: Weyl's inequality |σₖ(X) - σₖ(Y)| ≤ σ₀(X - Y) = ‖X - Y‖₂
+    (`Matrix.WeylInequality.weyl_singularValue_perturbation`), then
+    `kronecker_sub_spectral_norm_bound`. -/
+theorem kronecker_singularValue_perturbation {r s : Type*} [Fintype r] [Fintype s]
+    [DecidableEq r] [DecidableEq s] [Nonempty r] [Nonempty s]
+    (B B' : Matrix r r ℂ) (C C' : Matrix s s ℂ) (k : Fin (Fintype.card (r × s))) :
+    |SVD.singularValues₀ (kroneckerMap (· * ·) B C) k -
+        SVD.singularValues₀ (kroneckerMap (· * ·) B' C') k| ≤
+      ‖B - B'‖ * ‖C‖ + ‖B'‖ * ‖C - C'‖ := by
+  calc |SVD.singularValues₀ (kroneckerMap (· * ·) B C) k -
+          SVD.singularValues₀ (kroneckerMap (· * ·) B' C') k|
+      ≤ SVD.singularValues₀ (kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C') 0 :=
+        WeylInequality.weyl_singularValue_perturbation _ _ k
+    _ = ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖ :=
+        (SVD.Rectangular.spectral_norm_eq_singularValues₀_zero _).symm
+    _ ≤ ‖B - B'‖ * ‖C‖ + ‖B'‖ * ‖C - C'‖ := kronecker_sub_spectral_norm_bound B B' C C'
 
 end WeylConnection
 

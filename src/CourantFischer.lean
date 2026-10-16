@@ -1200,9 +1200,8 @@ The fundamental error: A rank-k matrix can have ALL diagonal entries nonzero
 The Eckart-Young theorem IS TRUE, but requires using the FULL Frobenius norm
 (including off-diagonal terms), not just diagonal deviations.
 
-See `docs/SVD/EckartYoung-BugReport.md` for details.
-
-The code below includes useful lemmas for the correct proof approach.
+The code below includes lemmas used by the correct proof (`Matrix.FrobeniusNorm.eckart_young_frobenius`,
+which goes through Thompson interlacing).
 -/
 
 section EckartYoungBridge
