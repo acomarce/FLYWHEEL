@@ -1629,6 +1629,18 @@ theorem R_inv_spectral_eq_frobenius_R_outerProduct [Nonempty (m × n)] [Nonempty
   rw [h1, h2]
   exact rank_one_spectral_eq_frobenius u v
 
+/-- **Equality case of the R⁻¹ bound:** ‖R⁻¹ X‖₂ = ‖X‖_F exactly when R⁻¹ X has rank ≤ 1. Since R
+    is a Frobenius isometry, ‖X‖_F = ‖R⁻¹ X‖_F, and this is
+    `spectral_eq_frobenius_rect_iff_rank_le_one` for R⁻¹ X. -/
+theorem R_inv_spectral_eq_frobenius_iff_rank_le_one (X : Matrix (m × p) (n × q) ℂ) :
+    ‖R_inv X‖₂ = ‖X‖_F ↔ (R_inv X).rank ≤ 1 := by
+  have h_iso : ‖X‖_F = ‖R_inv X‖_F := by
+    have h := R_frobenius_norm_eq (R_inv X)
+    rw [R_R_inv] at h
+    exact h
+  rw [h_iso]
+  exact spectral_eq_frobenius_rect_iff_rank_le_one (R_inv X)
+
 end KroneckerCoherence
 
 /-! ## Frobenius-Spectral Solution Distance
@@ -1754,6 +1766,7 @@ theorem norm_sub_spectralOptimalRank1_le (A : Matrix n n ℂ) :
     ‖A - spectralOptimalRank1 A‖ ≤ ‖A - Matrix.SVD.truncatedSVD A 1‖ :=
   (spectralOptimalRank1_is_optimal A).2 _ (Matrix.SVD.truncatedSVD_rank_le A 1)
 
+omit [Nonempty n] in
 /-- **Main Theorem: Distance Between Frobenius and Spectral Solutions**
 
 Let A_F = truncatedSVD(A, 1) be the Frobenius-optimal rank-1 approximation. Every M whose

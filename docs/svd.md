@@ -118,7 +118,8 @@ These sit outside any namespace:
   `frobeniusNormRect`). It is genuinely root-namespace:
   - `coherenceFactorRect E = ‖E‖_F / (√rank E · ‖E‖₂)`, defined as 1 for `E = 0`;
   - `coherenceFactorRect_le_one` and `coherenceFactorRect_bounds`;
-  - `frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect`.
+  - `frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect`;
+  - `spectral_eq_frobenius_rect_iff_rank_le_one`: ‖E‖₂ = ‖E‖_F iff rank E ≤ 1.
   - None of these takes a dimension hypothesis: `E ≠ 0` forces `0 < min #m #n`
     (`min_card_pos_of_ne_zero_rect`), and `spectral_le_frobenius_rect` also holds at `E = 0`.
   - `coherenceFactorRect_eq_formula` unfolds the definition for nonzero square `E`;

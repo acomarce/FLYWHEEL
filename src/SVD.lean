@@ -3723,9 +3723,9 @@ theorem coherenceFactorRect_le_one (E : Matrix m n ℂ) :
 /-! ## Lower Bound — μ ≥ 1/√rank
 
 The coherence factor is bounded below by 1/√rank. Equality holds exactly when ‖E‖₂ = ‖E‖_F,
-that is, when E has rank 1, where both bounds equal 1 (for square E,
-`Matrix.Coherence.norm_eq_frobeniusNorm'_iff_rank_le_one`). For rank r ≥ 2 the bound is not
-attained; that it is approached as σ₂, …, σᵣ → 0 is not formalized.
+that is, when E has rank 1, where both bounds equal 1 (`spectral_eq_frobenius_rect_iff_rank_le_one`).
+For rank r ≥ 2 the bound is not attained; that it is approached as σ₂, …, σᵣ → 0 is not
+formalized.
 
 **Proof strategy:**
   σ₁² ≤ ∑_{k=1}^{r} σₖ² = ‖E‖_F²
@@ -3784,6 +3784,79 @@ theorem spectral_le_frobenius_rect (E : Matrix m n ℂ) :
   calc ‖E‖₂ = Real.sqrt (‖E‖₂ ^ 2) := (Real.sqrt_sq h_spec_nonneg).symm
     _ ≤ Real.sqrt (frobeniusNormRect E ^ 2) := Real.sqrt_le_sqrt h_spec_sq
     _ = frobeniusNormRect E := Real.sqrt_sq h_frob_nonneg
+
+/-- **Spectral equals Frobenius iff rank at most one** (rectangular): ‖E‖₂ = ‖E‖_F exactly when
+    rank E ≤ 1. With σ sorted, ‖E‖₂ = σ₀ and ‖E‖_F² = Σₖ σₖ², so equality holds iff σₖ = 0 for
+    k ≥ 1, i.e. at most one singular value is nonzero. -/
+theorem spectral_eq_frobenius_rect_iff_rank_le_one (E : Matrix m n ℂ) :
+    ‖E‖₂ = frobeniusNormRect E ↔ E.rank ≤ 1 := by
+  by_cases hE : E = 0
+  · -- Both sides hold at E = 0
+    subst hE
+    have h0 : ‖(0 : Matrix m n ℂ)‖₂ = 0 := norm_zero (E := Matrix m n ℂ)
+    rw [h0, frobeniusNormRect_zero, Matrix.rank_zero]
+    simp
+  have h : 0 < min (Fintype.card m) (Fintype.card n) := min_card_pos_of_ne_zero_rect hE
+  let i₀ : Fin (min (Fintype.card m) (Fintype.card n)) := ⟨0, h⟩
+  -- ‖E‖₂ = σ₀, the largest singular value
+  have h_spec : ‖E‖₂ = Matrix.SVD.Rectangular.singularValues E i₀ := by
+    have h_max : ‖E‖₂ = Finset.sup' Finset.univ (Finset.univ_nonempty_iff.mpr ⟨⟨0, h⟩⟩)
+        (Matrix.SVD.Rectangular.singularValues E) :=
+      Matrix.SVD.Rectangular.spectral_norm_eq_max_singularValue_rect h E
+    rw [h_max]
+    apply le_antisymm
+    · apply Finset.sup'_le
+      intro k _
+      exact Matrix.SVD.Rectangular.singularValues_antitone E (Fin.mk_le_mk.mpr (Nat.zero_le _))
+    · exact Finset.le_sup' _ (Finset.mem_univ i₀)
+  -- ‖E‖_F² = Σₖ σₖ²
+  have h_frob_sq : frobeniusNormRect E ^ 2 =
+      ∑ k, (Matrix.SVD.Rectangular.singularValues E k) ^ 2 := by
+    unfold frobeniusNormRect
+    exact Matrix.SVD.Rectangular.frobeniusNorm_sq_eq_sum_singularValues_sq_rect E
+  have h_rank := Matrix.SVD.Rectangular.rank_eq_card_nonzero_singularValues_rect E
+  have h_spec_nonneg : 0 ≤ ‖E‖₂ := @norm_nonneg (Matrix m n ℂ) _ E
+  constructor
+  · intro h_eq
+    -- σ₀² = Σₖ σₖ², so the other squares sum to 0
+    have h_sum : ∑ k, (Matrix.SVD.Rectangular.singularValues E k) ^ 2 =
+        (Matrix.SVD.Rectangular.singularValues E i₀) ^ 2 := by
+      rw [← h_frob_sq, ← h_eq, h_spec]
+    have h_rest : ∑ k ∈ Finset.univ.erase i₀,
+        (Matrix.SVD.Rectangular.singularValues E k) ^ 2 = 0 := by
+      rw [← Finset.add_sum_erase _ _ (Finset.mem_univ i₀)] at h_sum
+      linarith
+    -- Every nonzero singular value sits at index 0
+    have h_only : ∀ k, Matrix.SVD.Rectangular.singularValues E k ≠ 0 → k = i₀ := by
+      intro k hk
+      by_contra hne
+      have h0 := (Finset.sum_eq_zero_iff_of_nonneg
+        (fun j _ => sq_nonneg (Matrix.SVD.Rectangular.singularValues E j))).mp h_rest k
+        (Finset.mem_erase.mpr ⟨hne, Finset.mem_univ k⟩)
+      exact hk ((pow_eq_zero_iff two_ne_zero).mp h0)
+    rw [h_rank, Fintype.card_le_one_iff]
+    intro a b
+    exact Subtype.ext ((h_only a.1 a.2).trans (h_only b.1 b.2).symm)
+  · intro h_rank_le
+    -- At most one singular value is nonzero, and σ₀ is the largest, so σₖ = 0 for k ≠ 0
+    have h_zero : ∀ k, k ≠ i₀ → Matrix.SVD.Rectangular.singularValues E k = 0 := by
+      intro k hk
+      by_contra hne
+      have h_le : Matrix.SVD.Rectangular.singularValues E k ≤
+          Matrix.SVD.Rectangular.singularValues E i₀ :=
+        Matrix.SVD.Rectangular.singularValues_antitone E (Fin.mk_le_mk.mpr (Nat.zero_le _))
+      have h0_ne : Matrix.SVD.Rectangular.singularValues E i₀ ≠ 0 := by
+        have h_pos : 0 < Matrix.SVD.Rectangular.singularValues E k :=
+          lt_of_le_of_ne (Matrix.SVD.Rectangular.singularValues_nonneg E k) (Ne.symm hne)
+        exact (lt_of_lt_of_le h_pos h_le).ne'
+      rw [h_rank, Fintype.card_le_one_iff] at h_rank_le
+      exact hk (congrArg Subtype.val (h_rank_le ⟨k, hne⟩ ⟨i₀, h0_ne⟩))
+    have h_sum : ∑ k, (Matrix.SVD.Rectangular.singularValues E k) ^ 2 =
+        (Matrix.SVD.Rectangular.singularValues E i₀) ^ 2 :=
+      Finset.sum_eq_single i₀ (fun k _ hk => by simp [h_zero k hk])
+        (fun h_not => absurd (Finset.mem_univ i₀) h_not)
+    have h_sq : frobeniusNormRect E ^ 2 = ‖E‖₂ ^ 2 := by rw [h_frob_sq, h_sum, h_spec]
+    exact ((sq_eq_sq₀ h_spec_nonneg (frobeniusNormRect_nonneg E)).mp h_sq.symm)
 
 /-- The ratio of Frobenius norm to spectral norm is at least 1: 1 ≤ ‖E‖_F / ‖E‖.
 
