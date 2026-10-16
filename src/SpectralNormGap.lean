@@ -69,6 +69,7 @@ lemma outerProduct_frobenius_norm_sq' (u : EuclideanSpace ℂ m) (v : EuclideanS
   simp only [coe_nnnorm] at h1
   exact h1
 
+omit [DecidableEq m] [DecidableEq n] in
 /-- The Frobenius norm of an outer product equals the product of Euclidean vector norms.
     ‖u ⊗ v‖_F = ‖u‖ · ‖v‖ -/
 lemma outerProduct_frobenius_norm' (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
@@ -412,6 +413,7 @@ theorem frobenius_error_truncatedSVD_sq (A : Matrix n' n' ℂ) (k : ℕ) :
     ∑ i : n', (Matrix.SVD.truncatedSingularValues_tail A k i) ^ 2 :=
   FrobeniusNorm.frobenius_error_truncatedSVD A k
 
+omit [Nonempty n'] in
 /-- **Combined Spectral-Frobenius Bound:**
     The spectral norm of the truncated SVD error is bounded by the square root of
     the sum of squared tail singular values.
@@ -435,6 +437,7 @@ theorem spectral_error_le_sqrt_sum_tail_sq (A : Matrix n' n' ℂ) (k : ℕ) :
         h_spectral_le_frob
     _ = Real.sqrt (∑ i : n', (Matrix.SVD.truncatedSingularValues_tail A k i) ^ 2) := h_frob_eq
 
+omit [Nonempty n'] in
 /-- **Rank-1 Approximation Bound:**
     For k = 1 (rank-1 approximation), the spectral error is bounded by
     √(σ₂² + σ₃² + ⋯ + σₙ²). -/
@@ -495,6 +498,7 @@ lemma outerProduct_zero_right (u : EuclideanSpace ℂ m) :
     KroneckerRearrangement.outerProduct u (0 : EuclideanSpace ℂ n) = 0 := by
   ext i j; simp [KroneckerRearrangement.outerProduct]
 
+omit [DecidableEq m] in
 /-- The spectral norm of an outer product is bounded above by the product of vector norms.
     Upper bound: ‖uv*‖₂ ≤ ‖u‖ · ‖v‖ -/
 theorem outerProduct_spectral_norm_le (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
@@ -584,6 +588,7 @@ theorem frobenius_spectral_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n
   rw [ge_iff_le, one_le_div h_spectral_pos]
   exact h_le
 
+omit [DecidableEq m] [DecidableEq n] in
 /-- For rank-1 matrices (outer products), the coherence ratio equals 1 when computed
     using the Frobenius norm identity. -/
 theorem coherence_ratio_outerProduct_frobenius (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
