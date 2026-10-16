@@ -14,7 +14,7 @@ import Mathlib.LinearAlgebra.Matrix.RowCol
 # Kronecker Rearrangement
 
 The Van Loan–Pitsianis rearrangement R : M_(m×n,p×q) → M_(m×p,n×q).
-Key property: R(A ⊗ B) = vec(A) vec(B)ᵀ is rank-1.
+Key property: R(A ⊗ B) = vec(A) vec(B)ᵀ has rank ≤ 1.
 
 ## References
 
@@ -63,7 +63,7 @@ def vec (M : Matrix m n α) : (m × n) → α :=
     - `M (i,j) (k,l) = A i k * B j l`
     - `R(M) (i,k) (j,l) = M (i,j) (k,l) = A i k * B j l = vec(A)(i,k) * vec(B)(j,l)`
 
-    Hence R(A ⊗ B) = vec(A) vec(B)ᵀ is rank-1. Ref: Van Loan & Pitsianis (1993). -/
+    Hence R(A ⊗ B) = vec(A) vec(B)ᵀ has rank ≤ 1. Ref: Van Loan & Pitsianis (1993). -/
 def R (M : Matrix (m × n) (p × q) α) : Matrix (m × p) (n × q) α :=
   fun ⟨i, k⟩ ⟨j, l⟩ => M ⟨i, j⟩ ⟨k, l⟩
 
@@ -129,8 +129,9 @@ set_option linter.unusedSectionVars false in
     The Frobenius norm is defined as `‖M‖_F = √(∑ᵢⱼ |M i j|²)`.
     Since R is just a permutation of indices, the sum of squared entries is preserved.
 
-    This is crucial because it means the best rank-k approximation of `R(M)`
-    (via truncated SVD) corresponds to the best Kronecker approximation of M. -/
+    This is crucial because it means a best rank-1 approximation of `R(M)` (via truncated
+    SVD) corresponds to a best single Kronecker product approximation of M
+    (`Matrix.TightBounds.kroneckerApprox_optimal`). -/
 theorem R_frobenius_norm_eq (M : Matrix (m × n) (p × q) α) :
     ‖R M‖ = ‖M‖ := by
   simp only [frobenius_norm_def, R]

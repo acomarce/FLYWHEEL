@@ -186,8 +186,9 @@ Details are in the `docs/` notes.
 - No uniqueness statements. Neither the truncated SVD nor `kroneckerApprox` is shown to be the
   unique optimum. In Frobenius norm the best rank-k approximation is unique only when
   σₖ₋₁ > σₖ (0-indexed); in spectral norm optima are generally not unique.
-- Equality cases are one-directional: `‖R⁻¹ M‖₂ = ‖M‖_F` is proved when `R⁻¹ M` has rank one,
-  but not the converse; likewise `μ(E) = 1` is proved for flat spectra but not conversely.
+- Equality cases are characterized for square matrices only: `μ(E) = 1` iff the spectrum is flat
+  and `‖E‖₂ = ‖E‖_F` iff rank E ≤ 1 (CoherenceCharacterization). For the rectangular
+  `‖R⁻¹ M‖₂ = ‖M‖_F`, only the rank-one direction is proved.
 - Gap-dependent bounds stop at singular values: CoherenceCharacterization's
   `frobenius_spectral_distance_with_gap` bounds ‖A_F − A_*‖₂ by 2(‖A‖₂ − spectralGap A). Nothing
   bounds singular *subspaces* (Wedin/Davis–Kahan).

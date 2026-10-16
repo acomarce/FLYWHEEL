@@ -12,7 +12,7 @@ import MatrixNormRelations
 errors transfer through it only as upper bounds:
 - `R_inv_spectral_le_frobenius`: ‖R⁻¹ M‖₂ ≤ ‖M‖_F;
 - `spectral_error_bound_via_R`: ‖C - R⁻¹ M‖₂ ≤ ‖R C - M‖_F;
-- `R_inv_outerProduct_spectral_bound`: ‖R⁻¹(uv*)‖₂ ≤ ‖u‖·‖v‖.
+- `R_inv_outerProduct_spectral_bound`: ‖R⁻¹(u vᵀ)‖₂ ≤ ‖u‖·‖v‖.
 
 The first bound is attained when R⁻¹ M has rank one
 (`Matrix.Coherence.R_inv_spectral_eq_frobenius_R_outerProduct`), and it is not tight in general:
@@ -44,15 +44,9 @@ section OuterProductNorms
 -- Use Frobenius norm instance for matrices
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
-omit [DecidableEq m] in
-/-- Helper: sum of squared norms equals inner product with self for EuclideanSpace. -/
-lemma sum_norm_sq_eq_norm_sq_euclidean (u : EuclideanSpace ℂ m) :
-    ∑ i, ‖u i‖ ^ 2 = ‖u‖ ^ 2 := by
-  rw [EuclideanSpace.norm_sq_eq]
-
 omit [DecidableEq m] [DecidableEq n] in
 /-- The Frobenius norm squared of an outer product of EuclideanSpace vectors.
-    ‖uv*‖_F² = (Σᵢ Σⱼ |u(i)v(j)|²) = (Σᵢ |u(i)|²)(Σⱼ |v(j)|²) = ‖u‖² ‖v‖²
+    ‖u vᵀ‖_F² = (Σᵢ Σⱼ |u(i)v(j)|²) = (Σᵢ |u(i)|²)(Σⱼ |v(j)|²) = ‖u‖² ‖v‖²
 
     **Proof:** Use NNReal/nnnorm approach to avoid Real rpow issues. -/
 lemma outerProduct_frobenius_norm_sq' (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
@@ -74,7 +68,7 @@ lemma outerProduct_frobenius_norm_sq' (u : EuclideanSpace ℂ m) (v : EuclideanS
 
 omit [DecidableEq m] [DecidableEq n] in
 /-- The Frobenius norm of an outer product equals the product of Euclidean vector norms.
-    ‖u ⊗ v‖_F = ‖u‖ · ‖v‖ -/
+    ‖u vᵀ‖_F = ‖u‖ · ‖v‖ -/
 lemma outerProduct_frobenius_norm' (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
     ‖KroneckerRearrangement.outerProduct u v‖ = ‖u‖ * ‖v‖ := by
   have h := outerProduct_frobenius_norm_sq' u v
@@ -116,9 +110,9 @@ This is the key result: when R⁻¹ acts on a rank-1 matrix (outer product),
 the spectral norm is bounded using the Frobenius isometry property.
 
 **The Key Mathematical Insight:**
-‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖
+‖R⁻¹(u vᵀ)‖₂ ≤ ‖R⁻¹(u vᵀ)‖_F = ‖u vᵀ‖_F = ‖u‖·‖v‖
 
-For unit vectors u, v this gives ‖R⁻¹(uv*)‖₂ ≤ 1. The bound is an upper bound only; see
+For unit vectors u, v this gives ‖R⁻¹(u vᵀ)‖₂ ≤ 1. The bound is an upper bound only; see
 `R_inv_spectral_lt_frobenius_R_one` for an example where it is not attained.
 -/
 
@@ -235,11 +229,11 @@ theorem R_inv_spectral_le_frobenius
       ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (KroneckerRearrangement.R_inv M) := h1
     _ = @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm M := h2
 
-/-- **Main theorem for outer products**: spectral norm of R⁻¹(uv*) is bounded by ‖u‖·‖v‖.
-    ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖
+/-- **Main theorem for outer products**: spectral norm of R⁻¹(u vᵀ) is bounded by ‖u‖·‖v‖.
+    ‖R⁻¹(u vᵀ)‖₂ ≤ ‖u vᵀ‖_F = ‖u‖·‖v‖
 
     NOTE: Uses EuclideanSpace (L2 norm) on vectors, which is required for the identity
-    ‖uv*‖_F = ‖u‖·‖v‖ to hold. -/
+    ‖u vᵀ‖_F = ‖u‖·‖v‖ to hold. -/
 theorem R_inv_outerProduct_spectral_bound
     (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
@@ -257,7 +251,7 @@ theorem R_inv_outerProduct_spectral_bound
           (KroneckerRearrangement.outerProduct u v) := h
     _ = ‖u‖ * ‖v‖ := h_frob
 
-/-- Corollary: For unit vectors in EuclideanSpace, ‖R⁻¹(uv*)‖₂ ≤ 1 -/
+/-- Corollary: For unit vectors in EuclideanSpace, ‖R⁻¹(u vᵀ)‖₂ ≤ 1 -/
 theorem R_inv_outerProduct_spectral_bound_unit
     (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q))
     (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) :
@@ -383,7 +377,7 @@ end SquareCase
 /-! ## Outer Product Bounds
 
 Bounds for outer products u v* and for R⁻¹ applied to them. The R⁻¹ bound
-‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖ is not tight in general: write u = vec A and v = vec B, so
+‖R⁻¹(u vᵀ)‖₂ ≤ ‖u vᵀ‖_F = ‖u‖·‖v‖ is not tight in general: write u = vec A and v = vec B, so
 R⁻¹(outerProduct u v) = A ⊗ B (by `R_kronecker`), whose spectral norm ‖A‖₂·‖B‖₂ is less than
 ‖A‖_F·‖B‖_F = ‖u‖·‖v‖ unless A or B is 0 or both have rank 1.
 `R_inv_spectral_lt_frobenius_R_one` formalizes the case A = B = 1.
@@ -393,9 +387,9 @@ section OuterProductBounds
 
 /-! ### Part A: Rank-1 Matrix Norm Bounds
 
-For rank-1 matrices M = uv*, the spectral norm is bounded by the Frobenius norm:
-‖uv*‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖. Only this upper bound is proved here. The equality
-‖uv*‖₂ = ‖u‖·‖v‖ is proved later, in CoherenceCharacterization
+For rank-1 matrices M = u vᵀ, the spectral norm is bounded by the Frobenius norm:
+‖u vᵀ‖₂ ≤ ‖u vᵀ‖_F = ‖u‖·‖v‖. Only this upper bound is proved here. The equality
+‖u vᵀ‖₂ = ‖u‖·‖v‖ is proved later, in CoherenceCharacterization
 (`Matrix.Coherence.outerProduct_spectral_norm_eq`).
 -/
 
@@ -415,7 +409,7 @@ lemma outerProduct_zero_right (u : EuclideanSpace ℂ m) :
 
 omit [DecidableEq m] in
 /-- The spectral norm of an outer product is bounded above by the product of vector norms.
-    Upper bound: ‖uv*‖₂ ≤ ‖u‖ · ‖v‖ -/
+    Upper bound: ‖u vᵀ‖₂ ≤ ‖u‖ · ‖v‖ -/
 theorem outerProduct_spectral_norm_le (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (KroneckerRearrangement.outerProduct u v) ≤ ‖u‖ * ‖v‖ := by
@@ -427,24 +421,10 @@ theorem outerProduct_spectral_norm_le (u : EuclideanSpace ℂ m) (v : EuclideanS
 
 /-! ### Part B: R⁻¹ Bounds for Outer Products
 
-Upper bounds for ‖R⁻¹(uv*)‖₂, and an example where ‖R⁻¹ M‖₂ ≤ ‖M‖_F is strict.
+An example where ‖R⁻¹ M‖₂ ≤ ‖M‖_F is strict. The upper bound for outer products is
+`R_inv_outerProduct_spectral_bound` above; equality cases are in CoherenceCharacterization
+(`Matrix.Coherence.R_inv_spectral_eq_frobenius_R_outerProduct`).
 -/
-
-/-- The R⁻¹ bound against the Frobenius norm of the outer product: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F. -/
-theorem R_inv_outerProduct_le_outerProduct_frobenius
-    (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.outerProduct u v) := by
-  calc @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-        (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v))
-      ≤ @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) :=
-        l2_opNorm_le_frobenius _
-    _ = @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-          (KroneckerRearrangement.outerProduct u v) :=
-        R_inv_frobenius_norm_eq _
 
 /-- **The bound ‖R⁻¹ M‖₂ ≤ ‖M‖_F is not tight in general.** For M = R(1), with 1 the identity
     of Matrix (m × n) (m × n) ℂ and #m · #n ≥ 2:
@@ -472,25 +452,19 @@ theorem R_inv_spectral_lt_frobenius_R_one [Nonempty m] [Nonempty n]
   rw [h_one]
   nlinarith
 
-/-! ### Part C: Coherence and Gap Characterization
+/-! ### Part C: The Frobenius-to-spectral ratio
 
-The "gap" between spectral and Frobenius norms for a matrix A is characterized by:
-  gap(A) = ‖A‖_F / ‖A‖₂ = √(Σᵢ σᵢ²) / σ₁
+For A ≠ 0 the ratio ‖A‖_F / ‖A‖₂ = √(Σᵢ σᵢ²) / σ₀ (0-indexed, σ₀ largest) is the square root of
+the stable rank. (It is unrelated to `Matrix.Coherence.spectralGap`, which is σ₀ - σ₁.)
 
-This ratio is always ≥ 1 (`frobenius_spectral_ratio_ge_one`) and at most √rank(A)
-(`Matrix.Coherence.coherenceFactor_le_one`). CoherenceCharacterization proves that outer
-products attain 1 (`Matrix.Coherence.rank_one_spectral_eq_frobenius`); the converse (equality
-only for rank 1) is not formalized.
+The ratio is always ≥ 1 (`frobenius_spectral_ratio_ge_one`) and at most √rank(A)
+(`Matrix.Coherence.coherenceFactor_le_one`). It equals 1 exactly when rank A ≤ 1
+(`Matrix.Coherence.norm_eq_frobeniusNorm'_iff_rank_le_one`, square matrices).
 -/
 
-/-- The ratio ‖A‖_F / ‖A‖₂ is always at least 1 (for nonzero A).
-    This is the "effective rank" or "coherence ratio" of A.
-
-    gap(A) = ‖A‖_F / ‖A‖₂ ≥ 1
-
-    Only the inequality is proved here. Outer products attain it
-    (`Matrix.Coherence.rank_one_spectral_eq_frobenius`); the converse (equality only for
-    rank 1) is not formalized. -/
+/-- The ratio ‖A‖_F / ‖A‖₂ is at least 1 for nonzero A. It is the square root of the stable
+    rank; equality holds exactly for rank one
+    (`Matrix.Coherence.norm_eq_frobeniusNorm'_iff_rank_le_one`). -/
 theorem frobenius_spectral_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n']
     (A : Matrix n' n' ℂ) (hA : A ≠ 0) :
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A /
