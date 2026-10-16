@@ -147,33 +147,9 @@ section RankPos
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
-/-- A non-zero matrix has positive rank.
-    Proved by contrapositive: rank = 0 implies the matrix is zero. -/
-theorem rank_pos_of_ne_zero (A : Matrix n n ℂ) (hA : A ≠ 0) : 0 < A.rank := by
-  by_contra h_not_pos
-  push_neg at h_not_pos
-  have h_rank_zero : A.rank = 0 := Nat.eq_zero_of_le_zero h_not_pos
-  -- rank = 0 means the linear map A.mulVecLin has trivial range
-  rw [Matrix.rank] at h_rank_zero
-  have h_range_bot : LinearMap.range A.mulVecLin = ⊥ :=
-    Submodule.finrank_eq_zero.mp h_rank_zero
-  -- If range is ⊥, then A * v = 0 for all v, so A = 0
-  have h_zero : A = 0 := by
-    ext i j
-    have h_col : A.mulVecLin (Pi.single j 1) = 0 := by
-      rw [Submodule.eq_bot_iff] at h_range_bot
-      exact h_range_bot _ ⟨Pi.single j 1, rfl⟩
-    simp only [Matrix.mulVecLin_apply, Matrix.mulVec_single] at h_col
-    -- h_col : MulOpposite.op 1 • A.col j = 0
-    -- This simplifies to A.col j = 0
-    have h_col' : A.col j = 0 := by
-      rw [MulOpposite.op_one, one_smul] at h_col
-      exact h_col
-    -- A i j = (A.col j) i = 0
-    have := congr_fun h_col' i
-    simp only [Matrix.col_apply, Pi.zero_apply] at this
-    exact this
-  exact hA h_zero
+/-- A non-zero matrix has positive rank (the square case of `rank_pos_of_ne_zero_rect`). -/
+theorem rank_pos_of_ne_zero (A : Matrix n n ℂ) (hA : A ≠ 0) : 0 < A.rank :=
+  rank_pos_of_ne_zero_rect A hA
 
 end RankPos
 
@@ -358,7 +334,7 @@ theorem coherenceFactor_bounds (E : Matrix n n ℂ) (hE : E ≠ 0) :
     This is the definition of μ solved for ‖E‖₂.
     For incoherent matrices (μ ≈ 1), ‖E‖₂ ≈ ‖E‖_F / √rank.
     For coherent matrices (μ ≈ 1/√rank), ‖E‖₂ ≈ ‖E‖_F. -/
-theorem spectral_bound_with_coherence (E : Matrix n n ℂ) (hE : E ≠ 0) :
+theorem spectral_norm_eq_frobenius_div_coherence (E : Matrix n n ℂ) (hE : E ≠ 0) :
     ‖E‖ = frobeniusNorm' E / (Real.sqrt E.rank * coherenceFactor E) := by
   unfold coherenceFactor
   simp only [hE, ↓reduceIte]
@@ -628,15 +604,6 @@ section IncoherentCase
 
 variable {n : Type*} [Fintype n] [DecidableEq n] [Nonempty n]
 
-/-- For matrices with coherence factor μ, ‖E‖ ≤ ‖E‖_F / (√rank · μ); the `≤` half of
-    `spectral_bound_with_coherence`.
-
-    When μ = 1 (incoherent): ‖E‖ ≤ ‖E‖_F / √rank
-    When μ = 1/√rank (coherent): ‖E‖ ≤ ‖E‖_F (trivial bound) -/
-theorem spectral_bound_via_coherence (E : Matrix n n ℂ) (hE : E ≠ 0) :
-    ‖E‖ ≤ frobeniusNorm' E / (Real.sqrt E.rank * coherenceFactor E) :=
-  (spectral_bound_with_coherence E hE).le
-
 /-- **Incoherent improved bound**: When coherence factor is at least α,
     we get ‖E‖ ≤ ‖E‖_F / (α · √rank).
 
@@ -652,10 +619,10 @@ theorem incoherent_improved_bound (E : Matrix n n ℂ) (hE : E ≠ 0) (α : ℝ)
   have h_sqrt_rank_pos : 0 < Real.sqrt E.rank := Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
   have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
   have h_denom_pos : 0 < α * Real.sqrt E.rank := mul_pos hα_pos h_sqrt_rank_pos
-  -- From spectral_bound_via_coherence: ‖E‖ ≤ ‖E‖_F / (√r · μ)
+  -- From spectral_norm_eq_frobenius_div_coherence: ‖E‖ ≤ ‖E‖_F / (√r · μ)
   -- Since μ ≥ α, we have √r · μ ≥ √r · α = α · √r
   -- Therefore: ‖E‖ ≤ ‖E‖_F / (√r · μ) ≤ ‖E‖_F / (α · √r)
-  have h_bound := spectral_bound_via_coherence E hE
+  have h_bound := (spectral_norm_eq_frobenius_div_coherence E hE).le
   have h_denom_le : α * Real.sqrt E.rank ≤ Real.sqrt E.rank * coherenceFactor E := by
     rw [mul_comm]
     exact mul_le_mul_of_nonneg_left h_coh (Real.sqrt_nonneg _)
@@ -1884,7 +1851,7 @@ theorem frobenius_spectral_distance_with_gap (A M : Matrix n n ℂ)
 
 for every M with ‖A - M‖₂ ≤ ‖A - A_F‖₂, where E = A - A_F, r = rank(E) and
 μ = coherenceFactor(E). The right side equals 2 · ‖E‖₂
-(`spectral_bound_with_coherence`), so this is `frobenius_spectral_solution_distance` written
+(`spectral_norm_eq_frobenius_div_coherence`), so this is `frobenius_spectral_solution_distance` written
 in coherence terms. Since ‖E‖₂ ≤ ‖E‖_F, it is at most ‖E‖_F · (1 + 1/(√r · μ)). -/
 theorem frobenius_spectral_distance_coherence_aware (A M : Matrix n n ℂ)
     (h_le : ‖A - M‖ ≤ ‖A - Matrix.SVD.truncatedSVD A 1‖)
@@ -1897,7 +1864,7 @@ theorem frobenius_spectral_distance_coherence_aware (A M : Matrix n n ℂ)
   intro E μ r
   -- ‖E‖₂ = ‖E‖_F / (√r · μ)
   have h_coh_eq : ‖E‖ = frobeniusNorm' E / (Real.sqrt r * μ) :=
-    spectral_bound_with_coherence E h_err
+    spectral_norm_eq_frobenius_div_coherence E h_err
   have h_dist : ‖Matrix.SVD.truncatedSVD A 1 - M‖ ≤ 2 * ‖E‖ :=
     frobenius_spectral_solution_distance A M h_le
   rw [← h_coh_eq]
