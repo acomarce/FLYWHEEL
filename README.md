@@ -18,45 +18,48 @@ FLYWHEEL provides machine-verified proofs of key results in numerical linear alg
 | [MatrixNormRelations.lean](src/MatrixNormRelations.lean) | Spectral (L2 operator) norm facts, Eckart-Young (spectral), Kronecker norm bounds |
 | [WeylInequality.lean](src/WeylInequality.lean) | Weyl's eigenvalue and singular value inequalities |
 | [KroneckerRearrangement.lean](src/KroneckerRearrangement.lean) | Van Loan-Pitsianis rearrangement for Kronecker approximation |
-| [SpectralNormGap.lean](src/SpectralNormGap.lean) | Spectral norm bounds for Kronecker approximation |
-| [TightBounds.lean](src/TightBounds.lean) | Tight error bounds for rank-k approximation |
+| [SpectralNormGap.lean](src/SpectralNormGap.lean) | Spectral vs. Frobenius bounds for Kronecker approximation |
+| [TightBounds.lean](src/TightBounds.lean) | Rectangular truncated SVD: error formulas, Eckart-Young, Van Loan-Pitsianis |
 | [CoherenceCharacterization.lean](src/CoherenceCharacterization.lean) | Coherence/incoherence characterization |
 | [TruncatedSVDRank1.lean](src/TruncatedSVDRank1.lean) | Truncated SVD for rank-1 matrices |
 
 ## Main Results
 
+Short names below; full names, files and line numbers for every declaration are in
+[docs/INDEX.md](docs/INDEX.md).
+
 ### Singular Value Decomposition
-- `singularValues`: Definition of singular values as √(eigenvalues of Aᴴ * A)
-- `singularValues_nonneg`: Singular values are non-negative
-- `singularValues₀_antitone`: Sorted singular values are decreasing
-- `svd_decomposition`: Any square matrix admits an SVD: A = U * Σ * Vᴴ
+- `svd_decomposition`: every square complex matrix is A = U * Σ * Vᴴ with U, V unitary and Σ
+  diagonal with nonnegative entries
+- `svd_decomposition_rectangular`: the same for m × n matrices, with Σ the m × n diagonal of the
+  sorted singular values
+- `singularValues₀_antitone`: sorted singular values are decreasing
 
 ### Courant-Fischer Theorem
-- `subspace_intersection_nontrivial`: Dimension counting for subspace intersections
-- `rayleigh_eq_eigenvalue_on_eigenvector`: R(uᵢ) = λᵢ for eigenvector uᵢ
-- `rayleigh_le_eigenvalue_max`: R(x) ≤ λ_max for unit vectors
-- `rayleigh_ge_eigenvalue_min`: R(x) ≥ λ_min for unit vectors
+- `courantFischer_maxMin` / `courantFischer_minMax`: λₖ is the greatest (least) value of the
+  max-min (min-max) Rayleigh-quotient expression (`IsGreatest` / `IsLeast`)
+- `courantFischer_maxMin_eq_iSup` / `courantFischer_minMax_eq_iInf`: the same as equalities
 
-### Frobenius Norm & Eckart-Young
-- `frobenius_norm_sq_eq_trace`: ‖A‖_F² = Re(trace(Aᴴ * A))
-- `frobenius_norm_unitary_mul`: ‖U * A‖_F = ‖A‖_F for unitary U
-- `frobenius_norm_mul_unitary`: ‖A * V‖_F = ‖A‖_F for unitary V
-- `frobenius_norm_sq_diagonal`: ‖diagonal d‖_F² = Σᵢ |dᵢ|²
-- `eckart_young_frobenius`: ‖A - Aₖ‖_F ≤ ‖A - B‖_F for every B with rank B ≤ k (square matrices)
-- `eckart_young_spectral`: ‖A - Aₖ‖₂ ≤ ‖A - B‖₂ for every B with rank B ≤ k (square matrices)
-- `spectral_error_truncatedSVD`: ‖A - Aₖ‖₂ = σₖ (0-indexed)
+### Weyl and Thompson Inequalities
+- `weyl_eigenvalue_lower_bound` / `weyl_eigenvalue_upper_bound`: λₖ(A) + λₙ₋₁(B) ≤ λₖ(A+B) ≤
+  λₖ(A) + λ₀(B)
+- `weyl_singularValue_perturbation`: |σₖ(A) - σₖ(B)| ≤ σ₀(A - B), which is ‖A - B‖₂
+- `thompson_interlacing` / `thompson_interlacing_rect`: σᵢ₊ᵣ(A) ≤ σᵢ(A+B) when rank B ≤ r
 
-### Weyl Inequalities
-- `weyl_eigenvalue_lower_bound`: λₖ(A+B) ≥ λₖ(A) + λₙ₋₁(B)
-- `weyl_eigenvalue_upper_bound`: λₖ(A+B) ≤ λₖ(A) + λ₀(B)
-- `thompson_interlacing`: σᵢ₊ᵣ(A) ≤ σᵢ(A+B) when rank B ≤ r
+### Eckart-Young
+- `eckart_young_frobenius` / `eckart_young_frobenius_rect`: ‖A - Aₖ‖_F ≤ ‖A - B‖_F for every B
+  with rank B ≤ k (square / rectangular)
+- `eckart_young_spectral` / `eckart_young_spectral_rect`: the same in the spectral norm
+- `spectral_error_truncatedSVD(_rect)`: ‖A - Aₖ‖₂ = σₖ (0-indexed)
+- `frobenius_error_truncatedSVD(_rect)`: ‖A - Aₖ‖_F² = Σᵢ≥ₖ σᵢ²
 
 ### Kronecker Approximation
-- `R_kronecker`: R(A ⊗ B) = vec(A) ⬝ vec(B)ᵀ (Van Loan-Pitsianis)
-- `R_frobenius_norm_eq`: ‖R(M)‖_F = ‖M‖_F (Frobenius isometry)
+- `R_kronecker`: R(A ⊗ B) = vec(A) vec(B)ᵀ; `R_frobenius_norm_eq`: R is a Frobenius isometry
+- `kroneckerApprox_optimal` (Van Loan-Pitsianis): `kroneckerApprox M`, the image under R⁻¹ of the
+  rank-1 truncated SVD of R(M), satisfies ‖M - kroneckerApprox M‖_F ≤ ‖M - A ⊗ B‖_F for all A, B;
+  `kroneckerApprox_isKronecker` shows it is itself a Kronecker product
+- `kroneckerApprox_error_sq`: its squared error is Σᵢ≥₁ σᵢ(R(M))²
 
-Full names, files and line numbers for every declaration are in [docs/INDEX.md](docs/INDEX.md)
-(for example `eckart_young_spectral` is `Matrix.SVD.Rectangular.eckart_young_spectral`).
 Proof-architecture notes are in [docs/](docs/).
 
 ## Requirements

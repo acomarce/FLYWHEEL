@@ -84,23 +84,23 @@ Namespaces do not match file names. Always look a name up in `docs/INDEX.md`.
 | TruncatedSVDRank1 | root (no namespace) |
 | WeylInequality | `Matrix.WeylInequality` (Weyl, Thompson interlacing) |
 | FrobeniusNorm | `Matrix.FrobeniusNorm` (includes `eckart_young_frobenius`) |
-| MatrixNormRelations | `Matrix.SVD`, `Matrix.SpectralNorm`, `Matrix.SVD.Rectangular`, `Matrix.KroneckerRearrangement`, `Matrix.KroneckerPerturbation` |
+| MatrixNormRelations | `Matrix.SVD` (square spectral Eckart–Young), `Matrix.SpectralNorm`, `Matrix.KroneckerRearrangement`, `Matrix.KroneckerPerturbation` |
 | SpectralNormGap | `Matrix.Kronecker.SpectralGap`, `Matrix.Kronecker.SpectralGapCharacterization` |
 | CoherenceCharacterization | `Matrix.Coherence` |
-| TightBounds | `Matrix.TightBounds` (rectangular `truncatedSVD_rect`, `singularValues₀_rect`) |
+| TightBounds | `Matrix.TightBounds` (rectangular `truncatedSVD_rect`, rectangular Eckart–Young, Van Loan–Pitsianis `kroneckerApprox`) |
 
 Traps:
-- **`Matrix.SVD.Rectangular` is split across two files.** The genuinely rectangular SVD is in
-  SVD.lean. MatrixNormRelations.lean adds `truncatedSVD` (an `abbrev` for the *square*
-  `Matrix.SVD.truncatedSVD`), `eckart_young_frobenius`, `spectral_error_truncatedSVD` and
-  `eckart_young_spectral`, and **all of these are square-only**. Example:
-  `Matrix.SVD.Rectangular.eckart_young_spectral`.
+- **Square vs rectangular Eckart–Young.** The square theorems are
+  `Matrix.FrobeniusNorm.eckart_young_frobenius` and `Matrix.SVD.eckart_young_spectral`; the
+  rectangular ones are `Matrix.TightBounds.eckart_young_frobenius_rect` and
+  `eckart_young_spectral_rect`. `Matrix.SVD.Rectangular` (SVD.lean only) holds the rectangular
+  SVD itself.
 - **SVD.lean has root-namespace sections.** `FrobeniusNormRectangular` and
   `SpectralNormRectangular` declare fully qualified `Matrix.SVD.Rectangular.*` names (their
   private helpers stay at root). `RectangularCoherenceFactor` is genuinely root:
   `coherenceFactorRect`, `frobeniusNormRect`, ….
 - **Nothing opens `Matrix.SVD.Rectangular`.** Downstream files spell names fully, e.g.
-  `Matrix.SVD.Rectangular.eckart_young_spectral` in CoherenceCharacterization.
+  `Matrix.SVD.Rectangular.singularValues` in WeylInequality and TightBounds.
 
 ## Norms: check which one is active before touching any `‖·‖`
 
@@ -116,9 +116,10 @@ Traps:
   CStarAlgebra (Matrix n n ℂ)` in MatrixNormRelations.lean is not local.
   - Consequence: from that point on, and in SpectralNormGap, CoherenceCharacterization and
     TightBounds, square complex matrices have the L2 norm by default.
-  - To get Frobenius there, use `attribute [local instance 1001]
-    Matrix.frobeniusSeminormedAddCommGroup`, as the `EckartYoung` section of
-    MatrixNormRelations does, or write the norm explicitly.
+  - To get Frobenius there, write the norm explicitly (next bullet) or use an explicit function
+    such as `frobeniusNorm'`. No code here relies on overriding the global instance with
+    `attribute [local instance 1001] Matrix.frobeniusSeminormedAddCommGroup`, so that route is
+    untested.
   - Rectangular matrices get no default norm from this project.
 - **Mixed-norm statements spell both norms out:** `@Norm.norm _
   Matrix.instL2OpNormedAddCommGroup.toNorm A` and `@Norm.norm _
@@ -179,14 +180,15 @@ Traps:
   the file) and a bogus proof step. If you see odd duplicated lines, suspect this. The index
   script reports unterminated comments and mismatched `end`s.
 
-## Known gaps and names that overstate what is proved
+## Known gaps
 
 Details are in the `docs/` notes.
-- No rectangular Eckart–Young (optimality) theorem exists. TightBounds proves the rectangular
-  spectral error formula and the rank bound only.
-- SpectralNormGap's `R_inv_bound_achievable_rank1`, `bound_tight_rank1` and its `Tightness`
-  section prove only `≤`. Tightness is false in general (`R_inv (vec I₂ vec I₂ᵀ) = I₄`). The
-  names overstate them; their docstrings say what is proved.
-- CoherenceCharacterization's `nearly_coherent_bound`, `nearly_coherent_spectral_lower_bound`,
-  `frobenius_spectral_distance_with_gap` and `decision_criterion` take no coherence or gap
-  hypothesis. Their names overstate them; their docstrings say what is proved.
+- No uniqueness statements. Neither the truncated SVD nor `kroneckerApprox` is shown to be the
+  unique optimum. In Frobenius norm the best rank-k approximation is unique only when
+  σₖ₋₁ > σₖ (0-indexed); in spectral norm optima are generally not unique.
+- Equality cases are one-directional: `‖R⁻¹ M‖₂ = ‖M‖_F` is proved when `R⁻¹ M` has rank one,
+  but not the converse; likewise `μ(E) = 1` is proved for flat spectra but not conversely.
+- Gap-dependent bounds stop at singular values: CoherenceCharacterization's
+  `frobenius_spectral_distance_with_gap` bounds ‖A_F − A_*‖₂ by 2(‖A‖₂ − spectralGap A). Nothing
+  bounds singular *subspaces* (Wedin/Davis–Kahan).
+- `Matrix.SVD.Real.singularValues` is not linked to `realSingularValues`.

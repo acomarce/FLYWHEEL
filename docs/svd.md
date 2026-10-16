@@ -33,8 +33,6 @@ in `CLAUDE.md`.
 - `singularDiagonal`.
 - `sqrtConjTransposeMulSelf` (`CFC.sqrt (Aᴴ A)`).
 
-The file header's "via polar decomposition (CFC.sqrt)" is out of date.
-
 **Other facts:**
 - `prod_singularValues_eq_abs_det`.
 - `sum_sq_singularValues_eq_trace`.
@@ -66,7 +64,7 @@ The file header's "via polar decomposition (CFC.sqrt)" is out of date.
 **Gram matrix.** It always uses `Aᴴ * A` (n×n), even when `m < n`:
 `rightUnitary A = eigenvectorUnitary (Aᴴ A)`. The design-choice docstring on `singularValues`
 explains why: it stays consistent with `rightUnitary`, and it avoids the `equivFin` vs
-`equivOfCardEq` mismatch. The module header's "smaller Gram matrix" does not describe the code.
+`equivOfCardEq` mismatch.
 
 **Singular values.**
 - `singularValues A : Fin (min #m #n) → ℝ` is `√ eigenvalues₀ (Fin.castLE _ k)` of `Aᴴ A`, so it
@@ -113,15 +111,17 @@ These sit outside any namespace:
   private root-level `instCStarAlgebraMatrixLocal`).
   - Declares `Matrix.SVD.Rectangular.maxSingularValue`, `spectral_norm_eq_max_singularValue_rect`
     and `spectral_norm_le_frobenius_norm_rect`.
-  - Most of these take `h : 0 < min #m #n`.
+  - These take `h : 0 < min #m #n`, which `maxSingularValue` (a `Finset.sup'`) needs.
 - **`RectangularCoherenceFactor`** (L2 instances, local `‖A‖₂`; Frobenius through the explicit
   `frobeniusNormRect`). It is genuinely root-namespace:
   - `coherenceFactorRect E = ‖E‖_F / (√rank E · ‖E‖₂)`, defined as 1 for `E = 0`;
   - `coherenceFactorRect_le_one` and `coherenceFactorRect_bounds`;
   - `frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect`.
-
-  - `coherenceFactorRect_eq_formula` only unfolds the definition for nonzero square `E`. No
-    lemma relates `coherenceFactorRect` to the square `Matrix.Coherence.coherenceFactor`.
+  - None of these takes a dimension hypothesis: `E ≠ 0` forces `0 < min #m #n`
+    (`min_card_pos_of_ne_zero_rect`), and `spectral_le_frobenius_rect` also holds at `E = 0`.
+  - `coherenceFactorRect_eq_formula` unfolds the definition for nonzero square `E`;
+    `Matrix.Coherence.coherenceFactorRect_eq_coherenceFactor` (CoherenceCharacterization) shows
+    it agrees with the square `coherenceFactor`.
 
 ## Rectangular truncation lives in TightBounds
 
@@ -129,5 +129,5 @@ These sit outside any namespace:
 - `singularValues₀_rect`, an alias of the rectangular `singularValues`;
 - `truncatedSVD_rect A k = constructedU_rectangular A * Sₖ * star (rightUnitary A)`.
 
-It proves `truncatedSVD_rect_rank_le` and `spectral_error_truncatedSVD_rect`. See
-`docs/eckart-young.md`.
+It proves `truncatedSVD_rect_rank_le`, the spectral and Frobenius error formulas, and
+rectangular Eckart–Young in both norms. See `docs/eckart-young.md`.
