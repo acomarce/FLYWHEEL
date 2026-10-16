@@ -1909,7 +1909,7 @@ lemma eigenvalues₀_zero_beyond_rank (A : Matrix m n ℂ) (i : Fin (Fintype.car
   have h_rank_eigs : Fintype.card {j : n // hermAHA.eigenvalues j ≠ 0} = (Aᴴ * A).rank :=
     (hermAHA.rank_eq_card_non_zero_eigs).symm
 
-  have h_card_eigs₀ : Fintype.card {j : Fin (Fintype.card n) // hermAHA.eigenvalues₀ j ≠ 0} ≤ A.rank := by
+  have h_card_eigs₀ : Fintype.card {j : Fin (Fintype.card n) // hermAHA.eigenvalues₀ j ≠ 0} = A.rank := by
     calc Fintype.card {j : Fin (Fintype.card n) // hermAHA.eigenvalues₀ j ≠ 0}
       = Fintype.card {j : n // hermAHA.eigenvalues j ≠ 0} :=
           card_nonzero_eigenvalues₀_eq_card_nonzero_eigenvalues hermAHA
@@ -1917,7 +1917,7 @@ lemma eigenvalues₀_zero_beyond_rank (A : Matrix m n ℂ) (i : Fin (Fintype.car
       _ = A.rank := h_rank_eq
 
   -- Step 5: Apply antitone_nonneg_zeros_after_rank
-  exact antitone_nonneg_zeros_after_rank hermAHA.eigenvalues₀ h_anti h_nonneg h_card_eigs₀ i h_idx
+  exact antitone_nonneg_zeros_after_rank hermAHA.eigenvalues₀ h_anti h_nonneg h_card_eigs₀.le i h_idx
 
 /-! ### Singular Values for Rectangular Matrices -/
 
