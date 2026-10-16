@@ -16,8 +16,8 @@ There are no `sorry`/`axiom`/`admit`, and it must stay that way.
   otherwise.
 - `docs/INDEX.md`: every top-level declaration with full name, kind, `file:line` and a doc
   summary. It is generated, so **grep it** to find a lemma instead of reading the sources.
-- `docs/svd.md`, `docs/eckart-young.md`, `docs/kronecker.md`: proof architecture notes and known
-  traps.
+- `docs/svd.md`, `docs/eckart-young.md`, `docs/kronecker.md`, `docs/davis-kahan.md`: proof
+  architecture notes and known traps.
 - `scripts/gen_index.py`: generates and checks the index. `.claude/hooks/session-start.sh`:
   cloud-session setup.
 
@@ -25,7 +25,7 @@ There are no `sorry`/`axiom`/`admit`, and it must stay that way.
 
 ```bash
 lake exe cache get          # prebuilt Mathlib oleans; needed once
-lake build                  # builds all 10 libraries (defaultTargets lists them all)
+lake build                  # builds all 12 libraries (defaultTargets lists them all)
 lake build TightBounds      # one library plus its imports
 lake env lean src/SVD.lean  # elaborate a single file
 python3 -I scripts/gen_index.py   # regenerate docs/INDEX.md after editing any .lean file
@@ -67,6 +67,8 @@ MatrixNormRelations           ← FrobeniusNorm, KroneckerRearrangement
 SpectralNormGap               ← MatrixNormRelations
 CoherenceCharacterization     ← MatrixNormRelations, SpectralNormGap
 TightBounds                   ← MatrixNormRelations, SpectralNormGap
+FrobeniusUniqueness           ← TightBounds
+DavisKahan                    ← CoherenceCharacterization
 ```
 
 `CourantFischer` and `WeylInequality` do `import Mathlib`; the other files import specific
@@ -84,10 +86,12 @@ Namespaces do not match file names. Always look a name up in `docs/INDEX.md`.
 | TruncatedSVDRank1 | root (no namespace) |
 | WeylInequality | `Matrix.WeylInequality` (Weyl, Thompson interlacing) |
 | FrobeniusNorm | `Matrix.FrobeniusNorm` (includes `eckart_young_frobenius`) |
-| MatrixNormRelations | `Matrix.SVD` (square spectral Eckart–Young), `Matrix.SpectralNorm`, `Matrix.KroneckerRearrangement`, `Matrix.KroneckerPerturbation`, root `Finset.sup'_prod_eq_mul_sup'` |
+| MatrixNormRelations | `Matrix.SVD` (square spectral Eckart–Young and its non-uniqueness counterexample), `Matrix.SpectralNorm`, `Matrix.KroneckerRearrangement`, `Matrix.KroneckerPerturbation`, root `Finset.sup'_prod_eq_mul_sup'` |
 | SpectralNormGap | `Matrix.Kronecker.SpectralBounds` (‖·‖₂ vs ‖·‖_F through R⁻¹) |
 | CoherenceCharacterization | `Matrix.Coherence` |
 | TightBounds | `Matrix.TightBounds` (rectangular `truncatedSVD_rect`, rectangular Eckart–Young, Van Loan–Pitsianis `kroneckerApprox`) |
+| FrobeniusUniqueness | `Matrix.FrobeniusUniqueness` (uniqueness of the Frobenius-optimal truncation under a gap: square, rectangular, `kroneckerApprox`) |
+| DavisKahan | `Matrix.DavisKahan` (sin θ for the top eigenvector, Frobenius sin Θ for top-k eigenspaces, Gram-matrix corollaries for the top right singular vector) |
 
 Traps:
 - **Square vs rectangular Eckart–Young.** The square theorems are
@@ -116,8 +120,9 @@ Traps:
     `Matrix.instCStarRing`.
 - **There is one global instance.** `Matrix.SpectralNorm.instCStarAlgebraMatrix :
   CStarAlgebra (Matrix n n ℂ)` in MatrixNormRelations.lean is not local.
-  - Consequence: from that point on, and in SpectralNormGap, CoherenceCharacterization and
-    TightBounds, square complex matrices have the L2 norm by default.
+  - Consequence: from that point on, and in SpectralNormGap, CoherenceCharacterization,
+    TightBounds, FrobeniusUniqueness and DavisKahan, square complex matrices have the L2 norm by
+    default.
   - To get Frobenius there, write the norm explicitly (next bullet) or use an explicit function
     such as `frobeniusNorm'`. No code here relies on overriding the global instance with
     `attribute [local instance 1001] Matrix.frobeniusSeminormedAddCommGroup`, so that route is
@@ -126,7 +131,8 @@ Traps:
 - **Mixed-norm statements spell both norms out:** `@Norm.norm _
   Matrix.instL2OpNormedAddCommGroup.toNorm A` and `@Norm.norm _
   Matrix.frobeniusSeminormedAddCommGroup.toNorm A`. Some sections define local notations
-  `‖A‖₂` / `‖A‖_F` for these (SVD.lean, CoherenceCharacterization).
+  `‖A‖₂` / `‖A‖_F` for these (SVD.lean, CoherenceCharacterization, the `Square` section of
+  FrobeniusUniqueness).
 - **If a norm lemma "should" apply but doesn't**, suspect the wrong instance. Compare the
   instance in the goal (`set_option pp.explicit true`) with the one the lemma expects.
 
@@ -177,6 +183,17 @@ Traps:
   Proofs are written as structured `have` steps with short comments; match that.
 - **Commit messages:** `<File or area>: <imperative summary>`, e.g. `TightBounds: fix
   injectivity argument in rank bound`.
+- **Proof-writing traps** (met while writing FrobeniusUniqueness and DavisKahan):
+  - `λ` is a keyword, so it cannot appear in identifiers (`hλ` does not parse).
+  - `have h := foo (fun x => …) …` keeps beta-redexes like `(fun x => …) a` in the type of `h`,
+    and a later `rw … at h` cannot see through them. Give `h` its type explicitly.
+  - `simp only [Matrix.mul_assoc, h]` re-associates products inside the goal but not in `h`'s
+    left side. If `h` mentions a composite like `W * D * star W`, first name it with
+    `obtain ⟨Q, hQ⟩ : ∃ Q, Q = W * D * star W := ⟨_, rfl⟩`.
+  - A defensive `<;> rfl` after a `simp` that already closes the goal is a linter warning.
+  - `@[deprecated]` sits on the line above the declaration, so grep Mathlib and the toolchain's
+    `Init` with `-B1` (e.g. `Fin.lt_iff_val_lt_val` is deprecated for `Fin.lt_def`). A deprecated
+    name only warns.
 - **Corruption history:** main once had duplicated `section` lines, truncated and duplicated
   comment openers (Lean block comments nest, so a stray `/-` silently comments out the rest of
   the file) and a bogus proof step. If you see odd duplicated lines, suspect this. The index
@@ -185,10 +202,19 @@ Traps:
 ## Known gaps
 
 Details are in the `docs/` notes.
-- No uniqueness statements. Neither the truncated SVD nor `kroneckerApprox` is shown to be the
-  unique optimum. In Frobenius norm the best rank-k approximation is unique only when
-  σₖ₋₁ > σₖ (0-indexed); in spectral norm optima are generally not unique.
-- Gap-dependent bounds stop at singular values: CoherenceCharacterization's
-  `frobenius_spectral_distance_with_gap` bounds ‖A_F − M‖₂ by 2(‖A‖₂ − spectralGap A) for every
-  spectral minimizer M. Nothing
-  bounds singular *subspaces* (Wedin/Davis–Kahan).
+- Uniqueness is proved only in the Frobenius norm, and only under a gap σₖ₋₁ > σₖ (0-indexed):
+  `Matrix.FrobeniusUniqueness.eckart_young_frobenius_unique` (square),
+  `eckart_young_frobenius_rect_unique` and `kroneckerApprox_unique` (σ₀(R C) > σ₁(R C)). When
+  σₖ₋₁ = σₖ > 0 the optimum is not unique; no counterexample for that is formalized. The case
+  σₖ₋₁ = σₖ = 0 (rank A < k, where B = A is forced) is excluded by the hypothesis but not
+  stated separately. The Kronecker factors A, B are not unique (scaling); only A ⊗ B is.
+- Spectral norm: optima are not unique, shown by one counterexample
+  (`Matrix.SVD.spectral_best_rank_one_not_unique`, A = diag(2, 1), k = 1). No characterization of
+  all spectral optima.
+- Subspace perturbation (`Matrix.DavisKahan`): the top eigenvector (`davis_kahan_top`), the
+  top-k eigenspace in Frobenius form with a factor k (`davis_kahan_sin_theta`), and, through the
+  Gram matrix, the top right singular vector of a square matrix
+  (`top_right_singular_vector_perturbation`,
+  `top_right_singular_vector_perturbation_of_spectralGap`). Not formalized: the
+  operator-norm sin Θ for k > 1, and Wedin's theorem (gap σₖ₋₁ - σₖ, ‖E‖₂ directly, left and
+  right singular subspaces, rectangular matrices).
