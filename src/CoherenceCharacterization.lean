@@ -501,6 +501,7 @@ theorem outerProduct_spectral_norm_ge [Nonempty m] [Nonempty n]
           have h_w'_ne : ‖w'‖ ≠ 0 := ne_of_gt h_norm_w_pos
           field_simp [h_w'_ne]
 
+omit [DecidableEq m] in
 /-- **Main theorem**: The spectral norm of an outer product equals the product of vector norms.
     ‖uv*‖₂ = ‖u‖ · ‖v‖
 
@@ -530,6 +531,7 @@ theorem outerProduct_spectral_norm_eq [Nonempty m] [Nonempty n]
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
+omit [DecidableEq m] in
 /-- The spectral and Frobenius norms of an outer product are equal: ‖uv*‖₂ = ‖uv*‖_F.
     Same statement as `rank_one_spectral_eq_frobenius`; no unit-norm assumption is needed. -/
 theorem rank_one_spectral_eq_frobenius_unit [Nonempty m] [Nonempty n]
@@ -541,6 +543,7 @@ theorem rank_one_spectral_eq_frobenius_unit [Nonempty m] [Nonempty n]
   rw [outerProduct_spectral_norm_eq,
       Matrix.Kronecker.SpectralGap.outerProduct_frobenius_norm']
 
+omit [DecidableEq m] in
 /-- For any vectors, the spectral and Frobenius norms of their outer product are equal.
     This is the general version: ‖uv*‖₂ = ‖uv*‖_F = ‖u‖·‖v‖ -/
 theorem rank_one_spectral_eq_frobenius [Nonempty m] [Nonempty n]

@@ -740,6 +740,7 @@ lemma conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply
 
 /-! ### Spectral Norm of Rectangular Diagonal Matrix -/
 
+omit [DecidableEq m'] in
 /-- DᴴD diagonal entry at j equals σ²_{bijection(j)} when k ≤ bijection(j) < min, else 0.
     This is a specialized version of `conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply`
     for the diagonal case j = j'. -/
@@ -912,6 +913,7 @@ lemma eigenvalues_le_max_diagonal_entry_of_diagonal_psd
     exact (h_nonempty (Nonempty.intro j)).elim
 
 
+omit [DecidableEq m'] in
 /-- The k-th singular value squared is achieved as a diagonal entry.
     This is the lower bound helper for `l2_opNorm_truncatedSingularDiagonal_rect_tail`. -/
 lemma sigma_sq_is_DtD_entry (A : Matrix m' n' ℂ) (k : ℕ)
@@ -1098,11 +1100,6 @@ section TightKroneckerBound
 -- Enable Frobenius norm instance for this section
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
-/-- R distributes over subtraction. Imported from SpectralNormGap.R_sub. -/
-private lemma R_sub_inline (M N : Matrix (m × n) (p × q) ℂ) :
-    KroneckerRearrangement.R (M - N) = KroneckerRearrangement.R M - KroneckerRearrangement.R N :=
-  Kronecker.SpectralGap.R_sub M N
-
 /-- Cauchy-Schwarz for complex sums: |∑ⱼ aⱼ bⱼ| ≤ √(∑ⱼ |aⱼ|²) · √(∑ⱼ |bⱼ|²) -/
 private lemma complex_sum_cauchy_schwarz_inline {ι : Type*} [Fintype ι] (a b : ι → ℂ) :
     ‖∑ j, a j * b j‖ ≤ Real.sqrt (∑ j, ‖a j‖^2) * Real.sqrt (∑ j, ‖b j‖^2) := by
@@ -1210,7 +1207,7 @@ theorem frobenius_error_via_R_isometry
   -- Step 2: R(C - R_inv(X)) = R(C) - R(R_inv(X)) = R(C) - X
   have h2 : KroneckerRearrangement.R (C - KroneckerRearrangement.R_inv X) =
             KroneckerRearrangement.R C - X := by
-    rw [R_sub_inline, KroneckerRearrangement.R_R_inv]
+    rw [Kronecker.SpectralGap.R_sub, KroneckerRearrangement.R_R_inv]
   rw [h1, h2]
 
 -- Enable L2 operator norm instances for spectral norm theorems

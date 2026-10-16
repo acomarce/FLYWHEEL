@@ -1108,6 +1108,7 @@ theorem thompson_interlacing (A B : Matrix n n ℂ) (r : ℕ) (hr : B.rank ≤ r
     _ = ‖Matrix.toEuclideanLin (A + B) y‖^2 := by rw [h_eq_norm]
     _ ≤ hApBHA.eigenvalues₀ i := h_rayleigh_upper
 
+omit [Nonempty n] in
 /-- **Thompson Interlacing for Low-Rank Subtraction**
 
 For matrices A, C with rank(C) ≤ k:
@@ -1150,6 +1151,7 @@ theorem interlacing_low_rank_subtraction (A C : Matrix n n ℂ) (k : ℕ)
     _ ≤ Matrix.SVD.singularValues₀ (A + (-C)) i := thompson_interlacing A (-C) k h_neg_rank i hi
     _ = Matrix.SVD.singularValues₀ (A - C) i := by rw [sub_eq_add_neg]
 
+omit [Nonempty n] in
 /-- Variant of interlacing with explicit index bounds for Eckart-Young applications. -/
 theorem interlacing_for_eckart_young (A C : Matrix n n ℂ) (k : ℕ)
     (hC : C.rank ≤ k) (j : ℕ) (hj_ge : k ≤ j) (hj_lt : j < Fintype.card n) :
