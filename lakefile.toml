@@ -14,7 +14,8 @@ defaultTargets = [
   "SpectralNormGap",
   "CoherenceCharacterization",
   "TightBounds",
-  "TruncatedSVDRank1"
+  "TruncatedSVDRank1",
+  "FrobeniusUniqueness"
 ]
 
 [[require]]
@@ -51,3 +52,6 @@ name = "TightBounds"
 
 [[lean_lib]]
 name = "TruncatedSVDRank1"
+
+[[lean_lib]]
+name = "FrobeniusUniqueness"
