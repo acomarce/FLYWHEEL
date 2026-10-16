@@ -33,6 +33,7 @@ variable {n : Type*} [DecidableEq n] [Fintype n] [Nonempty n]
 section RayleighAdditivity
 
 omit [Nonempty n] in
+/-- `toEuclideanLin` is additive in the matrix: (A + B)x = Ax + Bx. -/
 theorem toEuclideanLin_add (A B : Matrix n n ℂ) (x : EuclideanSpace ℂ n) :
     Matrix.toEuclideanLin (A + B) x = Matrix.toEuclideanLin A x + Matrix.toEuclideanLin B x := by
   simp only [Matrix.toEuclideanLin_apply, Matrix.add_mulVec]
@@ -385,40 +386,9 @@ This follows from:
 4. If rank ≤ k, then at most k eigenvalues are nonzero
 5. Since eigenvalues₀ is antitone, eigenvalues₀ j = 0 for j ≥ k
 6. Therefore singularValues₀ j = √0 = 0
-
-This lemma is essential for Eckart-Young: if C has rank ≤ k, then σⱼ(C) = 0 for j ≥ k.
 -/
 
 section SingularValuesBeyondRank
-
-open Matrix.SVD in
-/-- For an antitone nonneg function, if at most k values are nonzero, then f(i) = 0 for i ≥ k.
-
-This is a slight generalization of `antitone_nonneg_zeros_after_rank` from SVD.lean,
-adapted for the square matrix case where we have a direct rank bound. -/
-lemma antitone_nonneg_zeros_from_rank {m : ℕ} (f : Fin m → ℝ)
-    (h_anti : Antitone f) (h_nonneg : ∀ i, 0 ≤ f i)
-    (k : ℕ) (h_card : Fintype.card {i : Fin m // f i ≠ 0} ≤ k)
-    (i : Fin m) (hi : k ≤ i.val) : f i = 0 := by
-  by_contra h_ne
-  -- If f i ≠ 0, then all f j for j ≤ i are also ≠ 0 (by antitone + nonneg)
-  have h_all_nonzero : ∀ j : Fin m, j ≤ i → f j ≠ 0 := by
-    intro j hji h_fj_zero
-    have h_fi_pos : 0 < f i := (h_nonneg i).lt_of_ne' h_ne
-    have h_fj_ge : f j ≥ f i := h_anti hji
-    linarith [h_fj_zero.symm ▸ h_fj_ge]
-  -- So {j | f j ≠ 0} ⊇ {j | j ≤ i}, which has at least i.val + 1 elements
-  have h_count : i.val + 1 ≤ Fintype.card {j : Fin m // f j ≠ 0} := by
-    have h_iic : (Finset.Iic i).card = i.val + 1 := by simp [Fin.card_Iic]
-    calc i.val + 1 = (Finset.Iic i).card := h_iic.symm
-      _ ≤ (Finset.univ.filter (fun j : Fin m => f j ≠ 0)).card := by
-          apply Finset.card_le_card
-          intro j hj
-          simp only [Finset.mem_filter, Finset.mem_univ, true_and]
-          exact h_all_nonzero j (Finset.mem_Iic.mp hj)
-      _ = Fintype.card {j : Fin m // f j ≠ 0} := by rw [Fintype.card_subtype]
-  -- But i.val + 1 > k ≥ card {j | f j ≠ 0}, contradiction
-  omega
 
 omit [Nonempty n] in
 /-- eigenvalues₀ at index ≥ rank are zero for square Hermitian PSD matrices.
@@ -449,8 +419,8 @@ lemma eigenvalues₀_zero_from_rank_bound {A : Matrix n n ℂ} (hA : A.PosSemide
       = Fintype.card {i : n // hA.isHermitian.eigenvalues i ≠ 0} := h_card_eq
       _ = A.rank := h_rank_eq.symm
       _ ≤ j.val := hj
-  exact antitone_nonneg_zeros_from_rank hA.isHermitian.eigenvalues₀ h_anti h_nonneg
-    j.val h_card_bound j (Nat.le_refl _)
+  exact antitone_nonneg_zeros_after_rank hA.isHermitian.eigenvalues₀ h_anti h_nonneg
+    h_card_bound j (Nat.le_refl _)
 
 omit [Nonempty n] in
 /-- For rank(A) = r, singular values σⱼ(A) = 0 for j ≥ r. -/
@@ -515,7 +485,7 @@ lemma norm_toEuclideanLin_le_singularValue₀ (M : Matrix n n ℂ)
   nlinarith [sq_nonneg (‖Matrix.toEuclideanLin M x‖), sq_nonneg (Matrix.SVD.singularValues₀ M 0)]
 
 omit [Nonempty n] in
-/-- Triangle inequality for toEuclideanLin: ‖(A-B)x‖ = ‖Ax - Bx‖. -/
+/-- `toEuclideanLin` is subtractive in the matrix: (A - B)x = Ax - Bx. -/
 lemma toEuclideanLin_sub (A B : Matrix n n ℂ) (x : EuclideanSpace ℂ n) :
     Matrix.toEuclideanLin (A - B) x = Matrix.toEuclideanLin A x - Matrix.toEuclideanLin B x := by
   simp only [Matrix.toEuclideanLin_apply, Matrix.sub_mulVec]
@@ -745,16 +715,8 @@ theorem weyl_singularValue_perturbation (A B : Matrix n n ℂ) (k : Fin (Fintype
     have h := weyl_singularValue_upper_aux A B k
     linarith
 
-/-- Weyl perturbation applied to a zero matrix: σₖ(A) ≤ σ₁(A).
-
-When B = 0, all singular values of B are 0, so σₖ(A) ≤ σₖ(0) + σ₁(A - 0) = σ₁(A). -/
-theorem singularValues₀_le_singularValues₀_zero (A : Matrix n n ℂ) (k : Fin (Fintype.card n)) :
-    Matrix.SVD.singularValues₀ A k ≤ Matrix.SVD.singularValues₀ A 0 := by
-  exact Matrix.SVD.singularValues₀_antitone A (Fin.zero_le k)
-
-/-- For a zero-rank matrix (σⱼ = 0 for all j), perturbation gives: σⱼ(A) ≤ σ₁(A - C).
-
-This is the specific form needed for Eckart-Young when C has rank ≤ k and j ≥ k. -/
+/-- If σⱼ(C) = 0 (for instance rank C ≤ j), then σⱼ(A) ≤ σ₀(A - C), by Weyl's perturbation
+bound. -/
 theorem singularValue_perturbation_zero_at_j (A C : Matrix n n ℂ)
     (j : Fin (Fintype.card n)) (hC : Matrix.SVD.singularValues₀ C j = 0) :
     Matrix.SVD.singularValues₀ A j ≤ Matrix.SVD.singularValues₀ (A - C) 0 := by
@@ -1138,7 +1100,8 @@ theorem interlacing_low_rank_subtraction (A C : Matrix n n ℂ) (k : ℕ)
     _ = Matrix.SVD.singularValues₀ (A - C) i := by rw [sub_eq_add_neg]
 
 omit [Nonempty n] in
-/-- Variant of interlacing with explicit index bounds for Eckart-Young applications. -/
+/-- `interlacing_low_rank_subtraction` with the index j given as a natural number:
+    rank C ≤ k ≤ j < n gives σⱼ(A) ≤ σⱼ₋ₖ(A - C). -/
 theorem interlacing_for_eckart_young (A C : Matrix n n ℂ) (k : ℕ)
     (hC : C.rank ≤ k) (j : ℕ) (hj_ge : k ≤ j) (hj_lt : j < Fintype.card n) :
     Matrix.SVD.singularValues₀ A ⟨j, hj_lt⟩ ≤

@@ -16,7 +16,8 @@ import WeylInequality
 /-!
 # Frobenius Norm and Eckart-Young
 
-‖A‖_F² = tr(Aᴴ A) = Σᵢ σᵢ². Unitary invariance from trace cyclicity.
+‖A‖_F² = Re tr(Aᴴ A) (here) = Σᵢ σᵢ² (`Matrix.SVD.sum_sq_singularValues_eq_trace`). Unitary
+invariance from trace cyclicity.
 
 ## References
 
@@ -53,6 +54,7 @@ attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
 -- FIXME: this lemma probably already exists somewhere in Mathlib?
 -- I looked but couldn't find it. If someone finds it, replace this.
+/-- ‖z‖² = Re(z̄ z) for complex z. -/
 lemma Complex.norm_sq_eq_star_mul_self (z : ℂ) : ‖z‖^2 = (star z * z).re := by
   have key : star z * z = z.normSq := by
     simp only [Complex.star_def]
@@ -62,6 +64,7 @@ lemma Complex.norm_sq_eq_star_mul_self (z : ℂ) : ‖z‖^2 = (star z * z).re :
   rw [sq, Complex.norm_mul_self_eq_normSq]
   -- #check Complex.sq_abs -- this exists but uses abs not norm, annoying
 
+/-- ‖z‖^(2 : ℝ) = Re(z̄ z) for complex z (real-exponent form). -/
 lemma Complex.norm_rpow_two_eq_star_mul_self (z : ℂ) : ‖z‖ ^ (2:ℝ) = (star z * z).re := by
   rw [Real.rpow_two]
   exact Complex.norm_sq_eq_star_mul_self z
@@ -457,40 +460,13 @@ lemma frobenius_sq_truncated_diagonal (A : Matrix n n ℂ) (k : ℕ) :
   simp only [Function.comp_apply, Complex.norm_real, Real.norm_eq_abs]
   rw [sq_abs_eq_sq_of_nonneg (truncatedSingularValues_tail_nonneg A k i)]
 
-/-! ### Eckart-Young Core Lemma
+/-! ### Proof route for Eckart–Young
 
-The following lemma is the essential mathematical content of the Eckart-Young theorem.
-It states that for sorted singular values σ₁ ≥ σ₂ ≥ ... ≥ σₙ ≥ 0 and any matrix C
-with rank(C) ≤ k, the tail sum of squared singular values is bounded:
-
-  σₖ₊₁² + σₖ₊₂² + ... + σₙ² ≤ Σᵢ |σᵢ - Cᵢᵢ|²
-
-**Proof Strategy:**
-
-The Eckart-Young theorem states that the truncated SVD minimizes the Frobenius norm
-error among all rank-k approximations. The proof works in the SVD basis where:
-- A becomes the diagonal matrix Σ = diag(σ₁, ..., σₙ)
-- The truncated SVD becomes Σₖ = diag(σ₁, ..., σₖ, 0, ..., 0)
-- Any rank-k approximation B becomes C = U*BV with rank(C) ≤ k
-
-The full Frobenius error decomposes as:
-  ‖Σ - C‖² = Σᵢ |σᵢ - Cᵢᵢ|² + Σᵢ≠ⱼ |Cᵢⱼ|²
-
-The key insight is that:
-1. Off-diagonal terms are always ≥ 0
-2. For the truncated diagonal Σₖ, off-diagonal terms are 0
-3. The diagonal terms of Σₖ give error Σᵢ≥ₖ σᵢ²
-
-**NOTE:** The previously stated "diagonal-only" lemma (eckartYoungCoreLemma) was FALSE.
-A rank-k matrix can have ALL diagonal entries matching σᵢ perfectly (unlike diagonal
-rank-k matrices which can have at most k nonzero entries).
-
-Counterexample: n=2, k=1, σ=(2,1), C=[[2,1],[2,1]] has rank 1 but diag(C)=(2,1)=σ.
-
-The correct proof uses the FULL Frobenius norm. We prove optimality via an alternative
-approach that doesn't require the false diagonal bound.
-
-See: Horn & Johnson, "Matrix Analysis" (2012), Theorem 7.4.9 (Eckart-Young-Mirsky).
+In the SVD basis A becomes Σ = diag(σ) and a rank-≤ k approximation B becomes C = Uᴴ B V with
+rank C ≤ k. The tempting diagonal-only bound Σᵢ≥ₖ σᵢ² ≤ Σᵢ |σᵢ - Cᵢᵢ|² is false: for σ = (2, 1),
+k = 1 and C = [[2, 1], [2, 1]] the right side is 0. The proof below instead bounds the whole
+Frobenius norm, comparing σⱼ(A) with σⱼ₋ₖ(Σ - C) by Thompson interlacing
+(`interlacing_low_rank_subtraction`). See Horn & Johnson (2012), Theorem 7.4.9.
 -/
 
 /-! ### Eckart-Young Theorem -/
