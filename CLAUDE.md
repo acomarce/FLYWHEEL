@@ -33,9 +33,8 @@ python3 -I scripts/gen_index.py   # regenerate docs/INDEX.md after editing any .
 
 - **Never run `lake update`.** `lakefile.toml` requires Mathlib `rev = "master"`, so an update
   would jump far past the pinned revision and toolchain.
-- The build prints many linter warnings (`unusedSectionVars`, `unusedVariables`,
-  `unusedSimpArgs`). They predate this setup and are not errors. Do not mass-fix them in an
-  unrelated change.
+- The build is warning-free. Keep it that way and fix any warning your change introduces.
+  CI does not fail on warnings, so read the `build` log.
 
 ### Cloud sessions (claude.ai/code)
 
@@ -167,6 +166,10 @@ Traps:
 - **Section variables:** to drop one that a declaration doesn't use, put `omit [Nonempty n] in`
   (or `omit [DecidableEq m] in`, …) on its own line *before* the doc comment. Some files use
   `set_option linter.unusedSectionVars false in` the same way.
+  - `omit [T] in` drops *every* section variable whose type is `T`. Never declare the same
+    instance twice in one scope; `omit` would then remove both copies.
+  - Sections that re-declare `variable {n : Type*} …` shadow the outer `n`, so `omit` and the
+    linter then refer to the inner `n`.
 - **Statements:** changing a theorem statement changes what is proved, so call it out in the PR.
   Proofs are written as structured `have` steps with short comments; match that.
 - **Commit messages:** `<File or area>: <imperative summary>`, e.g. `TightBounds: fix
