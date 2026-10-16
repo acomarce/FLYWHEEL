@@ -55,8 +55,8 @@ in `CLAUDE.md`.
   - `realAV`, `extendedONB_real`, `constructedU_real`;
   - `realAV_eq_constructedU_real_mul_sigma`.
 - Main result: `Matrix.SVD.Real.svd_decomposition`.
-- `Real.singularValues` is defined through the complex `singularValues (A.map ofReal)`. Nothing
-  links it to `realSingularValues`.
+- `Real.singularValues A = √λᵢ(Aᵀ A)` is the σ of the real SVD. (An earlier, unused definition
+  through the complex `singularValues (A.map ofReal)` was removed.)
 - Nothing outside SVD.lean uses this namespace.
 
 ## Rectangular case: `Matrix.SVD.Rectangular`

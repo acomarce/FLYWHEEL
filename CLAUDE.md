@@ -191,4 +191,3 @@ Details are in the `docs/` notes.
 - Gap-dependent bounds stop at singular values: CoherenceCharacterization's
   `frobenius_spectral_distance_with_gap` bounds ‖A_F − A_*‖₂ by 2(‖A‖₂ − spectralGap A). Nothing
   bounds singular *subspaces* (Wedin/Davis–Kahan).
-- `Matrix.SVD.Real.singularValues` is not linked to `realSingularValues`.
