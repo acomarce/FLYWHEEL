@@ -15,7 +15,8 @@ defaultTargets = [
   "CoherenceCharacterization",
   "TightBounds",
   "TruncatedSVDRank1",
-  "FrobeniusUniqueness"
+  "FrobeniusUniqueness",
+  "DavisKahan"
 ]
 
 [[require]]
@@ -55,3 +56,6 @@ name = "TruncatedSVDRank1"
 
 [[lean_lib]]
 name = "FrobeniusUniqueness"
+
+[[lean_lib]]
+name = "DavisKahan"
