@@ -89,7 +89,7 @@ theorem toEuclideanLin_eigenvectorBasis {A : Matrix n n ℂ} (hA : A.IsHermitian
     toEuclideanLin A (hA.eigenvectorBasis i) = (hA.eigenvalues i : ℂ) • hA.eigenvectorBasis i := by
   ext j
   have := hA.mulVec_eigenvectorBasis i
-  simp only [Matrix.toEuclideanLin_apply] at this ⊢
+  simp only [Matrix.toLpLin_apply] at this ⊢
   exact congr_fun this j
 
 /-- If (A + E) v = μ v for a Hermitian A with eigenvector basis uᵢ, then
@@ -98,7 +98,7 @@ theorem norm_sq_perturbation_eq_sum (A E : Matrix n n ℂ) (hA : A.IsHermitian)
     (v : EuclideanSpace ℂ n) (μ : ℝ) (hv : toEuclideanLin (A + E) v = (μ : ℂ) • v) :
     ‖toEuclideanLin E v‖ ^ 2 =
       ∑ i, (μ - hA.eigenvalues i) ^ 2 * ‖⟪hA.eigenvectorBasis i, v⟫‖ ^ 2 := by
-  have hSym : (toEuclideanLin A).IsSymmetric := isHermitian_iff_isSymmetric.mp hA
+  have hSym : (toEuclideanLin A).IsSymmetric := isSymmetric_toEuclideanLin_iff.mpr hA
   -- Coefficients of A x in the eigenbasis: ⟨uᵢ, A x⟩ = λᵢ ⟨uᵢ, x⟩
   have hcoefA : ∀ i x, ⟪hA.eigenvectorBasis i, toEuclideanLin A x⟫ =
       (hA.eigenvalues i : ℂ) * ⟪hA.eigenvectorBasis i, x⟫ := by
@@ -160,10 +160,10 @@ theorem davis_kahan_top (A E : Matrix n n ℂ) (hA : A.IsHermitian) (h2 : 1 < Fi
       Finset.add_sum_erase Finset.univ (fun i => ‖⟪hA.eigenvectorBasis i, w⟫‖ ^ 2)
         (Finset.mem_univ _)
     rw [← hA.eigenvectorBasis.sum_sq_norm_inner_right w, ← h_split, hw_coef (topIndex h2),
-      if_pos rfl, norm_zero, zero_pow two_ne_zero, zero_add]
+      ite_eq_left rfl, norm_zero, zero_pow two_ne_zero, zero_add]
     apply Finset.sum_congr rfl
     intro i hi
-    rw [hw_coef i, if_neg (Finset.ne_of_mem_erase hi)]
+    rw [hw_coef i, ite_eq_right (Finset.ne_of_mem_erase hi)]
   -- Off the top index, (μ - λᵢ)² ≥ (μ - λ₁)²
   have h_gap_i : ∀ i ∈ Finset.univ.erase (topIndex h2),
       (μ - hA.eigenvalues₀ ⟨1, h2⟩) ^ 2 ≤ (μ - hA.eigenvalues i) ^ 2 := by
@@ -197,7 +197,7 @@ section WeylForm
 /-- Every eigenvalue of a Hermitian E has absolute value at most ‖E‖₂. -/
 theorem abs_eigenvalues₀_le_norm {E : Matrix n n ℂ} (hE : E.IsHermitian)
     (j : Fin (Fintype.card n)) : |hE.eigenvalues₀ j| ≤ ‖E‖ := by
-  haveI : Nonempty n := Fintype.card_pos_iff.mp (Nat.lt_of_le_of_lt (Nat.zero_le _) j.isLt)
+  have : Nonempty n := Fintype.card_pos_iff.mp (Nat.lt_of_le_of_lt (Nat.zero_le _) j.isLt)
   have h_norm := Matrix.SpectralNorm.l2_opNorm_hermitian_eq_sup_abs_eigenvalues E hE
   have h_eq : hE.eigenvalues₀ j =
       hE.eigenvalues (Fintype.equivOfCardEq (Fintype.card_fin _) j) := by
@@ -209,7 +209,7 @@ theorem abs_eigenvalues₀_le_norm {E : Matrix n n ℂ} (hE : E.IsHermitian)
 theorem eigenvalues₀_sub_norm_le_add {A E : Matrix n n ℂ} (hA : A.IsHermitian)
     (hE : E.IsHermitian) (k : Fin (Fintype.card n)) :
     hA.eigenvalues₀ k - ‖E‖ ≤ (hA.add hE).eigenvalues₀ k := by
-  haveI : Nonempty n := Fintype.card_pos_iff.mp (Nat.lt_of_le_of_lt (Nat.zero_le _) k.isLt)
+  have : Nonempty n := Fintype.card_pos_iff.mp (Nat.lt_of_le_of_lt (Nat.zero_le _) k.isLt)
   have h_weyl := WeylInequality.weyl_eigenvalue_lower_bound A E hA hE k
   have h_min := abs_eigenvalues₀_le_norm hE WeylInequality.minEigenvalueIdx
   have h_neg := neg_abs_le (hE.eigenvalues₀ WeylInequality.minEigenvalueIdx)
@@ -329,12 +329,12 @@ theorem davis_kahan_topIndices (A E : Matrix n n ℂ) (hA : A.IsHermitian) (k : 
     have h_in : ∑ i ∈ topIndices k hk, ‖⟪hA.eigenvectorBasis i, w⟫‖ ^ 2 = 0 := by
       apply Finset.sum_eq_zero
       intro i hi
-      rw [hw_coef i, if_pos hi, norm_zero, zero_pow two_ne_zero]
+      rw [hw_coef i, ite_eq_left hi, norm_zero, zero_pow two_ne_zero]
     rw [← hA.eigenvectorBasis.sum_sq_norm_inner_right w,
       ← Finset.sum_add_sum_compl (topIndices k hk), h_in, zero_add]
     apply Finset.sum_congr rfl
     intro i hi
-    rw [hw_coef i, if_neg (Finset.mem_compl.mp hi)]
+    rw [hw_coef i, ite_eq_right (Finset.mem_compl.mp hi)]
   -- Off topIndices k, λᵢ ≤ λₖ, so (μ - λᵢ)² ≥ (μ - λₖ)²
   have h_gap_i : ∀ i ∈ (topIndices k hk)ᶜ,
       (μ - hA.eigenvalues₀ ⟨k, hk⟩) ^ 2 ≤ (μ - hA.eigenvalues i) ^ 2 := by
@@ -476,7 +476,7 @@ theorem spectralGap_mul_norm_le_sq_sub_sq [Nonempty n] (A : Matrix n n ℂ)
   have h_gap : Coherence.spectralGap A =
       SVD.singularValues₀ A ⟨0, by omega⟩ - SVD.singularValues₀ A ⟨1, h2⟩ := by
     unfold Coherence.spectralGap
-    rw [dif_pos h2, h0]
+    rw [dite_eq_left h2, h0]
   rw [h_gap, h_norm]
   have h1 := SVD.singularValues₀_nonneg A ⟨1, h2⟩
   have h01 : SVD.singularValues₀ A ⟨1, h2⟩ ≤ SVD.singularValues₀ A ⟨0, by omega⟩ :=

@@ -253,7 +253,7 @@ lemma AV_columns_orthogonal (A : Matrix n n ℂ) (i j : n) (hij : i ≠ j) :
   simp only at h2
   have h1 : (AVᴴ * AV) i j = ∑ k, star (AV k i) * AV k j := by
     simp only [conjTranspose_apply, mul_apply]
-  rw [h1.symm, h2, diagonal_apply, Function.comp_apply, if_neg hij]
+  rw [h1.symm, h2, diagonal_apply, Function.comp_apply, ite_eq_right hij]
 
 /-- Squared norm of column i of A*V equals σᵢ² (using singularValues). -/
 lemma AV_column_norm_sq (A : Matrix n n ℂ) (i : n) :
@@ -404,14 +404,14 @@ def nonzeroSingularIndices (A : Matrix n n ℂ) : Set n :=
 
 /-- The left singular vectors restricted to nonzero singular value indices form an orthonormal set. -/
 theorem leftSingularVectorExtended_orthonormal_on_nonzero (A : Matrix n n ℂ) :
-    Orthonormal ℂ ((nonzeroSingularIndices A).restrict (leftSingularVectorExtended A)) := by
+    Orthonormal ℂ ((nonzeroSingularIndices A).domRestrict (leftSingularVectorExtended A)) := by
   rw [orthonormal_iff_ite]
   intro ⟨i, hi⟩ ⟨j, hj⟩
-  simp only [Set.restrict_apply, nonzeroSingularIndices, Set.mem_setOf_eq] at hi hj ⊢
+  simp only [Set.domRestrict_apply, nonzeroSingularIndices, Set.mem_ofPred_eq] at hi hj ⊢
   have hi' : (if h : singularValues A i ≠ 0 then leftSingularVectorEuclidean A i h else 0)
-            = leftSingularVectorEuclidean A i hi := dif_pos hi
+            = leftSingularVectorEuclidean A i hi := dite_eq_left hi
   have hj' : (if h : singularValues A j ≠ 0 then leftSingularVectorEuclidean A j h else 0)
-            = leftSingularVectorEuclidean A j hj := dif_pos hj
+            = leftSingularVectorEuclidean A j hj := dite_eq_left hj
   simp only [leftSingularVectorExtended]
   rw [hi', hj']
   simp only [leftSingularVectorEuclidean]
@@ -475,7 +475,7 @@ theorem constructedU_column_eq (A : Matrix n n ℂ) (j : n) (hj : singularValues
   simp only [constructedU, onbToMatrix]
   have hj_mem : j ∈ nonzeroSingularIndices A := hj
   have h_spec := extendedONB_spec A j hj_mem
-  have h_expand : leftSingularVectorExtended A j = leftSingularVectorEuclidean A j hj := dif_pos hj
+  have h_expand : leftSingularVectorExtended A j = leftSingularVectorEuclidean A j hj := dite_eq_left hj
   rw [h_spec, h_expand]
   simp only [leftSingularVectorEuclidean]
   rfl
@@ -512,7 +512,7 @@ theorem AV_eq_constructedU_mul_sigma (A : Matrix n n ℂ) :
     simp only [mul_apply]
     field_simp
   · -- Case σⱼ = 0: both sides are 0
-    push_neg at hj
+    push Not at hj
     have h_AV_zero := AV_column_zero_of_singularValue_zero A j hj
     simp only [hj, Complex.ofReal_zero, mul_zero]
     -- LHS: ∑ x, A i x * V x j = (A * V) i j = 0
@@ -802,7 +802,8 @@ private lemma eigenvalues_diagonal_of_sorted (f : Fin (Fintype.card n) → ℝ) 
     simp
 
   -- The entries are antitone, so List.ofFn f is sorted by ≥
-  have h_f_sorted : (List.ofFn f).Sorted (· ≥ ·) := h_antitone.ofFn_sorted
+  have h_f_sorted : (List.ofFn f).Pairwise (· ≥ ·) :=
+    List.sortedGE_iff_pairwise.mp h_antitone.sortedGE_ofFn
 
   -- Sort of an already-sorted list is itself
   have h_sort_id : (D.charpoly.roots.map Complex.re).sort (· ≥ ·) = List.ofFn f := by
@@ -1139,7 +1140,7 @@ theorem card_truncatedSingularValues_nonzero_le (A : Matrix n n ℂ) (k : ℕ) :
       ((Fintype.equivOfCardEq (Fintype.card_fin _)).symm i : Fin (Fintype.card n)).val < k := by
     intro i hi
     by_contra h_not_lt
-    push_neg at h_not_lt
+    push Not at h_not_lt
     have := truncatedSingularValues_eq_zero_of_ge A k i h_not_lt
     exact hi this
   -- The set { i : n | truncated ≠ 0 } maps injectively into Fin k
@@ -1510,14 +1511,14 @@ private lemma inner_euclidean_eq_sum_real (x y : EuclideanSpace ℝ n) :
 
 /-- Left singular vectors (on nonzero singular value indices) are orthonormal. -/
 theorem leftSingularVectorExtended_orthonormal_on_nonzero_real (A : Matrix n n ℝ) :
-    Orthonormal ℝ ((nonzeroSingularIndices_real A).restrict (leftSingularVectorExtended_real A)) := by
+    Orthonormal ℝ ((nonzeroSingularIndices_real A).domRestrict (leftSingularVectorExtended_real A)) := by
   rw [orthonormal_iff_ite]
   intro ⟨i, hi⟩ ⟨j, hj⟩
-  simp only [Set.restrict_apply, nonzeroSingularIndices_real, Set.mem_setOf_eq] at hi hj ⊢
+  simp only [Set.domRestrict_apply, nonzeroSingularIndices_real, Set.mem_ofPred_eq] at hi hj ⊢
   have hi' : (if h : singularValues A i ≠ 0 then leftSingularVectorEuclidean_real A i h else 0)
-            = leftSingularVectorEuclidean_real A i hi := dif_pos hi
+            = leftSingularVectorEuclidean_real A i hi := dite_eq_left hi
   have hj' : (if h : singularValues A j ≠ 0 then leftSingularVectorEuclidean_real A j h else 0)
-            = leftSingularVectorEuclidean_real A j hj := dif_pos hj
+            = leftSingularVectorEuclidean_real A j hj := dite_eq_left hj
   simp only [leftSingularVectorExtended_real]
   rw [hi', hj']
   rw [inner_euclidean_eq_sum_real]
@@ -1584,7 +1585,7 @@ theorem constructedU_real_column_eq (A : Matrix n n ℝ) (j : n) (hj : singularV
   simp only [constructedU_real, onbToMatrix_real]
   have hj_mem : j ∈ nonzeroSingularIndices_real A := hj
   have h_spec := extendedONB_real_spec A j hj_mem
-  have h_expand : leftSingularVectorExtended_real A j = leftSingularVectorEuclidean_real A j hj := dif_pos hj
+  have h_expand : leftSingularVectorExtended_real A j = leftSingularVectorEuclidean_real A j hj := dite_eq_left hj
   rw [h_spec, h_expand]
   simp only [leftSingularVectorEuclidean_real]
   rfl
@@ -1628,7 +1629,7 @@ theorem realAV_eq_constructedU_real_mul_sigma (A : Matrix n n ℝ) :
     -- Uᵢⱼ = (1/σⱼ) * (A*V)ᵢⱼ, so σⱼ * Uᵢⱼ = (A*V)ᵢⱼ
     field_simp
   · -- Case σⱼ = 0: both sides are 0
-    push_neg at hj
+    push Not at hj
     have h_AV_zero := realAV_column_zero_of_singularValue_zero A j hj
     simp only [hj, mul_zero, h_AV_zero i]
 
@@ -1988,12 +1989,11 @@ omit [DecidableEq m] [DecidableEq n] in
 theorem embedMinToN_finMinOfAbstract (j : n)
     (hj : (eigenvaluesBijection n j).val < min (Fintype.card m) (Fintype.card n)) :
     embedMinToN (m := m) (finMinOfAbstract j hj) = j := by
-  unfold finMinOfAbstract embedMinToN eigenvaluesBijection
-  -- Goal: (equivOfCardEq ..) (castLE ⟨(equivOfCardEq ..).symm j, hj⟩) = j
-  -- Key: castLE preserves value, and equivOfCardEq (equivOfCardEq.symm j) = j
-  conv_lhs => rw [show Fin.castLE _ ⟨((Fintype.equivOfCardEq (Fintype.card_fin _)).symm j).val, _⟩ =
-    (Fintype.equivOfCardEq (Fintype.card_fin (Fintype.card n))).symm j from Fin.ext (by rfl)]
-  simp only [Equiv.symm_symm, Equiv.apply_symm_apply]
+  unfold finMinOfAbstract embedMinToN
+  -- castLE preserves the value, so its argument is `eigenvaluesBijection n j` itself
+  have h_cast : Fin.castLE (Nat.min_le_right _ _) ⟨(eigenvaluesBijection n j).val, hj⟩ =
+      eigenvaluesBijection n j := Fin.ext (Fin.val_castLE _ _)
+  rw [h_cast, Equiv.symm_apply_apply]
 
 omit [DecidableEq m] in
 /-- Key bridge for proofs: singularValues at k equals sqrt of eigenvalue at embedMinToN k. -/
@@ -2143,7 +2143,7 @@ lemma AV_columns_orthogonal_rectangular (A : Matrix m n ℂ) (j j' : n) (hjj' : 
   simp only at h_diag
   have h_entry : (AVᴴ * AV) j j' = ∑ i, star (AV i j) * AV i j' := by
     simp only [conjTranspose_apply, mul_apply]
-  rw [← h_entry, h_diag, diagonal_apply, if_neg hjj']
+  rw [← h_entry, h_diag, diagonal_apply, ite_eq_right hjj']
 
 /-! #### Left Singular Vectors for Rectangular Matrices
 
@@ -2279,7 +2279,7 @@ theorem singularValues_antitone (A : Matrix m n ℂ) :
   -- castLE preserves ≤: k₁ ≤ k₂ → castLE k₁ ≤ castLE k₂
   have h_cast : Fin.castLE (Nat.min_le_right (Fintype.card m) (Fintype.card n)) k₁ ≤
                 Fin.castLE (Nat.min_le_right (Fintype.card m) (Fintype.card n)) k₂ := by
-    simp only [Fin.le_def, Fin.coe_castLE]
+    simp only [Fin.le_def, Fin.val_castLE]
     exact hk
   exact (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀_antitone h_cast
 
@@ -2390,7 +2390,7 @@ theorem rank_eq_card_nonzero_singularValues_rect (A : Matrix m n ℂ) :
           exact hi
         · -- Contradiction: if i.val ≥ min(#m, #n), then eigenvalues₀ i = 0
           exfalso
-          push_neg at h_lt
+          push Not at h_lt
           -- Since card_nonzero_eigenvalues₀ ≤ rank(A) ≤ min(#m, #n) ≤ i.val,
           -- and eigenvalues₀ is antitone with nonzero entries only for indices < card_nonzero,
           -- we must have eigenvalues₀ i = 0
@@ -2412,7 +2412,7 @@ theorem rank_eq_card_nonzero_singularValues_rect (A : Matrix m n ℂ) :
         -- The invFun at cast_to_n k = ⟨k.val, ...⟩ should give back k
         -- Since k : Fin (min #m #n), we have k.val < min(#m, #n)
         have h_k_lt : k.val < min (Fintype.card m) (Fintype.card n) := k.isLt
-        simp only [Fin.coe_castLE, h_k_lt, ↓reduceDIte]
+        simp only [Fin.val_castLE, h_k_lt, ↓reduceDIte]
       right_inv := fun ⟨i, hi⟩ => by
         simp only [cast_to_n]
         -- Need: the inverse gives back i
@@ -2420,7 +2420,7 @@ theorem rank_eq_card_nonzero_singularValues_rect (A : Matrix m n ℂ) :
         -- This requires showing i.val < min(#m, #n)
         have h_lt : i.val < min (Fintype.card m) (Fintype.card n) := by
           by_contra h_not_lt
-          push_neg at h_not_lt
+          push Not at h_not_lt
           have h_card_le : Fintype.card {j : Fin (Fintype.card n) // hermAHA.eigenvalues₀ j ≠ 0} ≤
                            min (Fintype.card m) (Fintype.card n) := by
             calc Fintype.card {j : Fin (Fintype.card n) // hermAHA.eigenvalues₀ j ≠ 0}
@@ -2433,7 +2433,7 @@ theorem rank_eq_card_nonzero_singularValues_rect (A : Matrix m n ℂ) :
             (fun j => PosSemidef_eigenvalues₀_nonneg h_psd j)
             h_card_le i h_not_lt
           exact hi h_zero
-        simp only [h_lt, ↓reduceDIte, Subtype.mk.injEq, Fin.ext_iff, Fin.coe_castLE]
+        simp only [h_lt, ↓reduceDIte, Subtype.mk.injEq, Fin.ext_iff, Fin.val_castLE]
     }⟩
 
   rw [h_rank_eq, h_herm_rank, ← h_card_eig₀_eq_eig, h_card_eq]
@@ -2656,6 +2656,7 @@ attribute [local instance] Matrix.instL2OpMetricSpace
 attribute [local instance] Matrix.instCStarRing
 
 /-- The CStarAlgebra instance for complex matrices with L2 operator norm. -/
+@[instance_reducible]
 private noncomputable def instCStarAlgebraMatrixLocal : CStarAlgebra (Matrix n n ℂ) :=
   CStarAlgebra.mk
 
@@ -2673,8 +2674,7 @@ theorem Matrix.SpectralNorm.hermitian_spectralRadius_eq_sup_abs_eigenvalues [Non
     (H : Matrix n n ℂ) (hH : Matrix.IsHermitian H) :
     (spectralRadius ℝ H).toReal = Finset.sup' Finset.univ Finset.univ_nonempty (|hH.eigenvalues ·|) := by
   have h_spec := hH.spectrum_real_eq_range_eigenvalues
-  simp only [spectralRadius, h_spec]
-  rw [iSup_range]
+  rw [spectralRadius_eq_of_unital, h_spec, iSup_range]
   have h_ne_top : ∀ i, ((‖hH.eigenvalues i‖₊ : NNReal) : ENNReal) ≠ ⊤ := fun i => ENNReal.coe_ne_top
   rw [ENNReal.toReal_iSup h_ne_top]
   have h_eq : ∀ i, (↑(‖hH.eigenvalues i‖₊) : ENNReal).toReal = |hH.eigenvalues i| := fun i => by
@@ -2868,17 +2868,17 @@ noncomputable def leftSingularVectorExtended_rectangular (A : Matrix m n ℂ) :
 /-- The left singular vectors (restricted to nonzero σⱼ) form an orthonormal set.
     This is the key lemma enabling ONB extension. -/
 theorem leftSingularVectorExtended_orthonormal_on_nonzero_rectangular (A : Matrix m n ℂ) :
-    Orthonormal ℂ ((nonzeroSingularIndices_rectangular A).restrict
+    Orthonormal ℂ ((nonzeroSingularIndices_rectangular A).domRestrict
                    (leftSingularVectorExtended_rectangular A)) := by
   rw [orthonormal_iff_ite]
   intro ⟨j, hj⟩ ⟨j', hj'⟩
-  simp only [Set.restrict_apply, nonzeroSingularIndices_rectangular, Set.mem_setOf_eq] at hj hj' ⊢
+  simp only [Set.domRestrict_apply, nonzeroSingularIndices_rectangular, Set.mem_ofPred_eq] at hj hj' ⊢
   have hj_dif : (if h : singularValueFromEigenvalue A j ≠ 0
                 then leftSingularVectorEuclidean_rectangular A j h else 0)
-               = leftSingularVectorEuclidean_rectangular A j hj := dif_pos hj
+               = leftSingularVectorEuclidean_rectangular A j hj := dite_eq_left hj
   have hj'_dif : (if h : singularValueFromEigenvalue A j' ≠ 0
                  then leftSingularVectorEuclidean_rectangular A j' h else 0)
-                = leftSingularVectorEuclidean_rectangular A j' hj' := dif_pos hj'
+                = leftSingularVectorEuclidean_rectangular A j' hj' := dite_eq_left hj'
   simp only [leftSingularVectorExtended_rectangular]
   rw [hj_dif, hj'_dif]
   simp only [leftSingularVectorEuclidean_rectangular]
@@ -2938,14 +2938,14 @@ lemma leftSingularVectorByM_eq (A : Matrix m n ℂ) (k : m) (j : n)
     (hcorr : correspondingN k = some j) (hj : singularValueFromEigenvalue A j ≠ 0) :
     leftSingularVectorByM A k = leftSingularVectorEuclidean_rectangular A j hj := by
   unfold leftSingularVectorByM
-  simp only [hcorr, dif_pos hj]
+  simp only [hcorr, dite_eq_left hj]
 
 /-- The left singular vectors indexed by m are orthonormal on the nonzero set. -/
 theorem leftSingularVectorByM_orthonormal_on_nonzero (A : Matrix m n ℂ) :
-    Orthonormal ℂ ((nonzeroSingularIndicesM A).restrict (leftSingularVectorByM A)) := by
+    Orthonormal ℂ ((nonzeroSingularIndicesM A).domRestrict (leftSingularVectorByM A)) := by
   rw [orthonormal_iff_ite]
   intro ⟨k, hk⟩ ⟨k', hk'⟩
-  simp only [Set.restrict_apply, nonzeroSingularIndicesM, Set.mem_setOf_eq] at hk hk' ⊢
+  simp only [Set.domRestrict_apply, nonzeroSingularIndicesM, Set.mem_ofPred_eq] at hk hk' ⊢
   obtain ⟨j, hcorr, hj⟩ := hk
   obtain ⟨j', hcorr', hj'⟩ := hk'
   rw [leftSingularVectorByM_eq A k j hcorr hj, leftSingularVectorByM_eq A k' j' hcorr' hj']
@@ -3066,12 +3066,12 @@ lemma singularDiagonal_eq_zero_of_ne_diagonalK (A : Matrix m n ℂ) (j : n) (k :
       have h_apply : (eigenvaluesBijection m).symm (eigenvaluesBijection m k) = k := (eigenvaluesBijection m).symm_apply_apply k
       rw [h_fin_eq] at h_apply
       exact h_apply
-    -- Now the dif_pos condition fails: need to show ¬(fi.val = fj.val ∧ fi.val < min)
+    -- Now the dite_eq_left condition fails: need to show ¬(fi.val = fj.val ∧ fi.val < min)
     have h_cond_false : ¬((eigenvaluesBijection m k).val = (eigenvaluesBijection n j).val ∧
         (eigenvaluesBijection m k).val < min (Fintype.card m) (Fintype.card n)) := by
       intro ⟨h_eq, _⟩
       exact h_ne h_eq
-    simp only [dif_neg h_cond_false]
+    simp only [dite_eq_right h_cond_false]
   · -- j is out of diagonal range, so S k j = 0 for all k
     have h_none : diagonalK (m := m) (n := n) j = none := by
       unfold diagonalK; simp only [h_in_range, ↓reduceDIte]
@@ -3082,7 +3082,7 @@ lemma singularDiagonal_eq_zero_of_ne_diagonalK (A : Matrix m n ℂ) (j : n) (k :
       have h_lt_m : (eigenvaluesBijection m k).val < Fintype.card m := (eigenvaluesBijection m k).isLt
       rw [h_eq] at h_lt_m
       exact h_in_range h_lt_m
-    simp only [dif_neg h_cond_false]
+    simp only [dite_eq_right h_cond_false]
 
 /-- When diagonalK j = some k, the singular diagonal value at (k,j) equals the singular value. -/
 lemma singularDiagonal_at_diagonalK (A : Matrix m n ℂ) (j : n) (k : m)
@@ -3096,7 +3096,7 @@ lemma singularDiagonal_at_diagonalK (A : Matrix m n ℂ) (j : n) (k : m)
     constructor
     · exact h_eq
     · rw [h_eq]; exact h_in_min
-  simp only [dif_pos h_cond]
+  simp only [dite_eq_left h_cond]
   -- The two Fin values have same underlying nat value by h_eq
   have h_fin_eq : (⟨(eigenvaluesBijection m k).val, h_cond.2⟩ : Fin (min (Fintype.card m) (Fintype.card n))) =
                   ⟨(eigenvaluesBijection n j).val, h_in_min⟩ := by
@@ -3201,7 +3201,7 @@ theorem AV_eq_US_rectangular (A : Matrix m n ℂ) :
         have h_lt : (eigenvaluesBijection m k₀).val < Fintype.card n := by
           simp only [k₀]; simp only [Equiv.apply_symm_apply]
           exact (eigenvaluesBijection n j).isLt
-        simp only [dif_pos h_lt, Option.some.injEq]
+        simp only [dite_eq_left h_lt, Option.some.injEq]
         have h_eq : (eigenvaluesBijection m k₀).val = (eigenvaluesBijection n j).val := by
           simp only [k₀]; simp only [Equiv.apply_symm_apply]
         have h_fin_eq : (⟨(eigenvaluesBijection m k₀).val, h_lt⟩ : Fin (Fintype.card n)) =
@@ -3237,7 +3237,7 @@ theorem AV_eq_US_rectangular (A : Matrix m n ℂ) :
       rfl  -- Goal: ∑ x, A i x * ↑(rightUnitary A) x j = (A * ↑(rightUnitary A)) i j
 
     · -- Case 1b: σⱼ = 0 - both sides are zero
-      push_neg at hj
+      push Not at hj
       -- LHS: (A*V) i j = 0 when σⱼ = 0
       have h_AV_zero := AV_column_zero_of_eigenvalue_zero_rectangular A j hj
 
@@ -3433,7 +3433,7 @@ omit [Fintype m] [DecidableEq m] in
     Proved by contrapositive: rank = 0 implies the matrix is zero. -/
 theorem rank_pos_of_ne_zero_rect (A : Matrix m n ℂ) (hA : A ≠ 0) : 0 < A.rank := by
   by_contra h_not_pos
-  push_neg at h_not_pos
+  push Not at h_not_pos
   have h_rank_zero : A.rank = 0 := Nat.eq_zero_of_le_zero h_not_pos
   -- rank = 0 means the linear map A.mulVecLin has trivial range
   rw [Matrix.rank] at h_rank_zero
@@ -3570,7 +3570,7 @@ theorem sum_singularValues_sq_le_rank_mul_max_sq_rect
   have h_sum_eq : ∑ k, (Matrix.SVD.Rectangular.singularValues A k) ^ 2 =
                   ∑ k ∈ S, (Matrix.SVD.Rectangular.singularValues A k) ^ 2 := by
     rw [← Finset.sum_filter_add_sum_filter_not (s := Finset.univ) (p := fun k => k ∈ S)]
-    simp only [S, Set.mem_toFinset, Set.mem_setOf_eq]
+    simp only [S, Set.mem_toFinset, Set.mem_ofPred_eq]
     have h_zero_sum : ∑ k ∈ Finset.univ.filter (fun k =>
         Matrix.SVD.Rectangular.singularValues A k = 0),
         (Matrix.SVD.Rectangular.singularValues A k) ^ 2 = 0 := by
@@ -3583,7 +3583,7 @@ theorem sum_singularValues_sq_le_rank_mul_max_sq_rect
     congr 1
     ext k
     simp only [Finset.mem_filter, Finset.mem_univ, true_and, ne_eq,
-               Set.mem_toFinset, Set.mem_setOf_eq]
+               Set.mem_toFinset, Set.mem_ofPred_eq]
 
   calc ∑ k, (Matrix.SVD.Rectangular.singularValues A k) ^ 2
       = ∑ k ∈ S, (Matrix.SVD.Rectangular.singularValues A k) ^ 2 := h_sum_eq
