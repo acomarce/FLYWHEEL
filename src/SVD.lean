@@ -49,9 +49,11 @@ variable {n : Type*} [Fintype n] [DecidableEq n]
 noncomputable def singularValues (A : Matrix n n ℂ) : n → ℝ :=
   fun i => Real.sqrt ((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues i)
 
+/-- Singular values are nonnegative. -/
 theorem singularValues_nonneg (A : Matrix n n ℂ) (i : n) : 0 ≤ singularValues A i :=
   Real.sqrt_nonneg _
 
+/-- σᵢ(A)² is the i-th (unsorted) eigenvalue of Aᴴ A. -/
 theorem singularValues_sq (A : Matrix n n ℂ) (i : n) :
     (singularValues A i) ^ 2 = (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues i := by
   unfold singularValues
@@ -170,20 +172,14 @@ theorem singularValues₀_zero : singularValues₀ (0 : Matrix n n ℂ) = 0 := b
 
 /-! ### Singular Vectors -/
 
--- Naming convention: left vs right is confusing. Here's how I remember it:
--- - rightUnitary V: eigenvectors of A^H A ("right" because Av = σ u)
--- - leftUnitary U: eigenvectors of A A^H ("left" because A^H u = σ v)
--- If anyone has a better mnemonic please share!
+-- Naming convention: rightUnitary V holds eigenvectors of A^H A ("right" because Av = σ u).
+-- The left factor U is not an independent eigenvector basis of A A^H: it is built from the
+-- normalized columns of A V (`constructedU`), which pairs it with V.
 
 /-- The right singular vectors V: an orthonormal basis of eigenvectors of Aᴴ * A.
     These form a unitary matrix where column i is the eigenvector for σᵢ². -/
 noncomputable def rightUnitary (A : Matrix n n ℂ) : unitaryGroup n ℂ :=
   (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvectorUnitary
-
-/-- The left singular vectors U: an orthonormal basis of eigenvectors of A * Aᴴ.
-    These form a unitary matrix where column i is the eigenvector for σᵢ². -/
-noncomputable def leftUnitary (A : Matrix n n ℂ) : unitaryGroup n ℂ :=
-  (posSemidef_self_mul_conjTranspose A).isHermitian.eigenvectorUnitary
 
 /-- The diagonal matrix Σ containing the singular values along its diagonal. -/
 noncomputable def singularDiagonal (A : Matrix n n ℂ) : Matrix n n ℂ :=
@@ -193,7 +189,8 @@ noncomputable def singularDiagonal (A : Matrix n n ℂ) : Matrix n n ℂ :=
 -- See: https://leanprover-community.github.io/mathlib4_docs/Mathlib/Analysis/CStarAlgebra/ContinuousFunctionalCalculus/Basic.html
 
 /-- The square root of Aᴴ*A, which is positive semidefinite by construction.
-    This matrix P = √(Aᴴ*A) is central to polar decomposition: A = U*P. -/
+    P = √(Aᴴ*A) is the positive factor of a polar decomposition A = U*P, which is not
+    formalized here. -/
 noncomputable def sqrtConjTransposeMulSelf (A : Matrix n n ℂ) : Matrix n n ℂ :=
   CFC.sqrt (conjTranspose A * A)
 
@@ -214,15 +211,6 @@ theorem sqrtConjTransposeMulSelf_sq (A : Matrix n n ℂ) :
   unfold sqrtConjTransposeMulSelf
   have h : (0 : Matrix n n ℂ) ≤ Aᴴ * A := (posSemidef_conjTranspose_mul_self A).nonneg
   exact CFC.sq_sqrt (Aᴴ * A) h
-
-/-- √(Aᴴ*A) * √(Aᴴ*A) = Aᴴ*A. -/
-theorem sqrtConjTransposeMulSelf_mul_self (A : Matrix n n ℂ) :
-    sqrtConjTransposeMulSelf A * sqrtConjTransposeMulSelf A = conjTranspose A * A := by
-  unfold sqrtConjTransposeMulSelf
-  have h : (0 : Matrix n n ℂ) ≤ Aᴴ * A := (posSemidef_conjTranspose_mul_self A).nonneg
-  exact CFC.sqrt_mul_sqrt_self (Aᴴ * A) h
-
--- Polar decomposition: A = U·P where P = √(A*A) is psd and U unitary
 
 /-- Key computational lemma: Vᴴ * (Aᴴ * A) * V = diag(eigenvalues). -/
 theorem svd_action (A : Matrix n n ℂ) :
@@ -254,13 +242,6 @@ theorem conjTranspose_AV_mul_AV (A : Matrix n n ℂ) :
     _ = diagonal (Complex.ofReal ∘ eig) := svd_action A
 
 -- For σᵢ ≠ 0, left singular vector uᵢ = (1/σᵢ)(A·vᵢ)
-
-/-- The (i,j) entry of (A*V)ᴴ*(A*V) equals inner product of cols i and j. -/
-lemma AV_conjTranspose_mul_AV_apply (A : Matrix n n ℂ) (i j : n) :
-    let V : Matrix n n ℂ := rightUnitary A
-    let AV := A * V
-    (AVᴴ * AV) i j = ∑ k, star (AV k i) * AV k j := by
-  simp only [conjTranspose_apply, mul_apply]
 
 /-- Columns of A*V are orthogonal: for i ≠ j, the inner product is 0. -/
 lemma AV_columns_orthogonal (A : Matrix n n ℂ) (i j : n) (hij : i ≠ j) :
@@ -548,8 +529,8 @@ theorem AV_eq_constructedU_mul_sigma (A : Matrix n n ℂ) :
     - V is unitary (the right singular vectors)
     - Σ is diagonal with non-negative real entries (the singular values)
 
-    This follows from the spectral theorem applied to the positive semidefinite
-    matrices Aᴴ * A and A * Aᴴ.
+    This follows from the spectral theorem applied to the positive semidefinite matrix
+    Aᴴ * A; U is built from the normalized columns of A V, not from A * Aᴴ.
 
     **Proof Strategy:**
     1. V = eigenvectors of Aᴴ*A (rightUnitary)
@@ -714,24 +695,11 @@ private lemma unitary_star_eq_inv (U : unitaryGroup n ℂ) :
   symm
   exact Matrix.inv_eq_right_inv h
 
-/-- Unitary matrices have unit determinant (|det U| = 1). -/
-private lemma unitary_det_isUnit (U : unitaryGroup n ℂ) : IsUnit (U : Matrix n n ℂ).det := by
-  have h : (U : Matrix n n ℂ) * star (U : Matrix n n ℂ) = 1 := mem_unitaryGroup_iff.mp U.2
-  have hdet : (U : Matrix n n ℂ).det * star ((U : Matrix n n ℂ).det) = 1 := by
-    have star_eq : star (U : Matrix n n ℂ) = (U : Matrix n n ℂ)ᴴ := star_eq_conjTranspose _
-    calc (U : Matrix n n ℂ).det * star ((U : Matrix n n ℂ).det)
-        = (U : Matrix n n ℂ).det * (U : Matrix n n ℂ)ᴴ.det := by rw [det_conjTranspose]
-      _ = (U : Matrix n n ℂ).det * (star (U : Matrix n n ℂ)).det := by rw [star_eq]
-      _ = ((U : Matrix n n ℂ) * star (U : Matrix n n ℂ)).det := by rw [det_mul]
-      _ = (1 : Matrix n n ℂ).det := by rw [h]
-      _ = 1 := det_one
-  exact IsUnit.of_mul_eq_one _ hdet
-
 /-- Characteristic polynomial is invariant under unitary conjugation. -/
 theorem charpoly_unitary_conj (M : Matrix n n ℂ) (U : unitaryGroup n ℂ) :
     ((U : Matrix n n ℂ) * M * star (U : Matrix n n ℂ)).charpoly = M.charpoly := by
   rw [unitary_star_eq_inv U]
-  exact charpoly_conj_of_isUnit M (U : Matrix n n ℂ) (unitary_det_isUnit U)
+  exact charpoly_conj_of_isUnit M (U : Matrix n n ℂ) (UnitaryGroup.det_isUnit U)
 
 /-! ### Eigenvalues of squared matrices and Hermitian singular values -/
 
@@ -817,9 +785,9 @@ private lemma eigenvalues_sq_multiset (A : Matrix n n ℂ) (hA : A.IsHermitian) 
   exact Multiset.map_injective Complex.ofReal_injective key
 
 /-- For a Hermitian matrix, the multiset of singular values equals the multiset of absolute
-    values of eigenvalues. Note: pointwise equality does NOT hold in general because
-    singular values are sorted decreasingly (all positive), while eigenvalues are sorted
-    decreasingly by value (can be negative), so the orderings may differ.
+    values of eigenvalues. Pointwise equality does NOT hold in general: σ and λ are both
+    pullbacks of sorted lists (eigenvalues₀ of Aᴴ A = A², and of A) through the same
+    bijection, and sorting by λ² differs from sorting by λ when eigenvalues are negative.
 
     **Proof**: Uses helper lemmas `hermitian_conjTranspose_mul_self_eq_sq`,
     `eigenvalues_conjTranspose_mul_self_eq_sq`, and `eigenvalues_sq_multiset`
@@ -867,11 +835,8 @@ theorem singularValues_hermitian_multiset (A : Matrix n n ℂ) (hA : A.IsHermiti
     If `d` is already sorted decreasingly (via `eigenvalues₀_antitone`), then
     sorting is the identity, so `eigenvalues = d` pointwise.
 
-    The formal proof uses:
-    1. `charpoly_diagonal`: charpoly(diagonal(d)) = ∏(X - d_i)
-    2. `sort_roots_charpoly_eq_eigenvalues₀`: sorted roots = eigenvalues₀
-    3. `Antitone.ofFn_sorted`: antitone function gives sorted list
-    4. `List.eq_of_perm_of_sorted`: two sorted lists with same elements are equal -/
+    The formal proof compares the sorted roots of charpoly(diagonal(d)) = ∏(X - dᵢ) with
+    `eigenvalues₀`: an antitone list is its own merge sort, and `List.ofFn` is injective. -/
 private lemma eigenvalues_diagonal_of_sorted (f : Fin (Fintype.card n) → ℝ) (h_antitone : Antitone f) :
     let equiv := (Fintype.equivOfCardEq (Fintype.card_fin _) : Fin (Fintype.card n) ≃ n)
     let D := diagonal (Complex.ofReal ∘ f ∘ equiv.symm)
@@ -936,6 +901,8 @@ private lemma eigenvalues_diagonal_of_sorted (f : Fin (Fintype.card n) → ℝ) 
   -- Extract function equality from list equality
   exact List.ofFn_injective h_eq_lists
 
+/-- For PSD A, the i-th eigenvalue of A² is the square of the i-th eigenvalue of A (same
+    unsorted indexing). -/
 lemma eigenvalues_sq {A : Matrix n n ℂ} (hA : A.PosSemidef) (i : n) :
     (hA.isHermitian.pow 2).eigenvalues i = (hA.isHermitian.eigenvalues i) ^ 2 := by
   /-
@@ -1189,8 +1156,8 @@ theorem prod_singularValues_eq_abs_det (A : Matrix n n ℂ) :
             (Complex.normSq A.det : ℂ) := h4.trans h3
   exact Complex.ofReal_injective h5
 
-/-- The sum of squared singular values equals the squared Frobenius norm.
-    (i.e., trace(Aᴴ * A)) -/
+/-- The sum of squared singular values equals Re trace(Aᴴ * A), which is the squared
+    Frobenius norm. -/
 theorem sum_sq_singularValues_eq_trace (A : Matrix n n ℂ) :
     ∑ i, (singularValues A i) ^ 2 = Complex.re (Matrix.trace (conjTranspose A * A)) := by
   -- Singular values squared = eigenvalues of Aᴴ * A
@@ -1265,7 +1232,8 @@ theorem card_truncatedSingularValues_nonzero_le (A : Matrix n n ℂ) (k : ℕ) :
     _ = k := Fintype.card_fin k
 
 /-- The truncated SVD of rank k: Aₖ = U * Σₖ * Vᴴ where Σₖ keeps only the k largest singular values.
-    This is the best rank-k approximation in both Frobenius and spectral norms (Eckart-Young). -/
+    It is a best rank-k approximation in both Frobenius and spectral norms (Eckart–Young;
+    optimality, not uniqueness). -/
 noncomputable def truncatedSVD (A : Matrix n n ℂ) (k : ℕ) : Matrix n n ℂ :=
   (constructedU A : Matrix n n ℂ) *
     diagonal (Complex.ofReal ∘ truncatedSingularValues A k) *
@@ -1427,10 +1395,6 @@ namespace Matrix.SVD.Real
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
-/-- The singular values of a real matrix A are the square roots of the eigenvalues of Aᵀ * A. -/
-noncomputable def singularValues (A : Matrix n n ℝ) : n → ℝ :=
-  Matrix.SVD.singularValues (A.map Complex.ofReal)
-
 omit [Fintype n] [DecidableEq n] in
 /-- A real matrix mapped to ℂ has Hermitian = Symmetric (transpose equals conjTranspose). -/
 lemma real_matrix_conjTranspose_eq_transpose (A : Matrix n n ℝ) :
@@ -1462,13 +1426,6 @@ lemma real_symmetric_isHermitian {A : Matrix n n ℝ} (hA : A.IsSymm) :
     rw [Complex.star_def]
     exact Complex.conj_ofReal (A j i)
   rw [h_star, hA.apply j i]
-
-/-- For real symmetric matrices, eigenvalues can be computed in ℝ. -/
-private lemma real_symmetric_eigenvalues_real {A : Matrix n n ℝ} (hA : A.IsSymm) :
-    let hAc := real_symmetric_isHermitian hA
-    ∀ i, Complex.re (Complex.ofReal (hAc.eigenvalues i)) = hAc.eigenvalues i := by
-  intro hAc i
-  exact Complex.ofReal_re _
 
 omit [DecidableEq n] in
 /-- Aᵀ * A is symmetric for any real matrix A. -/
@@ -1537,10 +1494,15 @@ noncomputable def rightOrthogonal (A : Matrix n n ℝ) : orthogonalGroup n ℝ :
 noncomputable def realAV (A : Matrix n n ℝ) : Matrix n n ℝ :=
   A * (rightOrthogonal A : Matrix n n ℝ)
 
-/-- Real singular values: σᵢ = √(eigenvalues of Aᵀ*A). -/
-noncomputable def realSingularValues (A : Matrix n n ℝ) : n → ℝ :=
+/-- The singular values of a real matrix: σᵢ = √λᵢ(Aᵀ A), with the unsorted eigenvalue indexing.
+    These are the σ of the real SVD `svd_decomposition`. -/
+noncomputable def singularValues (A : Matrix n n ℝ) : n → ℝ :=
   let hHerm := transpose_mul_self_isHermitian' A
   fun i => Real.sqrt (hHerm.eigenvalues i)
+
+/-- Real singular values are nonnegative. -/
+theorem singularValues_nonneg (A : Matrix n n ℝ) (i : n) : 0 ≤ singularValues A i :=
+  Real.sqrt_nonneg _
 
 /-- Key property: (A*V)ᵀ * (A*V) = diagonal of eigenvalues of Aᵀ*A. -/
 lemma transpose_realAV_mul_realAV (A : Matrix n n ℝ) :
@@ -1585,34 +1547,34 @@ lemma realAV_columns_orthogonal (A : Matrix n n ℝ) (i j : n) (hij : i ≠ j) :
 
 /-- Squared norm of column i of A*V equals σᵢ². -/
 lemma realAV_column_norm_sq (A : Matrix n n ℝ) (i : n) :
-    ∑ k, (realAV A) k i * (realAV A) k i = (realSingularValues A i) ^ 2 := by
+    ∑ k, (realAV A) k i * (realAV A) k i = (singularValues A i) ^ 2 := by
   have h := transpose_realAV_mul_realAV A
   have h_entry : ((realAV A).transpose * realAV A) i i = ∑ k, (realAV A) k i * (realAV A) k i := by
     simp only [mul_apply, transpose_apply]
   rw [← h_entry, h, diagonal_apply_eq]
-  simp only [realSingularValues]
+  simp only [singularValues]
   rw [Real.sq_sqrt]
   exact eigenvalues_transpose_mul_self_nonneg A i
 
 /-- Left singular vector for nonzero σᵢ: uᵢ = (1/σᵢ) * (A*V)[:,i]. -/
 noncomputable def leftSingularVectorNonzero_real (A : Matrix n n ℝ) (i : n)
-    (_ : realSingularValues A i ≠ 0) : n → ℝ :=
-  fun k => (realSingularValues A i)⁻¹ * realAV A k i
+    (_ : singularValues A i ≠ 0) : n → ℝ :=
+  fun k => (singularValues A i)⁻¹ * realAV A k i
 
 /-- Left singular vector as EuclideanSpace element. -/
 noncomputable def leftSingularVectorEuclidean_real (A : Matrix n n ℝ) (i : n)
-    (hi : realSingularValues A i ≠ 0) : EuclideanSpace ℝ n :=
+    (hi : singularValues A i ≠ 0) : EuclideanSpace ℝ n :=
   (WithLp.equiv 2 (n → ℝ)).symm (leftSingularVectorNonzero_real A i hi)
 
 /-- Extended function: left singular vector for nonzero σ, 0 for zero σ. -/
 noncomputable def leftSingularVectorExtended_real (A : Matrix n n ℝ) : n → EuclideanSpace ℝ n :=
-  fun i => if h : realSingularValues A i ≠ 0
+  fun i => if h : singularValues A i ≠ 0
            then leftSingularVectorEuclidean_real A i h
            else 0
 
 /-- Set of indices with nonzero singular values. -/
 def nonzeroSingularIndices_real (A : Matrix n n ℝ) : Set n :=
-  {i | realSingularValues A i ≠ 0}
+  {i | singularValues A i ≠ 0}
 
 set_option linter.unusedSectionVars false in
 /-- Inner product on EuclideanSpace ℝ n equals sum formula. -/
@@ -1628,9 +1590,9 @@ theorem leftSingularVectorExtended_orthonormal_on_nonzero_real (A : Matrix n n �
   rw [orthonormal_iff_ite]
   intro ⟨i, hi⟩ ⟨j, hj⟩
   simp only [Set.restrict_apply, nonzeroSingularIndices_real, Set.mem_setOf_eq] at hi hj ⊢
-  have hi' : (if h : realSingularValues A i ≠ 0 then leftSingularVectorEuclidean_real A i h else 0)
+  have hi' : (if h : singularValues A i ≠ 0 then leftSingularVectorEuclidean_real A i h else 0)
             = leftSingularVectorEuclidean_real A i hi := dif_pos hi
-  have hj' : (if h : realSingularValues A j ≠ 0 then leftSingularVectorEuclidean_real A j h else 0)
+  have hj' : (if h : singularValues A j ≠ 0 then leftSingularVectorEuclidean_real A j h else 0)
             = leftSingularVectorEuclidean_real A j hj := dif_pos hj
   simp only [leftSingularVectorExtended_real]
   rw [hi', hj']
@@ -1643,19 +1605,19 @@ theorem leftSingularVectorExtended_orthonormal_on_nonzero_real (A : Matrix n n �
     simp only [ite_true]
     have h_norm := realAV_column_norm_sq A i
     have factor : ∀ k : n,
-        (realSingularValues A i)⁻¹ * realAV A k i * ((realSingularValues A i)⁻¹ * realAV A k i) =
-        (realSingularValues A i)⁻¹ * (realSingularValues A i)⁻¹ * (realAV A k i * realAV A k i) := by
+        (singularValues A i)⁻¹ * realAV A k i * ((singularValues A i)⁻¹ * realAV A k i) =
+        (singularValues A i)⁻¹ * (singularValues A i)⁻¹ * (realAV A k i * realAV A k i) := by
       intro k; ring
     simp_rw [factor, ← Finset.mul_sum, h_norm]
-    have h_sq : (realSingularValues A i)⁻¹ * (realSingularValues A i)⁻¹ * (realSingularValues A i) ^ 2 =
-                ((realSingularValues A i)⁻¹ * (realSingularValues A i)) ^ 2 := by ring
+    have h_sq : (singularValues A i)⁻¹ * (singularValues A i)⁻¹ * (singularValues A i) ^ 2 =
+                ((singularValues A i)⁻¹ * (singularValues A i)) ^ 2 := by ring
     rw [h_sq, inv_mul_cancel₀ hi, one_pow]
   · -- Case i ≠ j: inner product = 0
     simp only [Subtype.mk.injEq, h, ite_false]
     have h_orth := realAV_columns_orthogonal A i j h
     have factor : ∀ k : n,
-        (realSingularValues A i)⁻¹ * realAV A k i * ((realSingularValues A j)⁻¹ * realAV A k j) =
-        (realSingularValues A i)⁻¹ * (realSingularValues A j)⁻¹ * (realAV A k i * realAV A k j) := by
+        (singularValues A i)⁻¹ * realAV A k i * ((singularValues A j)⁻¹ * realAV A k j) =
+        (singularValues A i)⁻¹ * (singularValues A j)⁻¹ * (realAV A k i * realAV A k j) := by
       intro k; ring
     simp_rw [factor, ← Finset.mul_sum, h_orth, mul_zero]
 
@@ -1692,7 +1654,7 @@ noncomputable def constructedU_real (A : Matrix n n ℝ) : orthogonalGroup n ℝ
   ⟨onbToMatrix_real (extendedONB_real A), onbToMatrix_real_mem_orthogonalGroup _⟩
 
 /-- Column j of constructed U equals the left singular vector when σⱼ ≠ 0. -/
-theorem constructedU_real_column_eq (A : Matrix n n ℝ) (j : n) (hj : realSingularValues A j ≠ 0) :
+theorem constructedU_real_column_eq (A : Matrix n n ℝ) (j : n) (hj : singularValues A j ≠ 0) :
     (fun i => (constructedU_real A : Matrix n n ℝ) i j) = leftSingularVectorNonzero_real A j hj := by
   ext i
   simp only [constructedU_real, onbToMatrix_real]
@@ -1705,7 +1667,7 @@ theorem constructedU_real_column_eq (A : Matrix n n ℝ) (j : n) (hj : realSingu
 
 /-- When σᵢ = 0, column i of A*V is zero. -/
 lemma realAV_column_zero_of_singularValue_zero (A : Matrix n n ℝ) (i : n)
-    (hi : realSingularValues A i = 0) :
+    (hi : singularValues A i = 0) :
     ∀ k, (realAV A) k i = 0 := by
   intro k
   have h_sum := realAV_column_norm_sq A i
@@ -1720,19 +1682,19 @@ lemma realAV_column_zero_of_singularValue_zero (A : Matrix n n ℝ) (i : n)
 
 /-- Key relationship: A * V = U * Σ for real matrices. -/
 theorem realAV_eq_constructedU_real_mul_sigma (A : Matrix n n ℝ) :
-    realAV A = (constructedU_real A : Matrix n n ℝ) * diagonal (realSingularValues A) := by
+    realAV A = (constructedU_real A : Matrix n n ℝ) * diagonal (singularValues A) := by
   ext i j
   simp only [mul_apply, diagonal_apply]
   -- RHS: ∑ x, U i x * (if x = j then σ x else 0) = U i j * σ j
   have h_rhs : ∑ x, (constructedU_real A : Matrix n n ℝ) i x *
-               (if x = j then realSingularValues A x else 0) =
-               (constructedU_real A : Matrix n n ℝ) i j * realSingularValues A j := by
+               (if x = j then singularValues A x else 0) =
+               (constructedU_real A : Matrix n n ℝ) i j * singularValues A j := by
     rw [Finset.sum_eq_single j]
     · simp only [↓reduceIte]
     · intro b _ hbj; simp only [hbj, ↓reduceIte, mul_zero]
     · intro hj_not_mem; exact absurd (Finset.mem_univ j) hj_not_mem
   rw [h_rhs]
-  by_cases hj : realSingularValues A j ≠ 0
+  by_cases hj : singularValues A j ≠ 0
   · -- Case σⱼ ≠ 0: (A*V)ᵢⱼ = σⱼ * Uᵢⱼ
     have h_col := constructedU_real_column_eq A j hj
     have h_U_eq : (constructedU_real A : Matrix n n ℝ) i j = leftSingularVectorNonzero_real A j hj i := by
@@ -1761,7 +1723,7 @@ theorem svd_decomposition (A : Matrix n n ℝ) :
       (∀ i, 0 ≤ σ i) ∧
       A = (U : Matrix n n ℝ) * diagonal σ * (V : Matrix n n ℝ)ᵀ := by
   -- Use constructed U and V
-  use constructedU_real A, rightOrthogonal A, realSingularValues A
+  use constructedU_real A, rightOrthogonal A, singularValues A
   constructor
   · -- Singular values are nonnegative
     intro i
@@ -1779,9 +1741,9 @@ theorem svd_decomposition (A : Matrix n n ℝ) :
       _ = A * ((rightOrthogonal A : Matrix n n ℝ) * (rightOrthogonal A : Matrix n n ℝ)ᵀ) := by rw [h_V_VT]
       _ = (A * (rightOrthogonal A : Matrix n n ℝ)) * (rightOrthogonal A : Matrix n n ℝ)ᵀ := by rw [mul_assoc]
       _ = realAV A * (rightOrthogonal A : Matrix n n ℝ)ᵀ := rfl
-      _ = ((constructedU_real A : Matrix n n ℝ) * diagonal (realSingularValues A)) *
+      _ = ((constructedU_real A : Matrix n n ℝ) * diagonal (singularValues A)) *
           (rightOrthogonal A : Matrix n n ℝ)ᵀ := by rw [h_AV]
-      _ = (constructedU_real A : Matrix n n ℝ) * diagonal (realSingularValues A) *
+      _ = (constructedU_real A : Matrix n n ℝ) * diagonal (singularValues A) *
           (rightOrthogonal A : Matrix n n ℝ)ᵀ := by rw [mul_assoc]
 
 end Matrix.SVD.Real
@@ -1954,19 +1916,11 @@ theorem singularValues_nonneg (A : Matrix m n ℂ) (k : Fin (min (Fintype.card m
 
 /-- Right singular vectors V: the eigenvector unitary of Aᴴ*A (n×n matrix).
 
-The columns of V form an orthonormal basis of eigenvectors of Aᴴ*A,
-ordered by decreasing eigenvalue (and thus decreasing singular value).
+Column j of V is an eigenvector of Aᴴ*A for `eigenvalues j`. The columns are sorted by
+decreasing eigenvalue only after reindexing by `eigenvaluesBijection n`.
 This is an n×n unitary matrix. -/
 noncomputable def rightUnitary (A : Matrix m n ℂ) : unitaryGroup n ℂ :=
   (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvectorUnitary
-
-/-- Left singular vectors U: the eigenvector unitary of A*Aᴴ (m×m matrix).
-
-The columns of U form an orthonormal basis of eigenvectors of A*Aᴴ,
-ordered by decreasing eigenvalue (and thus decreasing singular value).
-This is an m×m unitary matrix. -/
-noncomputable def leftUnitary (A : Matrix m n ℂ) : unitaryGroup m ℂ :=
-  (posSemidef_self_mul_conjTranspose A).isHermitian.eigenvectorUnitary
 
 /-- The bijection used by eigenvalues to map a Fintype to `Fin (card α)`.
     This is exactly the bijection in Mathlib's definition
@@ -2064,7 +2018,7 @@ theorem embedMinToN_injective : Function.Injective (embedMinToN (m := m) (n := n
 
 omit [DecidableEq m] [DecidableEq n] in
 /-- The eigenvalues bijection composed with embedMinToN recovers castLE.
-    This is the fundamental bridge: `eigenvaluesBijection n' (embedMinToN k) = castLE k`.
+    This is the fundamental bridge: `eigenvaluesBijection n (embedMinToN k) = castLE k`.
 
     Since `embedMinToN` is defined via `(eigenvaluesBijection n).symm`, this is
     `Equiv.apply_symm_apply`. -/
@@ -2075,7 +2029,7 @@ theorem eigenvaluesBijection_embedMinToN (k : Fin (min (Fintype.card m) (Fintype
 
 omit [DecidableEq m] [DecidableEq n] in
 /-- Inverse direction: from a Fin index in range, we can find the corresponding
-    element of n' that maps back to it. -/
+    element of n that maps back to it. -/
 theorem embedMinToN_eigenvaluesBijection_inverse
     (i : Fin (Fintype.card n)) (hi : i.val < min (Fintype.card m) (Fintype.card n)) :
     embedMinToN (m := m) ⟨i.val, hi⟩ = (eigenvaluesBijection n).symm i := by
@@ -2099,7 +2053,7 @@ theorem eigenvalues_at_embedMinToN_eq_eigenvalues₀_castLE
   unfold eigenvaluesBijection at h
   exact h
 
-/-- For j : n' with eigenvaluesBijection(j).val < min, we can convert j to a Fin min index. -/
+/-- For j : n with eigenvaluesBijection(j).val < min, we can convert j to a Fin min index. -/
 noncomputable def finMinOfAbstract (j : n)
     (hj : (eigenvaluesBijection n j).val < min (Fintype.card m) (Fintype.card n)) :
     Fin (min (Fintype.card m) (Fintype.card n)) :=
@@ -2117,12 +2071,6 @@ theorem embedMinToN_finMinOfAbstract (j : n)
     (Fintype.equivOfCardEq (Fintype.card_fin (Fintype.card n))).symm j from Fin.ext (by rfl)]
   simp only [Equiv.symm_symm, Equiv.apply_symm_apply]
 
-set_option linter.unusedSectionVars false in
-/-- eigenvaluesBijection_val_eq_finMinOfAbstract -/
-theorem eigenvaluesBijection_finMinOfAbstract (j : n)
-    (hj : (eigenvaluesBijection n j).val < min (Fintype.card m) (Fintype.card n)) :
-    (eigenvaluesBijection n j).val = (finMinOfAbstract (m := m) j hj).val := rfl
-
 omit [DecidableEq m] in
 /-- Key bridge for proofs: singularValues at k equals sqrt of eigenvalue at embedMinToN k. -/
 theorem singularValues_eq_sqrt_eigenvalues_at_embedMinToN
@@ -2135,18 +2083,6 @@ theorem singularValues_eq_sqrt_eigenvalues_at_embedMinToN
   rw [eigenvalues_at_embedMinToN_eq_eigenvalues₀_castLE]
 
 /-! #### Shared Nonzero Eigenvalues -/
-
-/-- The characteristic polynomials of AᴴA and AAᴴ are related by powers of X.
-    X^n · charpoly(A * B) = X^m · charpoly(B * A)
-    i.e., X^n · charpoly(A * Aᴴ) = X^m · charpoly(Aᴴ * A)
-    Rearranging: X^m · charpoly(AᴴA) = X^n · charpoly(AAᴴ) -/
-theorem charpoly_conjTranspose_mul_self_mul_comm (A : Matrix m n ℂ) :
-    Polynomial.X ^ Fintype.card m * (Aᴴ * A).charpoly =
-    Polynomial.X ^ Fintype.card n * (A * Aᴴ).charpoly := by
-  -- Apply charpoly_mul_comm' with first matrix = A, second = Aᴴ
-  have h := Matrix.charpoly_mul_comm' A Aᴴ
-  -- h : X^n * (A * Aᴴ).charpoly = X^m * (Aᴴ * A).charpoly
-  exact h.symm
 
 /-- Helper: X^k * p ≠ 0 when p ≠ 0 over ℂ[X]. -/
 private lemma X_pow_mul_ne_zero {k : ℕ} {p : ℂ[X]} (hp : p ≠ 0) : Polynomial.X ^ k * p ≠ 0 :=
@@ -2169,7 +2105,8 @@ private lemma mem_roots_X_pow_mul_iff_of_ne_zero {k : ℕ} {p : ℂ[X]} {μ : �
     right
     exact h
 
-/-- The nonzero eigenvalues of AᴴA and AAᴴ match.
+/-- AᴴA and AAᴴ have the same nonzero eigenvalues, as sets: each nonzero eigenvalue of one
+    occurs for the other. Multiplicities are not compared.
 
     This is a consequence of the characteristic polynomial relation:
     X^m · charpoly(AᴴA) = X^n · charpoly(AAᴴ)
@@ -2397,20 +2334,15 @@ theorem leftSingularVectorNonzero_rectangular_orthogonal (A : Matrix m n ℂ) (j
 
 /-! #### Singular Values Ordering
 
-The singular values inherit the decreasing order from `IsHermitian.eigenvalues`.
-This is important for truncated SVD and Eckart-Young theorem.
-
-Note: `Matrix.IsHermitian.eigenvalues` are sorted in decreasing order by construction
-(via `LinearMap.IsSymmetric.eigenvalues` which uses a sorted list).
-The antitone property follows from this ordering.
+Rectangular `singularValues` is defined from `eigenvalues₀` (sorted, index 0 largest) at
+`Fin.castLE k`, so it inherits antitonicity from `eigenvalues₀_antitone`. The unsorted
+`IsHermitian.eigenvalues : n → ℝ` plays no role here.
 -/
 
 set_option linter.unusedSectionVars false in
 /-- Singular values are non-increasing (antitone).
-    This follows from the eigenvalue ordering of Hermitian matrices.
-
-    The eigenvalues of a Hermitian matrix are sorted in decreasing order by construction
-    (via `eigenvalues₀_antitone`), so larger indices give smaller eigenvalues.
+    `eigenvalues₀` (not `eigenvalues`) is sorted in decreasing order
+    (`eigenvalues₀_antitone`), so larger indices give smaller eigenvalues.
     Since singular values are square roots of eigenvalues (which are nonneg), the ordering
     is preserved by `Real.sqrt_le_sqrt`. -/
 theorem singularValues_antitone (A : Matrix m n ℂ) :
@@ -2943,10 +2875,8 @@ theorem Matrix.SVD.Rectangular.spectral_norm_sq_eq_max_singularValue_sq_rect
 
 /-- **The spectral norm of a rectangular matrix equals its largest singular value.**
 
-For any matrix A, ‖A‖₂ = σ₁(A) = √(λ_max(Aᴴ A)).
-
-This is the main result of this section, generalizing `spectral_norm_eq_max_singularValue`
-from square matrices to rectangular matrices. -/
+For A with nonempty row and column types (`h : 0 < min #m #n`), ‖A‖₂ = maxₖ σₖ(A), which is
+σ at index 0. The square version is `Matrix.SpectralNorm.spectral_norm_eq_max_singularValue`. -/
 theorem Matrix.SVD.Rectangular.spectral_norm_eq_max_singularValue_rect
     (h : 0 < min (Fintype.card m) (Fintype.card n)) (A : Matrix m n ℂ) :
     ‖A‖₂ = maxSingularValue h A := by
@@ -2978,19 +2908,6 @@ theorem Matrix.SVD.Rectangular.spectral_norm_sq_le_sum_singularValues_sq_rect
   intro k _
   exact Finset.single_le_sum (fun j _ => sq_nonneg _) (Finset.mem_univ k)
 
-/-- **Spectral norm is bounded by Frobenius norm** for rectangular matrices: ‖A‖₂ ≤ ‖A‖_F.
-
-This generalizes `spectral_norm_le_frobenius_norm` to rectangular matrices. -/
-theorem Matrix.SVD.Rectangular.spectral_norm_le_frobenius_norm_rect
-    (h : 0 < min (Fintype.card m) (Fintype.card n)) (A : Matrix m n ℂ) :
-    ‖A‖₂ ≤ Real.sqrt (∑ k, (singularValues A k) ^ 2) := by
-  have h_sq : ‖A‖₂ ^ 2 ≤ ∑ k, (singularValues A k) ^ 2 :=
-    spectral_norm_sq_le_sum_singularValues_sq_rect h A
-  have h_sum_nonneg : 0 ≤ ∑ k, (singularValues A k) ^ 2 :=
-    Finset.sum_nonneg (fun k _ => sq_nonneg _)
-  have h_norm_nonneg : 0 ≤ ‖A‖₂ := @norm_nonneg (Matrix m n ℂ) _ A
-  calc ‖A‖₂ = Real.sqrt (‖A‖₂ ^ 2) := (Real.sqrt_sq h_norm_nonneg).symm
-    _ ≤ Real.sqrt (∑ k, (singularValues A k) ^ 2) := Real.sqrt_le_sqrt h_sq
 
 end SpectralNormRectangular
 
@@ -2999,19 +2916,6 @@ namespace Matrix.SVD.Rectangular
 variable {m n : Type*} [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n]
 
 /-! ### Main Construction -/
-
-set_option linter.unusedSectionVars false in
-/-- Inner product on EuclideanSpace ℂ m matches our sum formula. -/
-lemma inner_euclidean_eq_sum_rectangular (x y : m → ℂ) :
-    @inner ℂ (EuclideanSpace ℂ m) _
-      ((WithLp.equiv 2 (m → ℂ)).symm x)
-      ((WithLp.equiv 2 (m → ℂ)).symm y)
-    = ∑ i, star (x i) * y i := by
-  rw [PiLp.inner_apply]
-  simp only [RCLike.inner_apply]
-  have h1 : ∀ i, ((WithLp.equiv 2 (m → ℂ)).symm x).ofLp i = x i := fun _ => rfl
-  have h2 : ∀ i, ((WithLp.equiv 2 (m → ℂ)).symm y).ofLp i = y i := fun _ => rfl
-  simp_rw [h1, h2, ← Complex.star_def, mul_comm]
 
 /-- Left singular vector as EuclideanSpace ℂ m element (rectangular case).
     For j : n with σⱼ ≠ 0, this is the normalized column j of A*V. -/
@@ -3049,7 +2953,7 @@ theorem leftSingularVectorExtended_orthonormal_on_nonzero_rectangular (A : Matri
   simp only [leftSingularVectorExtended_rectangular]
   rw [hj_dif, hj'_dif]
   simp only [leftSingularVectorEuclidean_rectangular]
-  rw [inner_euclidean_eq_sum_rectangular]
+  rw [inner_euclidean_eq_sum]
   by_cases h : j = j'
   · subst h
     simp only [↓reduceIte]
@@ -3117,7 +3021,7 @@ theorem leftSingularVectorByM_orthonormal_on_nonzero (A : Matrix m n ℂ) :
   obtain ⟨j', hcorr', hj'⟩ := hk'
   rw [leftSingularVectorByM_eq A k j hcorr hj, leftSingularVectorByM_eq A k' j' hcorr' hj']
   simp only [leftSingularVectorEuclidean_rectangular]
-  rw [inner_euclidean_eq_sum_rectangular]
+  rw [inner_euclidean_eq_sum]
   by_cases h : k = k'
   · -- Same index k = k', so j = j' by injectivity
     subst h
@@ -3151,42 +3055,16 @@ theorem extendedONB_rectangular_spec (A : Matrix m n ℂ) (k : m) (hk : k ∈ no
 
 /-! #### Unitary Matrix Construction
 
-Convert the orthonormal basis to a unitary matrix in unitaryGroup m ℂ.
+Convert the orthonormal basis to a unitary matrix in unitaryGroup m ℂ, with the square
+`Matrix.SVD.onbToMatrix` at index type m.
 -/
 
-/-- Convert an orthonormal basis of EuclideanSpace ℂ m to a matrix.
-    Column j of the matrix is basis vector j. -/
-noncomputable def onbToMatrix_rectangular (b : OrthonormalBasis m ℂ (EuclideanSpace ℂ m)) :
-    Matrix m m ℂ :=
-  fun i j => (b j) i
-
-set_option linter.unusedSectionVars false in
-/-- Inner product of columns equals inner product of basis vectors. -/
-lemma onbToMatrix_rectangular_inner (b : OrthonormalBasis m ℂ (EuclideanSpace ℂ m)) (i j : m) :
-    (star (onbToMatrix_rectangular b) * onbToMatrix_rectangular b) i j =
-    @inner ℂ (EuclideanSpace ℂ m) _ (b i) (b j) := by
-  simp only [mul_apply, star_apply, onbToMatrix_rectangular]
-  rw [PiLp.inner_apply]
-  simp only [RCLike.inner_apply]
-  congr 1
-  ext k
-  simp only [star, ← Complex.star_def, mul_comm]
-
-/-- A matrix built from an orthonormal basis is unitary. -/
-theorem onbToMatrix_rectangular_mem_unitaryGroup (b : OrthonormalBasis m ℂ (EuclideanSpace ℂ m)) :
-    onbToMatrix_rectangular b ∈ unitaryGroup m ℂ := by
-  rw [mem_unitaryGroup_iff']
-  ext i j
-  rw [onbToMatrix_rectangular_inner, one_apply]
-  have h_on : Orthonormal ℂ b := b.orthonormal
-  rw [orthonormal_iff_ite] at h_on
-  exact h_on i j
-
 /-- The constructed unitary matrix U for rectangular SVD.
-    Columns are derived from the extended orthonormal basis (v2 with diagonal alignment). -/
+    Columns are the extended orthonormal basis `extendedONB_rectangular`, which is aligned with
+    the diagonal positions. -/
 noncomputable def constructedU_rectangular (A : Matrix m n ℂ) : unitaryGroup m ℂ :=
-  ⟨onbToMatrix_rectangular (extendedONB_rectangular A),
-   onbToMatrix_rectangular_mem_unitaryGroup _⟩
+  ⟨onbToMatrix (extendedONB_rectangular A),
+   onbToMatrix_mem_unitaryGroup _⟩
 
 /-- Column k of constructedU_rectangular equals the left singular vector uⱼ
     when k corresponds to j (via diagonal correspondence) and σⱼ ≠ 0. -/
@@ -3195,7 +3073,7 @@ theorem constructedU_rectangular_column_spec (A : Matrix m n ℂ) (k : m) (j : n
     (fun i => (constructedU_rectangular A : Matrix m m ℂ) i k) =
     leftSingularVectorNonzero_rectangular A j hj := by
   ext i
-  simp only [constructedU_rectangular, onbToMatrix_rectangular]
+  simp only [constructedU_rectangular, onbToMatrix]
   have hk_mem : k ∈ nonzeroSingularIndicesM A := ⟨j, hcorr, hj⟩
   have h_spec := extendedONB_rectangular_spec A k hk_mem
   rw [h_spec, leftSingularVectorByM_eq A k j hcorr hj]
@@ -3504,7 +3382,8 @@ theorem AV_eq_US_rectangular (A : Matrix m n ℂ) :
     - U ∈ unitaryGroup m ℂ (m × m unitary)
     - V ∈ unitaryGroup n ℂ (n × n unitary)
     - σ : Fin (min #m #n) → ℝ is non-negative and non-increasing, and `rectDiagonal σ`
-      is the m × n matrix with σ on its diagonal and 0 elsewhere
+      is the m × n matrix with σ at the positions matched by `eigenvaluesBijection` (see
+      `rectDiagonal`) and 0 elsewhere
 
     The proof takes U = `constructedU_rectangular A`, V = `rightUnitary A` and
     σ = `singularValues A`, and uses `AV_eq_US_rectangular`. This mirrors the square
@@ -3844,8 +3723,9 @@ theorem coherenceFactorRect_le_one (E : Matrix m n ℂ) :
 /-! ## Lower Bound — μ ≥ 1/√rank
 
 The coherence factor is bounded below by 1/√rank. Equality holds exactly when ‖E‖₂ = ‖E‖_F,
-that is, when E has rank 1, where both bounds equal 1. For rank r ≥ 2 the bound is an
-infimum: it is approached as σ₂, …, σᵣ → 0 but not attained.
+that is, when E has rank 1, where both bounds equal 1 (for square E,
+`Matrix.Coherence.norm_eq_frobeniusNorm'_iff_rank_le_one`). For rank r ≥ 2 the bound is not
+attained; that it is approached as σ₂, …, σᵣ → 0 is not formalized.
 
 **Proof strategy:**
   σ₁² ≤ ∑_{k=1}^{r} σₖ² = ‖E‖_F²
@@ -3916,7 +3796,7 @@ theorem frobenius_spectral_ratio_ge_one_rect (E : Matrix m n ℂ) (hE : E ≠ 0)
 
 /-- **The coherence factor is at least 1/√rank.**
 
-This is the tight lower bound for coherence factor. It follows from:
+It follows from:
   ‖E‖ ≤ ‖E‖_F (spectral ≤ Frobenius)
 
 Therefore:
@@ -3959,13 +3839,9 @@ When μ is bounded away from 1/√rank, we get improved spectral bounds beyond t
 -/
 
 omit [DecidableEq m] in
-/-- **Spectral bound via coherence factor.**
-
-From μ(E) = ‖E‖_F / (√rank · ‖E‖), we can solve for ‖E‖:
-  ‖E‖ = ‖E‖_F / (√rank · μ(E))
-
-This gives a way to bound the spectral norm using Frobenius norm and coherence. -/
-theorem spectral_bound_via_coherence_rect (E : Matrix m n ℂ) (hE : E ≠ 0) :
+/-- **Spectral norm from the coherence factor:** ‖E‖₂ = ‖E‖_F / (√rank E · μ(E)) for E ≠ 0,
+    the definition of μ solved for ‖E‖₂. -/
+theorem spectral_norm_eq_frobenius_div_coherence_rect (E : Matrix m n ℂ) (hE : E ≠ 0) :
     ‖E‖₂ = frobeniusNormRect E / (Real.sqrt E.rank * coherenceFactorRect E) := by
   unfold coherenceFactorRect
   simp only [hE, ↓reduceIte]
@@ -4006,8 +3882,8 @@ theorem incoherent_improved_bound_rect (E : Matrix m n ℂ) (hE : E ≠ 0)
   have h_coherence_pos : 0 < coherenceFactorRect E :=
     coherenceFactorRect_pos_of_ne_zero E hE
   have h_frob_pos : 0 < frobeniusNormRect E := frobeniusNormRect_pos_of_ne_zero E hE
-  -- From spectral_bound_via_coherence_rect: ‖E‖ = ‖E‖_F / (√rank · μ)
-  rw [spectral_bound_via_coherence_rect E hE]
+  -- From spectral_norm_eq_frobenius_div_coherence_rect: ‖E‖ = ‖E‖_F / (√rank · μ)
+  rw [spectral_norm_eq_frobenius_div_coherence_rect E hE]
   -- Goal: ‖E‖_F / (√rank · μ) ≤ ‖E‖_F / (α · √rank)
   rw [mul_comm α (Real.sqrt E.rank)]
   -- Goal: ‖E‖_F / (√rank · μ) ≤ ‖E‖_F / (√rank · α)
