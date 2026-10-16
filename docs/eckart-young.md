@@ -95,3 +95,14 @@ Downstream use: `Matrix.Coherence.exists_spectral_minimizer_rank1` and
   `spectral_norm_eq_max_singularValue_rect`.
 - The Van Loan–Pitsianis theorem (`kroneckerApprox_optimal`) is rectangular Frobenius EY with
   `k = 1`; see `docs/kronecker.md`.
+
+## Spectral optima are not unique (`src/MatrixNormRelations.lean`, section `SpectralNonUniqueness`)
+
+`Matrix.SVD.spectral_best_rank_one_not_unique`: for `A = diag(2, 1)`, the distinct matrices
+`diag(2, 0)` (the truncated SVD) and `diag(3/2, 0)` both have rank ≤ 1 and both minimize
+`‖A - C‖₂` over all `C` with `rank C ≤ 1`. The proof:
+- `one_le_norm_diag_two_one_sub_of_rank_le_one`: every `C` with rank ≤ 1 is singular, so it has a
+  kernel vector `v ≠ 0`, and `‖(A - C) v‖ = ‖A v‖ ≥ ‖v‖`
+  (`le_l2_opNorm_diagonal_sub_of_det_eq_zero`, for any diagonal `A` with entries of modulus ≥ c).
+- `diag_two_one_spectral_optimal_family`: `‖A - diag(t, 0)‖₂ = max(|2 - t|, 1) ≤ 1` for every real
+  `t ∈ [1, 3]` (`l2_opNorm_diagonal_le`), so the whole family is optimal.

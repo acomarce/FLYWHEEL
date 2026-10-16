@@ -523,6 +523,121 @@ theorem eckart_young_spectral [Nonempty n] (A : Matrix n n ℂ) (k : ℕ)
 
 end EckartYoungSpectral
 
+/-! ## Spectral optima are not unique
+
+A best rank-k approximation in the spectral norm is in general not unique, even when the
+singular values are distinct. For A = diag(2, 1) and k = 1, every C with rank C ≤ 1 has
+‖A - C‖₂ ≥ 1 = σ₁(A) (`one_le_norm_diag_two_one_sub_of_rank_le_one`), and every diag(t, 0) with
+1 ≤ t ≤ 3 attains it (`diag_two_one_spectral_optimal_family`). In particular diag(2, 0), the
+truncated SVD, and diag(3/2, 0) are distinct minimizers
+(`spectral_best_rank_one_not_unique`). In the Frobenius norm the minimizer is unique when
+σ₀ > σ₁. -/
+
+section SpectralNonUniqueness
+
+variable {n : Type*} [Fintype n] [DecidableEq n]
+
+attribute [local instance] Matrix.instL2OpNormedAddCommGroup
+attribute [local instance] Matrix.instL2OpNormedSpace
+attribute [local instance] Matrix.instL2OpNormedRing
+attribute [local instance] Matrix.instL2OpNormedAlgebra
+attribute [local instance] Matrix.instL2OpMetricSpace
+attribute [local instance] Matrix.instCStarRing
+
+/-- The L2 norm of a diagonal matrix is at most `c` when every entry has modulus at most `c`
+    (`Matrix.l2_opNorm_diagonal`: ‖diagonal d‖₂ is the sup norm of `d`). -/
+theorem l2_opNorm_diagonal_le (d : n → ℂ) (c : ℝ) (hc : 0 ≤ c) (hd : ∀ i, ‖d i‖ ≤ c) :
+    ‖(diagonal d : Matrix n n ℂ)‖ ≤ c := by
+  have h : ‖(diagonal d : Matrix n n ℂ)‖ = ‖d‖ := Matrix.l2_opNorm_diagonal d
+  rw [h]
+  exact (pi_norm_le_iff_of_nonneg hc).mpr hd
+
+/-- A singular matrix is at L2 distance at least `c` from a diagonal matrix whose entries all
+    have modulus at least `c ≥ 0`: pick v ≠ 0 with C v = 0, then
+    ‖(diagonal d - C) v‖ = ‖(dᵢ vᵢ)ᵢ‖ ≥ c ‖v‖. -/
+theorem le_l2_opNorm_diagonal_sub_of_det_eq_zero (d : n → ℂ) (c : ℝ) (hc : 0 ≤ c)
+    (hd : ∀ i, c ≤ ‖d i‖) (C : Matrix n n ℂ) (hC : C.det = 0) :
+    c ≤ ‖diagonal d - C‖ := by
+  obtain ⟨v, hv_ne, hv⟩ := Matrix.exists_mulVec_eq_zero_iff.mpr hC
+  have hx_pos : 0 < ‖(WithLp.toLp 2 v : EuclideanSpace ℂ n)‖ :=
+    norm_pos_iff.mpr ((WithLp.toLp_eq_zero 2).not.mpr hv_ne)
+  -- (diagonal d - C) v = (dᵢ vᵢ)ᵢ
+  have h_mul : (diagonal d - C) *ᵥ v = fun i => d i * v i := by
+    rw [sub_mulVec, hv, sub_zero]
+    ext i
+    exact mulVec_diagonal d v i
+  -- c ‖v‖ ≤ ‖(diagonal d - C) v‖, compared through squares entry by entry
+  have h_sq : (c * ‖(WithLp.toLp 2 v : EuclideanSpace ℂ n)‖) ^ 2 ≤
+      ‖(WithLp.toLp 2 ((diagonal d - C) *ᵥ v) : EuclideanSpace ℂ n)‖ ^ 2 := by
+    rw [mul_pow, EuclideanSpace.norm_sq_eq, EuclideanSpace.norm_sq_eq, Finset.mul_sum, h_mul]
+    apply Finset.sum_le_sum
+    intro i _
+    show c ^ 2 * ‖v i‖ ^ 2 ≤ ‖d i * v i‖ ^ 2
+    rw [norm_mul, mul_pow]
+    exact mul_le_mul_of_nonneg_right (pow_le_pow_left₀ hc (hd i) 2) (sq_nonneg _)
+  have h_le : c * ‖(WithLp.toLp 2 v : EuclideanSpace ℂ n)‖ ≤
+      ‖(WithLp.toLp 2 ((diagonal d - C) *ᵥ v) : EuclideanSpace ℂ n)‖ :=
+    le_of_sq_le_sq h_sq (norm_nonneg _)
+  -- ‖(diagonal d - C) v‖ ≤ ‖diagonal d - C‖ ‖v‖
+  have h_op : ‖(WithLp.toLp 2 ((diagonal d - C) *ᵥ v) : EuclideanSpace ℂ n)‖ ≤
+      ‖diagonal d - C‖ * ‖(WithLp.toLp 2 v : EuclideanSpace ℂ n)‖ :=
+    Matrix.l2_opNorm_mulVec (diagonal d - C) (WithLp.toLp 2 v)
+  exact le_of_mul_le_mul_right (h_le.trans h_op) hx_pos
+
+/-- Every matrix of rank at most 1 is at spectral distance at least 1 = σ₁ from diag(2, 1). -/
+theorem one_le_norm_diag_two_one_sub_of_rank_le_one (C : Matrix (Fin 2) (Fin 2) ℂ)
+    (hC : C.rank ≤ 1) : 1 ≤ ‖diagonal ![(2 : ℂ), 1] - C‖ := by
+  -- C is singular: an invertible 2 × 2 matrix has rank 2
+  have h_det : C.det = 0 := by
+    by_contra h
+    have h_rank := Matrix.rank_of_isUnit C ((Matrix.isUnit_iff_isUnit_det C).mpr (Ne.isUnit h))
+    rw [Fintype.card_fin] at h_rank
+    omega
+  refine le_l2_opNorm_diagonal_sub_of_det_eq_zero _ 1 zero_le_one ?_ C h_det
+  exact Fin.forall_fin_two.mpr ⟨by norm_num, by norm_num⟩
+
+/-- diag(t, 0) has rank at most 1. -/
+theorem rank_diag_cons_zero_le_one (t : ℂ) : (diagonal ![t, 0]).rank ≤ 1 := by
+  have h : diagonal ![t, 0] = vecMulVec ![t, 0] ![1, 0] := by
+    ext i j
+    fin_cases i <;> fin_cases j <;> simp [vecMulVec_apply, diagonal_apply]
+  rw [h]
+  exact rank_vecMulVec_le _ _
+
+/-- **A continuum of best rank-1 spectral approximations.** For A = diag(2, 1) and every real
+    t ∈ [1, 3], the rank ≤ 1 matrix diag(t, 0) minimizes ‖A - C‖₂ over all C with rank C ≤ 1;
+    the minimum is 1 = σ₁(A). -/
+theorem diag_two_one_spectral_optimal_family (t : ℝ) (ht1 : 1 ≤ t) (ht3 : t ≤ 3)
+    (C : Matrix (Fin 2) (Fin 2) ℂ) (hC : C.rank ≤ 1) :
+    ‖diagonal ![(2 : ℂ), 1] - diagonal ![(t : ℂ), 0]‖ ≤ ‖diagonal ![(2 : ℂ), 1] - C‖ := by
+  refine le_trans ?_ (one_le_norm_diag_two_one_sub_of_rank_le_one C hC)
+  rw [diagonal_sub]
+  refine l2_opNorm_diagonal_le _ 1 zero_le_one (Fin.forall_fin_two.mpr ⟨?_, by norm_num⟩)
+  -- the (0, 0) entry is 2 - t, with |2 - t| ≤ 1
+  have h0 : ![(2 : ℂ), 1] 0 - ![(t : ℂ), 0] 0 = ((2 - t : ℝ) : ℂ) := by simp
+  show ‖![(2 : ℂ), 1] 0 - ![(t : ℂ), 0] 0‖ ≤ 1
+  rw [h0, Complex.norm_real, Real.norm_eq_abs, abs_le]
+  constructor <;> linarith
+
+/-- **Best rank-1 spectral approximations are not unique.** For A = diag(2, 1), the distinct
+    matrices B = diag(2, 0) (the truncated SVD) and B' = diag(3/2, 0) both have rank ≤ 1 and
+    both minimize ‖A - C‖₂ over all C with rank C ≤ 1. -/
+theorem spectral_best_rank_one_not_unique :
+    ∃ A B B' : Matrix (Fin 2) (Fin 2) ℂ, B ≠ B' ∧ B.rank ≤ 1 ∧ B'.rank ≤ 1 ∧
+      (∀ C : Matrix (Fin 2) (Fin 2) ℂ, C.rank ≤ 1 → ‖A - B‖ ≤ ‖A - C‖) ∧
+      (∀ C : Matrix (Fin 2) (Fin 2) ℂ, C.rank ≤ 1 → ‖A - B'‖ ≤ ‖A - C‖) := by
+  refine ⟨diagonal ![(2 : ℂ), 1], diagonal ![((2 : ℝ) : ℂ), 0], diagonal ![((3 / 2 : ℝ) : ℂ), 0],
+    ?_, rank_diag_cons_zero_le_one _, rank_diag_cons_zero_le_one _,
+    diag_two_one_spectral_optimal_family 2 (by norm_num) (by norm_num),
+    diag_two_one_spectral_optimal_family (3 / 2) (by norm_num) (by norm_num)⟩
+  -- the (0, 0) entries differ
+  intro h
+  have h00 := congrFun (congrFun h 0) 0
+  simp only [diagonal_apply_eq, Matrix.cons_val_zero, Complex.ofReal_inj] at h00
+  norm_num at h00
+
+end SpectralNonUniqueness
+
 end Matrix.SVD
 
 /-! ## Kronecker Approximation Error Bounds -/
