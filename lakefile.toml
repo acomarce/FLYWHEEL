@@ -1,6 +1,21 @@
 name = "FLYWHEEL"
 version = "0.1.0"
-defaultTargets = ["SVD"]
+# All sources live in src/; each file is its own library.
+srcDir = "src"
+# Every library, so a bare `lake build` checks the whole project.
+# scripts/gen_index.py --check fails if a src/*.lean file is missing here.
+defaultTargets = [
+  "SVD",
+  "KroneckerRearrangement",
+  "MatrixNormRelations",
+  "FrobeniusNorm",
+  "CourantFischer",
+  "WeylInequality",
+  "SpectralNormGap",
+  "CoherenceCharacterization",
+  "TightBounds",
+  "TruncatedSVDRank1"
+]
 
 [[require]]
 name = "mathlib"
