@@ -54,9 +54,13 @@ best rank-1 approximation of `R C`.
   transported by the isometry `R` and `R (A ⊗ B) = vec A (vec B)ᵀ`.
 - `kroneckerApprox_error_sq`: `‖C - kroneckerApprox C‖_F² = Σᵢ (truncatedSingularValues_rect_tail
   (R C) 1 i)²`, i.e. the sum of `σᵢ(R C)²` over `i ≥ 1` (0-indexed).
-- Not formalized: uniqueness of the optimal Kronecker approximation (it fails when
-  `σ₀(R C) = σ₁(R C)`), and anything about the spectral-norm-optimal Kronecker approximation in
-  the original space.
+- `Matrix.FrobeniusUniqueness.kroneckerApprox_unique`: if `σ₁(R C) < σ₀(R C)` and
+  `‖C - A ⊗ B‖_F ≤ ‖C - kroneckerApprox C‖_F`, then `A ⊗ B = kroneckerApprox C`. This is
+  rectangular Frobenius uniqueness (`eckart_young_frobenius_rect_unique`) for `R C` with `k = 1`,
+  transported by `R`; see `docs/eckart-young.md`. Only the product is unique: `(c A) ⊗ (c⁻¹ B)`
+  is the same matrix for every `c ≠ 0`.
+- Not formalized: non-uniqueness when `σ₀(R C) = σ₁(R C) > 0`, and anything about the
+  spectral-norm-optimal Kronecker approximation in the original space.
 
 ## Bounds that are proved
 
