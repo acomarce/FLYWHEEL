@@ -815,8 +815,9 @@ For rank(B) ≤ r: σ_{i+r}(A) ≤ σ_i(A + B).
 section ThompsonInterlacing
 
 omit [Nonempty n] in
-/-- Helper: On the kernel of B, the linear maps of A and A + B coincide. -/
-theorem toEuclideanLin_eq_on_ker (A B : Matrix n n ℂ) (x : EuclideanSpace ℂ n)
+/-- Helper: On the kernel of B, the linear maps of A and A + B coincide (rectangular A, B). -/
+theorem toEuclideanLin_eq_on_ker {m : Type*} [Fintype m]
+    (A B : Matrix m n ℂ) (x : EuclideanSpace ℂ n)
     (hx : B.mulVec (WithLp.equiv 2 (n → ℂ) x) = 0) :
     Matrix.toEuclideanLin (A + B) x = Matrix.toEuclideanLin A x := by
   simp only [Matrix.toEuclideanLin_apply, Matrix.add_mulVec]
@@ -825,49 +826,33 @@ theorem toEuclideanLin_eq_on_ker (A B : Matrix n n ℂ) (x : EuclideanSpace ℂ 
   rw [h, add_zero]
 
 omit [Nonempty n] in
-/-- Helper: The norm of (A + B)x equals ‖Ax‖ when Bx = 0. -/
-theorem norm_add_eq_on_ker (A B : Matrix n n ℂ) (x : EuclideanSpace ℂ n)
+/-- Helper: The norm of (A + B)x equals ‖Ax‖ when Bx = 0 (rectangular A, B). -/
+theorem norm_add_eq_on_ker {m : Type*} [Fintype m]
+    (A B : Matrix m n ℂ) (x : EuclideanSpace ℂ n)
     (hx : B.mulVec (WithLp.equiv 2 (n → ℂ) x) = 0) :
     ‖Matrix.toEuclideanLin (A + B) x‖ = ‖Matrix.toEuclideanLin A x‖ := by
   rw [toEuclideanLin_eq_on_ker A B x hx]
 
 omit [Nonempty n] in
-/-- The kernel of toEuclideanLin C has dimension at least n - rank(C).
+/-- The kernel of toEuclideanLin C has dimension at least n - rank(C), for rectangular C.
     This is the key dimension bound for Thompson interlacing. -/
-lemma finrank_ker_toEuclideanLin_ge' (C : Matrix n n ℂ) :
+lemma finrank_ker_toEuclideanLin_ge' {m : Type*} [Fintype m] (C : Matrix m n ℂ) :
     Module.finrank ℂ (LinearMap.ker (Matrix.toEuclideanLin C)) ≥ Fintype.card n - C.rank := by
   have h_rn := LinearMap.finrank_range_add_finrank_ker (Matrix.toEuclideanLin C)
   have h_domain : Module.finrank ℂ (EuclideanSpace ℂ n) = Fintype.card n := finrank_euclideanSpace
   rw [h_domain] at h_rn
-  have h_rank_eq : C.rank = Module.finrank ℂ (LinearMap.range (Matrix.toEuclideanLin C)) := by
-    unfold Matrix.rank
-    let e : (n → ℂ) ≃ₗ[ℂ] EuclideanSpace ℂ n := (WithLp.linearEquiv 2 ℂ (n → ℂ)).symm
-    have h_range : LinearMap.range (Matrix.toEuclideanLin C) =
-        Submodule.map e.toLinearMap (LinearMap.range C.mulVecLin) := by
-      ext x
-      simp only [LinearMap.mem_range, Submodule.mem_map, LinearEquiv.coe_toLinearMap]
-      constructor
-      · rintro ⟨v, hv⟩
-        use C.mulVecLin (e.symm v)
-        refine ⟨⟨e.symm v, rfl⟩, ?_⟩
-        simp only [Matrix.toEuclideanLin_apply] at hv
-        rw [← hv]
-        simp only [Matrix.mulVecLin_apply]
-        rfl
-      · rintro ⟨y, ⟨w, hw⟩, hy⟩
-        use e w
-        simp only [Matrix.toEuclideanLin_apply, Matrix.mulVecLin_apply] at hw ⊢
-        rw [← hy, ← hw]
-        rfl
-    rw [h_range]
-    exact (Submodule.equivMapOfInjective e.toLinearMap e.injective _).finrank_eq
+  -- `toEuclideanLin` is `toLin` for the standard bases, so its range has dimension rank(C)
+  have h_rank_eq : C.rank = Module.finrank ℂ (LinearMap.range (Matrix.toEuclideanLin C)) :=
+    Matrix.rank_eq_finrank_range_toLin C (PiLp.basisFun 2 ℂ m) (PiLp.basisFun 2 ℂ n)
   omega
 
 omit [Nonempty n] in
-/-- **Thompson's Singular Value Interlacing Inequality**
+/-- **Thompson interlacing, eigenvalue form (rectangular).** For A, B : Matrix m n ℂ with
+rank(B) ≤ r and i + r < n, the sorted eigenvalues of the Gram matrices satisfy
+  λ_{i+r}(AᴴA) ≤ λ_i((A+B)ᴴ(A+B)).
 
-For matrices A, B with rank(B) ≤ r:
-  σ_{i+r}(A) ≤ σ_i(A + B)
+Since σₖ² = λₖ(AᴴA), this is σ_{i+r}(A)² ≤ σ_i(A + B)². It holds for any row type m;
+`thompson_interlacing` (square) and `thompson_interlacing_rect` are its singular-value forms.
 
 The proof uses the Courant-Fischer max-min characterization:
   σ_k(M)² = max_{dim V = k+1} min_{x ∈ V, ‖x‖=1} ‖Mx‖²
@@ -885,9 +870,11 @@ So there exists x ∈ V* ∩ W ∩ ker B with ‖x‖ = 1:
 
 Taking min over W: σ_i(A+B) ≥ σ_{i+r}(A)
 -/
-theorem thompson_interlacing (A B : Matrix n n ℂ) (r : ℕ) (hr : B.rank ≤ r)
+theorem thompson_interlacing_eigenvalues {m : Type*} [Fintype m] [DecidableEq m]
+    (A B : Matrix m n ℂ) (r : ℕ) (hr : B.rank ≤ r)
     (i : Fin (Fintype.card n)) (hi : i.val + r < Fintype.card n) :
-    Matrix.SVD.singularValues₀ A ⟨i.val + r, hi⟩ ≤ Matrix.SVD.singularValues₀ (A + B) i := by
+    (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨i.val + r, hi⟩ ≤
+      (posSemidef_conjTranspose_mul_self (A + B)).isHermitian.eigenvalues₀ i := by
   -- The key index: j = i + r
   let j : Fin (Fintype.card n) := ⟨i.val + r, hi⟩
 
@@ -916,31 +903,6 @@ theorem thompson_interlacing (A B : Matrix n n ℂ) (r : ℕ) (hr : B.rank ≤ r
   --
   -- We prove this by showing V* ∩ W ∩ ker(B) is nonempty (dimension counting),
   -- and for any unit x in this intersection: ‖(A+B)x‖ = ‖Ax‖ ≥ σ_j(A)
-
-  -- Prove the inequality via squaring (both sides nonneg)
-  have h_nonneg_l : 0 ≤ Matrix.SVD.singularValues₀ A j := Matrix.SVD.singularValues₀_nonneg A j
-  have h_nonneg_r : 0 ≤ Matrix.SVD.singularValues₀ (A + B) i := Matrix.SVD.singularValues₀_nonneg (A + B) i
-
-  -- It suffices to show the squared inequality
-  -- σ_j(A) ≤ σ_i(A+B) ⟺ σ_j(A)² ≤ σ_i(A+B)² (since both are nonneg)
-  have h_sq_iff : Matrix.SVD.singularValues₀ A j ≤ Matrix.SVD.singularValues₀ (A + B) i ↔
-      (Matrix.SVD.singularValues₀ A j)^2 ≤ (Matrix.SVD.singularValues₀ (A + B) i)^2 := by
-    constructor
-    · intro h
-      exact sq_le_sq' (by linarith) h
-    · intro h
-      nlinarith [sq_nonneg (Matrix.SVD.singularValues₀ A j),
-                 sq_nonneg (Matrix.SVD.singularValues₀ (A + B) i)]
-
-  rw [h_sq_iff]
-
-  -- Convert to eigenvalue inequality via singularValues₀_sq
-  have h_sq_A : (Matrix.SVD.singularValues₀ A j)^2 = hAHA.eigenvalues₀ j :=
-    Matrix.SVD.singularValues₀_sq A j
-  have h_sq_AB : (Matrix.SVD.singularValues₀ (A + B) i)^2 = hApBHA.eigenvalues₀ i :=
-    Matrix.SVD.singularValues₀_sq (A + B) i
-
-  rw [h_sq_A, h_sq_AB]
 
   -- Use min-max for (A+B)^H(A+B): λ_i = inf_{dim W = n-i} sup R_{(A+B)^H(A+B)}(W)
   -- By eigenvalue_le_rayleighSup, λ_i ≤ rayleighSup on any (n-i)-dim subspace
@@ -1066,10 +1028,10 @@ theorem thompson_interlacing (A B : Matrix n n ℂ) (r : ℕ) (hr : B.rank ≤ r
     -- (WithLp.equiv 2 _).symm (B.mulVec y.ofLp) = 0
     -- Applying (WithLp.equiv 2 _) to both sides:
     -- B.mulVec y.ofLp = (WithLp.equiv 2 _) 0 = 0
-    have h_eq : WithLp.toLp 2 (B.mulVec y.ofLp) = WithLp.toLp 2 (0 : n → ℂ) := by
+    have h_eq : WithLp.toLp 2 (B.mulVec y.ofLp) = WithLp.toLp 2 (0 : m → ℂ) := by
       rw [h_mem]; rfl
-    have h_inj : Function.Injective (WithLp.toLp 2 : (n → ℂ) → WithLp 2 (n → ℂ)) :=
-      (WithLp.equiv 2 (n → ℂ)).symm.injective
+    have h_inj : Function.Injective (WithLp.toLp 2 : (m → ℂ) → WithLp 2 (m → ℂ)) :=
+      (WithLp.equiv 2 (m → ℂ)).symm.injective
     exact h_inj h_eq
 
   -- For y ∈ V* (head eigenspace of A^H A) with ‖y‖ = 1:
@@ -1107,6 +1069,73 @@ theorem thompson_interlacing (A B : Matrix n n ℂ) (r : ℕ) (hr : B.rank ≤ r
       ≤ ‖Matrix.toEuclideanLin A y‖^2 := h_rayleigh_lower
     _ = ‖Matrix.toEuclideanLin (A + B) y‖^2 := by rw [h_eq_norm]
     _ ≤ hApBHA.eigenvalues₀ i := h_rayleigh_upper
+
+omit [Nonempty n] in
+/-- **Thompson's Singular Value Interlacing Inequality**
+
+For matrices A, B with rank(B) ≤ r:
+  σ_{i+r}(A) ≤ σ_i(A + B)
+
+This is the square case of `thompson_interlacing_eigenvalues`, via σₖ² = λₖ(AᴴA). -/
+theorem thompson_interlacing (A B : Matrix n n ℂ) (r : ℕ) (hr : B.rank ≤ r)
+    (i : Fin (Fintype.card n)) (hi : i.val + r < Fintype.card n) :
+    Matrix.SVD.singularValues₀ A ⟨i.val + r, hi⟩ ≤ Matrix.SVD.singularValues₀ (A + B) i := by
+  apply (sq_le_sq₀ (Matrix.SVD.singularValues₀_nonneg _ _)
+    (Matrix.SVD.singularValues₀_nonneg _ _)).mp
+  rw [Matrix.SVD.singularValues₀_sq, Matrix.SVD.singularValues₀_sq]
+  exact thompson_interlacing_eigenvalues A B r hr i hi
+
+omit [Nonempty n] in
+/-- **Thompson interlacing for rectangular matrices:** if rank(B) ≤ r and
+i + r < min(#m, #n), then σ_{i+r}(A) ≤ σ_i(A + B) for the sorted rectangular singular values
+`Matrix.SVD.Rectangular.singularValues`. -/
+theorem thompson_interlacing_rect {m : Type*} [Fintype m] [DecidableEq m]
+    (A B : Matrix m n ℂ) (r : ℕ) (hr : B.rank ≤ r)
+    (i : Fin (min (Fintype.card m) (Fintype.card n)))
+    (hi : i.val + r < min (Fintype.card m) (Fintype.card n)) :
+    Matrix.SVD.Rectangular.singularValues A ⟨i.val + r, hi⟩ ≤
+      Matrix.SVD.Rectangular.singularValues (A + B) i := by
+  have hi_n : i.val + r < Fintype.card n := lt_of_lt_of_le hi (Nat.min_le_right _ _)
+  apply (sq_le_sq₀ (Matrix.SVD.Rectangular.singularValues_nonneg _ _)
+    (Matrix.SVD.Rectangular.singularValues_nonneg _ _)).mp
+  -- σₖ² is the k-th sorted eigenvalue of the Gram matrix
+  calc Matrix.SVD.Rectangular.singularValues A ⟨i.val + r, hi⟩ ^ 2
+      = (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨i.val + r, hi_n⟩ :=
+        Matrix.SVD.Rectangular.singularValues_sq_rect A ⟨i.val + r, hi⟩
+    _ ≤ (posSemidef_conjTranspose_mul_self (A + B)).isHermitian.eigenvalues₀
+          ⟨i.val, by omega⟩ :=
+        thompson_interlacing_eigenvalues A B r hr ⟨i.val, by omega⟩ hi_n
+    _ = Matrix.SVD.Rectangular.singularValues (A + B) i ^ 2 :=
+        (Matrix.SVD.Rectangular.singularValues_sq_rect (A + B) i).symm
+
+omit [Nonempty n] in
+/-- **Low-rank interlacing for rectangular matrices:** if rank(C) ≤ k and k ≤ j, then
+σⱼ(A) ≤ σ_{j-k}(A - C) for the sorted rectangular singular values. -/
+theorem interlacing_low_rank_subtraction_rect {m : Type*} [Fintype m] [DecidableEq m]
+    (A C : Matrix m n ℂ) (k : ℕ) (hC : C.rank ≤ k)
+    (j : Fin (min (Fintype.card m) (Fintype.card n))) (hj : k ≤ j.val) :
+    Matrix.SVD.Rectangular.singularValues A j ≤
+      Matrix.SVD.Rectangular.singularValues (A - C) ⟨j.val - k, by omega⟩ := by
+  -- (-C).rank = C.rank because negation is a bijection
+  have h_neg_rank : (-C).rank ≤ k := by
+    have h : (-C).rank = C.rank := by
+      unfold Matrix.rank
+      have hmulvec : (-C).mulVecLin = -C.mulVecLin := by
+        apply LinearMap.ext
+        intro v
+        simp only [Matrix.mulVecLin_apply, Matrix.neg_mulVec, LinearMap.neg_apply]
+      rw [hmulvec, LinearMap.range_neg]
+    rw [h]
+    exact hC
+  have hi : (j.val - k) + k < min (Fintype.card m) (Fintype.card n) := by omega
+  calc Matrix.SVD.Rectangular.singularValues A j
+      = Matrix.SVD.Rectangular.singularValues A ⟨(j.val - k) + k, hi⟩ := by
+        congr 1
+        exact Fin.ext (Nat.sub_add_cancel hj).symm
+    _ ≤ Matrix.SVD.Rectangular.singularValues (A + -C) ⟨j.val - k, by omega⟩ :=
+        thompson_interlacing_rect A (-C) k h_neg_rank ⟨j.val - k, by omega⟩ hi
+    _ = Matrix.SVD.Rectangular.singularValues (A - C) ⟨j.val - k, by omega⟩ := by
+        rw [sub_eq_add_neg]
 
 omit [Nonempty n] in
 /-- **Thompson Interlacing for Low-Rank Subtraction**

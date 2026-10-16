@@ -1234,15 +1234,16 @@ theorem rayleigh_AHA_tail_bound (A : Matrix n n ℂ) (k : Fin (Fintype.card n))
   exact rayleigh_le_on_eigenvectorSpanTail (Aᴴ * A) hAHA k x hx_unit hx_tail
 
 omit [Nonempty n] in
-/-- The squared norm ‖Ax‖² equals Re⟨AᴴAx, x⟩ for any vector x.
+/-- The squared norm ‖Ax‖² equals Re⟨AᴴAx, x⟩ for any vector x, for rectangular `A`.
     This connects the SVD energy to the Rayleigh quotient of AᴴA. -/
-theorem norm_sq_mul_eq_inner_AHA (A : Matrix n n ℂ) (x : EuclideanSpace ℂ n) :
+theorem norm_sq_mul_eq_inner_AHA {m : Type*} [Fintype m] [DecidableEq m]
+    (A : Matrix m n ℂ) (x : EuclideanSpace ℂ n) :
     ‖(Matrix.toEuclideanLin A) x‖^2 =
       (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin (Aᴴ * A) x) x).re := by
   -- Step 1: ‖Ax‖² = Re⟨Ax, Ax⟩
   have h1 : ‖(Matrix.toEuclideanLin A) x‖^2 =
-      (@inner ℂ (EuclideanSpace ℂ n) _ ((Matrix.toEuclideanLin A) x) ((Matrix.toEuclideanLin A) x)).re := by
-    have := @inner_self_eq_norm_sq ℂ (EuclideanSpace ℂ n) _ _ _ ((Matrix.toEuclideanLin A) x)
+      (@inner ℂ (EuclideanSpace ℂ m) _ ((Matrix.toEuclideanLin A) x) ((Matrix.toEuclideanLin A) x)).re := by
+    have := @inner_self_eq_norm_sq ℂ (EuclideanSpace ℂ m) _ _ _ ((Matrix.toEuclideanLin A) x)
     simp only [RCLike.re_to_complex] at this
     exact this.symm
   rw [h1]
@@ -1251,7 +1252,7 @@ theorem norm_sq_mul_eq_inner_AHA (A : Matrix n n ℂ) (x : EuclideanSpace ℂ n)
   have h_adj : Matrix.toEuclideanLin Aᴴ = LinearMap.adjoint (Matrix.toEuclideanLin A) :=
     Matrix.toEuclideanLin_conjTranspose_eq_adjoint A
   -- ⟨Ax, Ax⟩ = ⟨Aᴴ(Ax), x⟩ by adjoint property
-  have h2 : @inner ℂ (EuclideanSpace ℂ n) _ ((Matrix.toEuclideanLin A) x) ((Matrix.toEuclideanLin A) x) =
+  have h2 : @inner ℂ (EuclideanSpace ℂ m) _ ((Matrix.toEuclideanLin A) x) ((Matrix.toEuclideanLin A) x) =
       @inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin (Aᴴ * A) x) x := by
     rw [← LinearMap.adjoint_inner_left (Matrix.toEuclideanLin A) x ((Matrix.toEuclideanLin A) x)]
     rw [← h_adj]
