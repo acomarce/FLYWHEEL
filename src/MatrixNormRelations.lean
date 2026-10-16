@@ -600,7 +600,7 @@ theorem one_le_norm_diag_two_one_sub_of_rank_le_one (C : Matrix (Fin 2) (Fin 2) 
 theorem rank_diag_cons_zero_le_one (t : ℂ) : (diagonal ![t, 0]).rank ≤ 1 := by
   have h : diagonal ![t, 0] = vecMulVec ![t, 0] ![1, 0] := by
     ext i j
-    fin_cases i <;> fin_cases j <;> simp [vecMulVec_apply, diagonal_apply]
+    fin_cases i <;> fin_cases j <;> simp [vecMulVec_apply]
   rw [h]
   exact rank_vecMulVec_le _ _
 
