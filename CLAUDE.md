@@ -185,3 +185,6 @@ Details are in the `docs/` notes.
   spectral error formula and the rank bound only.
 - SpectralNormGap's "tight for unit vectors" and its `Tightness` section prove only `≤`.
   Tightness is false in general (`R_inv (vec I₂ vec I₂ᵀ) = I₄`).
+- CoherenceCharacterization's `nearly_coherent_bound`, `nearly_coherent_spectral_lower_bound`,
+  `frobenius_spectral_distance_with_gap` and `decision_criterion` take no coherence or gap
+  hypothesis. Their names overstate them; their docstrings say what is proved.

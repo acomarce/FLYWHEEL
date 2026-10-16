@@ -72,6 +72,16 @@ best rank-1 approximation of `R C`.
 - `kroneckerCoherence C := coherenceFactorRect (R C)`.
 - `kronecker_approximation_coherence_characterization` combines `spectral_error_bound_via_R` with
   the coherence identity `‖E‖₂ = ‖E‖_F / (√rank · μ)`.
+- Four theorems take no coherence or gap hypothesis, despite their names:
+  - `nearly_coherent_bound` and `nearly_coherent_spectral_lower_bound` follow from
+    `coherenceFactor_le_one`.
+  - `frobenius_spectral_distance_with_gap` and `decision_criterion` restate
+    `frobenius_spectral_solution_distance : ‖A_F − A_*‖₂ ≤ 2‖A − A_F‖_F`. The first also gives the
+    Frobenius tail formula.
+  - Not formalized: the bound `‖E‖₂ ≤ ‖E‖_F / ((1 − ε) √rank E)` that `μ(E) ≥ 1 − ε` gives, and
+    any bound that depends on `spectralGap`.
+  - The `coherenceFactor` docstring calls `μ ≈ 1` *incoherent*, so "nearly coherent (μ ≥ 1 − ε)"
+    uses the opposite convention.
 
 ## Claims in comments that are not proved
 
