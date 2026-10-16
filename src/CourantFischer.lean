@@ -9,7 +9,9 @@ import SVD
 /-!
 # Courant-Fischer Min-Max Theorem
 
-λₖ(A) = max_{dim V = k} min_{x ∈ V, ‖x‖=1} R(A,x) = min_{dim W = n-k+1} max_{x ∈ W, ‖x‖=1} R(A,x)
+For the k-th largest eigenvalue (λₖ₋₁ with 0-indexed `eigenvalues₀`, 1 ≤ k ≤ n):
+
+λₖ₋₁(A) = max_{dim V = k} inf_{x ∈ V, x ≠ 0} R(A,x) = min_{dim W = n-k+1} sup_{x ∈ W, x ≠ 0} R(A,x)
 
 ## References
 
@@ -212,8 +214,8 @@ theorem eigencoeff_nonneg (A : Matrix n n ℂ) (hA : A.IsHermitian)
 
 omit [Nonempty n] in
 /-- Helper: eigenvalues i = eigenvalues₀ composed with the canonical equivalence.
-This relates the two indexing schemes: eigenvalues : n → ℝ and eigenvalues₀ : Fin (card n) → ℝ.
-Both produce the same sorted eigenvalues. -/
+This relates the two indexing schemes: eigenvalues : n → ℝ is eigenvalues₀ : Fin (card n) → ℝ
+reindexed by Mathlib's canonical bijection. Only eigenvalues₀ is sorted (index 0 largest). -/
 theorem eigenvalues_eq_eigenvalues₀_comp
     (A : Matrix n n ℂ) (hA : A.IsHermitian) (i : n) :
     hA.eigenvalues i = hA.eigenvalues₀ ((Fintype.equivOfCardEq (Fintype.card_fin _)).symm i) :=
@@ -465,8 +467,12 @@ end RayleighQuotient
 The Courant-Fischer theorem characterizes the k-th eigenvalue of a Hermitian matrix
 as an optimization over k-dimensional subspaces.
 
-**Max-Min Form:** λₖ₋₁ = max_{dim W = k} min_{x ∈ W, x ≠ 0} R(x)
-**Min-Max Form:** λₖ₋₁ = min_{dim W = n-k+1} max_{x ∈ W, x ≠ 0} R(x)
+**Max-Min Form:** λₖ₋₁ = max_{dim W = k} inf_{x ∈ W, x ≠ 0} R(x)
+**Min-Max Form:** λₖ₋₁ = min_{dim W = n-k+1} sup_{x ∈ W, x ≠ 0} R(x)
+
+The outer max/min are attained (`IsGreatest` / `IsLeast`); the inner inf/sup are `rayleighInf` /
+`rayleighSup`, and their attainment on the eigenvector spans is
+`rayleighInf_eigenvectorSpanHead_eq` / `rayleighSup_eigenvectorSpanTail_eq`.
 
 where R(x) = Re⟨Ax, x⟩ / ‖x‖² is the Rayleigh quotient.
 -/
@@ -476,10 +482,6 @@ section CourantFischerMain
 variable {n : Type*} [DecidableEq n] [Fintype n] [Nonempty n]
 
 /-! ### Definitions -/
-
-/-- The type of k-dimensional subspaces of EuclideanSpace ℂ n. -/
-def DimSubspace (n : ℕ) (k : ℕ) : Type :=
-  { W : Submodule ℂ (EuclideanSpace ℂ (Fin n)) // Module.finrank ℂ W = k }
 
 /-- The Rayleigh quotient R(x) = Re⟨Ax, x⟩ / ‖x‖². -/
 noncomputable def rayleighQuotient (A : Matrix n n ℂ) (x : EuclideanSpace ℂ n) : ℝ :=
@@ -628,28 +630,6 @@ theorem rayleigh_achieves_on_eigenvectorSpanHead (A : Matrix n n ℂ) (hA : A.Is
       rw [eigenvalues_eq_eigenvalues₀_comp A hA]
       simp only [Equiv.symm_apply_apply]
     rw [rayleigh_eq_eigenvalue_on_eigenvector A hA _, h_eigen_eq]
-
-omit [Nonempty n] in
-/-- On eigenvectorSpanHead k, the minimum Rayleigh quotient equals λₖ₋₁. -/
-theorem rayleighInf_eigenvectorSpanHead_eq (A : Matrix n n ℂ) (hA : A.IsHermitian)
-    (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
-    ∃ x ∈ eigenvectorSpanHead hA k, x ≠ 0 ∧
-      (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin A x) x).re / ‖x‖^2 =
-        hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ := by
-  let k_pred : Fin (Fintype.card n) := ⟨k.val - 1, by omega⟩
-  let v := hA.eigenvectorBasis ((Fintype.equivOfCardEq (Fintype.card_fin _)) k_pred)
-  use v
-  obtain ⟨hmem, hval⟩ := rayleigh_achieves_on_eigenvectorSpanHead A hA k hk
-  refine ⟨hmem, ?_, ?_⟩
-  · -- v ≠ 0 since it's a unit eigenvector
-    have hunit : ‖v‖ = 1 := hA.eigenvectorBasis.orthonormal.1 _
-    intro hzero
-    rw [hzero, norm_zero] at hunit
-    exact one_ne_zero hunit.symm
-  · -- R(v) = λₖ₋₁
-    have hunit : ‖v‖ = 1 := hA.eigenvectorBasis.orthonormal.1 _
-    rw [hunit, one_pow, div_one]
-    exact hval
 
 /-! ### Intersection Argument -/
 
@@ -818,7 +798,7 @@ theorem exists_vector_rayleigh_le_in_subspace (A : Matrix n n ℂ) (hA : A.IsHer
 The k-th largest eigenvalue is an upper bound for the infimum Rayleigh quotient
 on any k-dimensional subspace.
 
-For any k-dimensional subspace W: min_{x ∈ W, x ≠ 0} R(x) ≤ λₖ₋₁ -/
+For any k-dimensional subspace W: inf_{x ∈ W, x ≠ 0} R(x) ≤ λₖ₋₁ -/
 theorem rayleighInf_le_eigenvalue (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k)
     (W : Submodule ℂ (EuclideanSpace ℂ n)) (hW : Module.finrank ℂ W = k.val) :
@@ -868,7 +848,8 @@ theorem re_mul_ofReal_one_div_sq {z : ℂ} {r : ℝ} (hr : r ≠ 0) :
 
 omit [Nonempty n] in
 /-- **Courant-Fischer Max-Min Theorem** (inequality direction ≥):
-The eigenvalue λₖ₋₁ is achieved as the infimum on the span of first k eigenvectors. -/
+λₖ₋₁ is a lower bound for the infimum Rayleigh quotient on the span of the first k
+eigenvectors. `rayleighInf_eigenvectorSpanHead_eq` is the equality. -/
 theorem eigenvalue_le_rayleighInf_eigenvectorSpanHead (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
     hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ ≤ rayleighInf A hA (eigenvectorSpanHead hA k) := by
@@ -908,6 +889,14 @@ theorem eigenvalue_le_rayleighInf_eigenvectorSpanHead (A : Matrix n n ℂ) (hA :
     rw [h_scale]
     exact hy_rayleigh
 
+/-- **The head span attains the max-min:** the infimum Rayleigh quotient on the span of the
+first k eigenvectors is exactly λₖ₋₁. -/
+theorem rayleighInf_eigenvectorSpanHead_eq (A : Matrix n n ℂ) (hA : A.IsHermitian)
+    (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
+    rayleighInf A hA (eigenvectorSpanHead hA k) = hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ :=
+  le_antisymm (rayleighInf_le_eigenvalue A hA k hk _ (finrank_eigenvectorSpanHead A hA k))
+    (eigenvalue_le_rayleighInf_eigenvectorSpanHead A hA k hk)
+
 /-- **Courant-Fischer Max-Min bounds**: the head eigenvector span has infimum Rayleigh
 quotient ≥ λₖ₋₁, and every k-dimensional subspace has infimum ≤ λₖ₋₁. `courantFischer_maxMin`
 combines these into the max-min equality. -/
@@ -937,8 +926,7 @@ theorem courantFischer_maxMin (A : Matrix n n ℂ) (hA : A.IsHermitian)
   have hHead := finrank_eigenvectorSpanHead A hA k
   refine ⟨⟨eigenvectorSpanHead hA k, hHead, ?_⟩, ?_⟩
   · -- The head span attains λₖ₋₁
-    exact le_antisymm (rayleighInf_le_eigenvalue A hA k hk _ hHead)
-      (eigenvalue_le_rayleighInf_eigenvectorSpanHead A hA k hk)
+    exact rayleighInf_eigenvectorSpanHead_eq A hA k hk
   · -- Every k-dimensional subspace gives at most λₖ₋₁
     rintro r ⟨W, hW, rfl⟩
     exact rayleighInf_le_eigenvalue A hA k hk W hW
@@ -1055,7 +1043,8 @@ theorem eigenvalue_le_rayleighSup (A : Matrix n n ℂ) (hA : A.IsHermitian)
 
 omit [Nonempty n] in
 /-- **Courant-Fischer Min-Max Theorem** (inequality direction ≤):
-The tail eigenspace achieves the supremum = λₖ₋₁. -/
+the supremum Rayleigh quotient on the tail span starting at index k - 1 is at most λₖ₋₁.
+`rayleighSup_eigenvectorSpanTail_eq` is the equality. -/
 theorem rayleighSup_le_eigenvalue_eigenvectorSpanTail (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
     let k_pred : Fin (Fintype.card n) := ⟨k.val - 1, by omega⟩
@@ -1125,6 +1114,15 @@ theorem finrank_eigenvectorSpanTail_pred (A : Matrix n n ℂ) (hA : A.IsHermitia
   show Fintype.card n - (k.val - 1) = Fintype.card n - k.val + 1
   omega
 
+/-- **The tail span attains the min-max:** the supremum Rayleigh quotient on the span of the
+eigenvectors with sorted index ≥ k - 1 is exactly λₖ₋₁. -/
+theorem rayleighSup_eigenvectorSpanTail_eq (A : Matrix n n ℂ) (hA : A.IsHermitian)
+    (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
+    rayleighSup A hA (eigenvectorSpanTail hA ⟨k.val - 1, by omega⟩) =
+      hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ :=
+  le_antisymm (rayleighSup_le_eigenvalue_eigenvectorSpanTail A hA k hk)
+    (eigenvalue_le_rayleighSup A hA k hk _ (finrank_eigenvectorSpanTail_pred A hA k hk))
+
 /-- **Courant-Fischer Min-Max Theorem**: the k-th largest eigenvalue (λₖ₋₁ in 0-indexed sorted
 order) is the least value of the supremum Rayleigh quotient over (n-k+1)-dimensional subspaces:
 
@@ -1139,8 +1137,7 @@ theorem courantFischer_minMax (A : Matrix n n ℂ) (hA : A.IsHermitian)
   have hTail := finrank_eigenvectorSpanTail_pred A hA k hk
   refine ⟨⟨eigenvectorSpanTail hA ⟨k.val - 1, by omega⟩, hTail, ?_⟩, ?_⟩
   · -- The tail span attains λₖ₋₁
-    exact le_antisymm (rayleighSup_le_eigenvalue_eigenvectorSpanTail A hA k hk)
-      (eigenvalue_le_rayleighSup A hA k hk _ hTail)
+    exact rayleighSup_eigenvectorSpanTail_eq A hA k hk
   · -- Every (n-k+1)-dimensional subspace gives at least λₖ₋₁
     rintro r ⟨W, hW, rfl⟩
     exact eigenvalue_le_rayleighSup A hA k hk W hW
@@ -1179,29 +1176,12 @@ theorem courantFischer_minMax_eq_iInf (A : Matrix n n ℂ) (hA : A.IsHermitian)
 end CourantFischerMain
 
 /-!
-## Section 5: Application to Eckart-Young
--/
+## Section 5: Gram-matrix identity
 
-/-! ### Application to Eckart-Young
-
-**IMPORTANT BUG NOTE (2025-12-07):**
-
-The original `eckartYoungCoreLemma` stated:
-  ∑ᵢ (tail σᵢ)² ≤ ∑ᵢ |σᵢ - Cᵢᵢ|²  for any rank-k matrix C
-
-This is MATHEMATICALLY FALSE. Counterexample:
-- n = 2, k = 1, A = diag(2,1), C = [[2,1],[2,1]]
-- C has rank 1 and diagonal (2,1) = σ
-- LHS = 1, RHS = 0, so 1 ≤ 0 is FALSE
-
-The fundamental error: A rank-k matrix can have ALL diagonal entries nonzero
-(unlike diagonal rank-k matrices which have at most k nonzero diagonal entries).
-
-The Eckart-Young theorem IS TRUE, but requires using the FULL Frobenius norm
-(including off-diagonal terms), not just diagonal deviations.
-
-The code below includes lemmas used by the correct proof (`Matrix.FrobeniusNorm.eckart_young_frobenius`,
-which goes through Thompson interlacing).
+`norm_sq_mul_eq_inner_AHA` (‖Ax‖² = Re⟨AᴴAx, x⟩, for rectangular A) turns Rayleigh-quotient
+bounds for AᴴA into bounds on ‖Ax‖. Thompson interlacing (WeylInequality.lean), and through it
+both Eckart–Young proofs, uses it. A diagonal-only shortcut, Σᵢ≥ₖ σᵢ² ≤ Σᵢ |σᵢ - Cᵢᵢ|² for
+rank C ≤ k, is false: A = diag(2, 1), k = 1, C = [[2, 1], [2, 1]] gives 1 ≤ 0.
 -/
 
 section EckartYoungBridge
@@ -1209,18 +1189,6 @@ section EckartYoungBridge
 variable {n : Type*} [DecidableEq n] [Fintype n] [Nonempty n]
 
 /-! ### Rayleigh Quotient on AᴴA -/
-
-omit [Nonempty n] in
-/-- For unit vectors in the tail eigenvector span of AᴴA, the Rayleigh quotient
-    is bounded by the k-th eigenvalue. This translates to ‖Ax‖² ≤ σₖ². -/
-theorem rayleigh_AHA_tail_bound (A : Matrix n n ℂ) (k : Fin (Fintype.card n))
-    (x : EuclideanSpace ℂ n) (hx_unit : ‖x‖ = 1) :
-    let hAHA := (posSemidef_conjTranspose_mul_self A).isHermitian
-    x ∈ eigenvectorSpanTail hAHA k →
-      (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin (Aᴴ * A) x) x).re ≤
-        hAHA.eigenvalues₀ k := by
-  intro hAHA hx_tail
-  exact rayleigh_le_on_eigenvectorSpanTail (Aᴴ * A) hAHA k x hx_unit hx_tail
 
 omit [Nonempty n] in
 /-- The squared norm ‖Ax‖² equals Re⟨AᴴAx, x⟩ for any vector x, for rectangular `A`.
@@ -1250,146 +1218,6 @@ theorem norm_sq_mul_eq_inner_AHA {m : Type*} [Fintype m] [DecidableEq m]
     -- Use the fact that toEuclideanLin preserves matrix multiplication
     simp only [Matrix.toEuclideanLin_apply, Matrix.mulVec_mulVec]
   rw [h2]
-
-/-! ### Dimension Counting Lemmas -/
-
-omit [Nonempty n] in
-/-- The tail eigenvector span has dimension n - k.
-    This follows from eigenvectorSpanTail being the span of n - k orthonormal vectors. -/
-theorem tail_span_dim (A : Matrix n n ℂ) (k : Fin (Fintype.card n)) :
-    let hAHA := (posSemidef_conjTranspose_mul_self A).isHermitian
-    Module.finrank ℂ (eigenvectorSpanTail hAHA k) = Fintype.card n - k.val := by
-  intro hAHA
-  exact finrank_eigenvectorSpanTail (Aᴴ * A) hAHA k
-
-omit [Nonempty n] in
-/-- The kernel of C.toEuclideanLin has dimension at least n - rank(C).
-    This follows from rank-nullity: finrank(range) + finrank(ker) = n.
-    Note: We use toEuclideanLin (not mulVecLin) to get a submodule of EuclideanSpace ℂ n. -/
-private lemma finrank_ker_toEuclideanLin_ge (C : Matrix n n ℂ) :
-    Module.finrank ℂ (LinearMap.ker (Matrix.toEuclideanLin C)) ≥ Fintype.card n - C.rank := by
-  -- rank = finrank(range), so finrank(ker) = n - rank
-  have h_rn := LinearMap.finrank_range_add_finrank_ker (Matrix.toEuclideanLin C)
-  -- finrank domain = Fintype.card n for EuclideanSpace ℂ n
-  have h_domain : Module.finrank ℂ (EuclideanSpace ℂ n) = Fintype.card n :=
-    finrank_euclideanSpace
-  rw [h_domain] at h_rn
-  -- rank C = finrank range C.toEuclideanLin
-  -- The key insight: Matrix.rank is defined via mulVecLin, but toEuclideanLin
-  -- is just mulVecLin composed with the WithLp equivalence, so their ranges
-  -- have the same dimension.
-  have h_rank_def : C.rank = Module.finrank ℂ (LinearMap.range (Matrix.toEuclideanLin C)) := by
-    unfold Matrix.rank
-    -- We need to show: finrank (range mulVecLin) = finrank (range toEuclideanLin)
-    -- toEuclideanLin C = WithLp.toLp ∘ mulVecLin C ∘ WithLp.ofLp
-    -- Since WithLp.toLp and WithLp.ofLp are bijective, the ranges have the same dimension
-    have h_range_finrank :
-        Module.finrank ℂ (LinearMap.range C.mulVecLin) =
-        Module.finrank ℂ (LinearMap.range (Matrix.toEuclideanLin C)) := by
-      -- Let e : (n → ℂ) ≃ₗ[ℂ] EuclideanSpace ℂ n
-      let e : (n → ℂ) ≃ₗ[ℂ] EuclideanSpace ℂ n := (WithLp.linearEquiv 2 ℂ (n → ℂ)).symm
-      -- Key relationship: toEuclideanLin C = e ∘ mulVecLin C ∘ e.symm
-      have h_eq : ∀ v : EuclideanSpace ℂ n,
-          Matrix.toEuclideanLin C v = e (C.mulVecLin (e.symm v)) := by
-        intro v
-        simp only [Matrix.toEuclideanLin_apply, Matrix.mulVecLin_apply, e]
-        simp only [LinearEquiv.symm_symm, WithLp.linearEquiv_apply]
-        rfl
-      -- Range of toEuclideanLin C = map e (range mulVecLin C)
-      have h_range : LinearMap.range (Matrix.toEuclideanLin C) =
-          Submodule.map e.toLinearMap (LinearMap.range C.mulVecLin) := by
-        ext x
-        simp only [LinearMap.mem_range, Submodule.mem_map, LinearEquiv.coe_toLinearMap]
-        constructor
-        · rintro ⟨v, hv⟩
-          use C.mulVecLin (e.symm v)
-          refine ⟨⟨e.symm v, rfl⟩, ?_⟩
-          rw [← hv, h_eq]
-        · rintro ⟨y, ⟨w, hw⟩, hy⟩
-          use e w
-          rw [h_eq]
-          simp only [LinearEquiv.symm_apply_apply]
-          rw [← hy, hw]
-      rw [h_range]
-      -- finrank (map e (range mulVecLin C)) = finrank (range mulVecLin C)
-      have h_equiv : (LinearMap.range C.mulVecLin) ≃ₗ[ℂ]
-          (Submodule.map e.toLinearMap (LinearMap.range C.mulVecLin)) :=
-        Submodule.equivMapOfInjective e.toLinearMap e.injective (LinearMap.range C.mulVecLin)
-      exact h_equiv.finrank_eq
-    exact h_range_finrank
-  omega
-
-omit [Nonempty n] in
-/-- For a matrix C with rank(C) + k < n, there exists a unit vector x that is:
-    1. In the kernel of C (so Cx = 0)
-    2. In the tail eigenvector span of AᴴA (so ‖Ax‖² ≤ σₖ²)
-
-    This is the dimension counting argument from Grassmann's formula.
-    The hypothesis `hDim : Fintype.card n > C.rank + k` ensures the dimension sum
-    exceeds n, guaranteeing a nontrivial intersection.
-
-    NOTE: When rank(C) ≤ k and k ≥ n/2, the dimension sum may equal n exactly,
-    in which case the intersection can be trivial. The hypothesis `hDim` excludes
-    this edge case. In practice, for Eckart-Young applications where k is the
-    approximation rank, k is typically small (k << n), so this hypothesis is mild.
-
-    NOTE: This lemma is useful for bounding individual vectors, but NOT sufficient
-    for proving the diagonal-only version of Eckart-Young (which is false). -/
-theorem exists_unit_in_kernel_and_tail_span (A C : Matrix n n ℂ) (k : ℕ)
-    (hk : k < Fintype.card n) (hDim : Fintype.card n > C.rank + k) :
-    let hAHA := (posSemidef_conjTranspose_mul_self A).isHermitian
-    let kFin : Fin (Fintype.card n) := ⟨k, hk⟩
-    ∃ x : EuclideanSpace ℂ n, ‖x‖ = 1 ∧ C.mulVec x = 0 ∧ x ∈ eigenvectorSpanTail hAHA kFin := by
-  intro hAHA kFin
-
-  -- Define the two subspaces (both in EuclideanSpace ℂ n)
-  let KerC := LinearMap.ker (Matrix.toEuclideanLin C)
-  let TailSpan := eigenvectorSpanTail hAHA kFin
-
-  -- Dimension bounds from rank-nullity and tail span definition
-  have hKerC_dim : Module.finrank ℂ KerC ≥ Fintype.card n - C.rank :=
-    finrank_ker_toEuclideanLin_ge C
-
-  have hTail_dim : Module.finrank ℂ TailSpan = Fintype.card n - k :=
-    finrank_eigenvectorSpanTail (Aᴴ * A) hAHA kFin
-
-  -- Rewrite Fintype.card in terms of finrank for compatibility with exists_nonzero_in_intersection
-  have hFinrank : Module.finrank ℂ (EuclideanSpace ℂ n) = Fintype.card n :=
-    finrank_euclideanSpace
-
-  -- Prove dimension sum exceeds finrank E
-  have hSum : Module.finrank ℂ KerC + Module.finrank ℂ TailSpan > Module.finrank ℂ (EuclideanSpace ℂ n) := by
-    rw [hFinrank]
-    calc Module.finrank ℂ KerC + Module.finrank ℂ TailSpan
-      _ ≥ (Fintype.card n - C.rank) + (Fintype.card n - k) := Nat.add_le_add hKerC_dim (le_of_eq hTail_dim.symm)
-      _ > Fintype.card n := by omega
-
-  -- Get nonzero vector in intersection via Grassmann's formula
-  obtain ⟨x, hx_ne, hx_ker, hx_tail⟩ := exists_nonzero_in_intersection KerC TailSpan hSum
-
-  -- Normalize to unit vector: y = x / ‖x‖ (scale by real inverse)
-  have hx_norm_ne : ‖x‖ ≠ 0 := norm_ne_zero_iff.mpr hx_ne
-  have hx_norm_pos : 0 < ‖x‖ := norm_pos_iff.mpr hx_ne
-  let y := (‖x‖⁻¹ : ℝ) • x
-  use y
-  refine ⟨?_, ?_, ?_⟩
-  · -- ‖y‖ = 1 (using real scalar)
-    simp only [y, norm_smul, Real.norm_eq_abs, abs_inv, abs_norm]
-    rw [inv_mul_cancel₀ hx_norm_ne]
-  · -- C.mulVec y = 0
-    simp only [y]
-    -- x is in the kernel of toEuclideanLin C
-    have hx_toEuc_zero : Matrix.toEuclideanLin C x = 0 := LinearMap.mem_ker.mp hx_ker
-    -- This means toLp (C *ᵥ ofLp x) = 0, so C *ᵥ ofLp x = 0
-    simp only [Matrix.toEuclideanLin_apply] at hx_toEuc_zero
-    have hx_mulVec_zero : C.mulVec (WithLp.ofLp x) = 0 := by
-      have := WithLp.toLp_injective (p := 2) hx_toEuc_zero
-      exact this
-    -- For scalar multiplication: ofLp (c • x) = c • ofLp x
-    have hOfLp_smul : WithLp.ofLp ((‖x‖⁻¹ : ℝ) • x) = (‖x‖⁻¹ : ℝ) • WithLp.ofLp x := rfl
-    rw [hOfLp_smul, Matrix.mulVec_smul, hx_mulVec_zero, smul_zero]
-  · -- y ∈ eigenvectorSpanTail
-    exact Submodule.smul_mem TailSpan (‖x‖⁻¹ : ℝ) hx_tail
 
 end EckartYoungBridge
 
