@@ -1086,6 +1086,96 @@ theorem spectral_error_truncatedSVD_rect
 
 end SpectralErrorRect
 
+/-! ## Part 3b: Frobenius Error Formula for Rectangular Matrices
+
+‖A - truncatedSVD_rect A k‖_F² = Σ_{i ≥ k} σᵢ², the sum of the squared discarded singular
+values. Here ‖·‖ is the Frobenius norm.
+-/
+
+section FrobeniusErrorRect
+
+variable {m' n' : Type*} [Fintype m'] [Fintype n'] [DecidableEq m'] [DecidableEq n']
+
+attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
+
+/-- **The Frobenius norm is unitarily invariant** (rectangular): ‖U B V*‖_F = ‖B‖_F. -/
+theorem frobenius_norm_unitary_conj_rect (U : unitaryGroup m' ℂ) (V : unitaryGroup n' ℂ)
+    (B : Matrix m' n' ℂ) :
+    ‖(U : Matrix m' m' ℂ) * B * star (V : Matrix n' n' ℂ)‖ = ‖B‖ := by
+  have h_star_mem : star (V : Matrix n' n' ℂ) ∈ unitaryGroup n' ℂ := by
+    rw [mem_unitaryGroup_iff']
+    simp only [star_star]
+    exact mem_unitaryGroup_iff.mp V.2
+  let Vstar : unitaryGroup n' ℂ := ⟨star (V : Matrix n' n' ℂ), h_star_mem⟩
+  calc ‖(U : Matrix m' m' ℂ) * B * star (V : Matrix n' n' ℂ)‖
+      = ‖(U : Matrix m' m' ℂ) * B * (Vstar : Matrix n' n' ℂ)‖ := rfl
+    _ = ‖(U : Matrix m' m' ℂ) * B‖ := FrobeniusNorm.frobenius_norm_mul_unitary _ Vstar
+    _ = ‖B‖ := FrobeniusNorm.frobenius_norm_unitary_mul U B
+
+/-- **Frobenius error of the rectangular truncated SVD:**
+    ‖A - truncatedSVD_rect A k‖_F² = Σᵢ (truncatedSingularValues_rect_tail A k i)², the sum of
+    σᵢ² over the discarded indices i ≥ k. -/
+theorem frobenius_error_truncatedSVD_rect (A : Matrix m' n' ℂ) (k : ℕ) :
+    ‖A - truncatedSVD_rect A k‖ ^ 2 = ∑ i, (truncatedSingularValues_rect_tail A k i) ^ 2 := by
+  set D := truncatedSingularDiagonal_rect_tail A k with hD
+  -- Step 1: A - Aₖ = U D V*, so ‖A - Aₖ‖_F = ‖D‖_F
+  have h_norm : ‖A - truncatedSVD_rect A k‖ = ‖D‖ := by
+    have h_tail : A - truncatedSVD_rect A k =
+        (SVD.Rectangular.constructedU_rectangular A : Matrix m' m' ℂ) * D *
+          star (SVD.Rectangular.rightUnitary A : Matrix n' n' ℂ) :=
+      truncatedSVD_rect_tail_eq_USV A k
+    rw [h_tail]
+    exact frobenius_norm_unitary_conj_rect _ _ D
+  -- Step 2: ‖D‖_F² = Re tr(DᴴD) = Σⱼ Re (DᴴD)ⱼⱼ
+  rw [h_norm, FrobeniusNorm.frobenius_norm_sq_eq_trace, Matrix.trace, Complex.re_sum]
+  -- Step 3: the diagonal entries of DᴴD are σ² on the tail and 0 elsewhere
+  let g : Fin (Fintype.card n') → ℝ := fun b =>
+    if h : k ≤ b.val ∧ b.val < min (Fintype.card m') (Fintype.card n') then
+      (SVD.Rectangular.singularValues A ⟨b.val, h.2⟩) ^ 2
+    else 0
+  have h_diag : ∀ j : n',
+      ((Dᴴ * D).diag j).re = g (SVD.Rectangular.eigenvaluesBijection n' j) := by
+    intro j
+    have h_entry : (Dᴴ * D) j j =
+        if h : k ≤ (SVD.Rectangular.eigenvaluesBijection n' j).val ∧
+            (SVD.Rectangular.eigenvaluesBijection n' j).val <
+              min (Fintype.card m') (Fintype.card n') then
+          Complex.ofReal ((SVD.Rectangular.singularValues A
+            ⟨(SVD.Rectangular.eigenvaluesBijection n' j).val, h.2⟩) ^ 2)
+        else 0 :=
+      DtD_diagonal_entry A k j
+    rw [Matrix.diag_apply, h_entry]
+    simp only [g]
+    split_ifs <;> simp
+  simp only [h_diag]
+  -- Step 4: reindex n' → Fin #n', then drop the indices ≥ min #m' #n'
+  rw [Equiv.sum_comp (SVD.Rectangular.eigenvaluesBijection n') g]
+  symm
+  apply Fintype.sum_of_injective (Fin.castLE (Nat.min_le_right _ _)) (Fin.castLE_injective _)
+  · -- Indices ≥ min #m' #n' contribute 0
+    intro b hb
+    have hcond : ¬(k ≤ b.val ∧ b.val < min (Fintype.card m') (Fintype.card n')) := by
+      rintro ⟨_, hb_lt⟩
+      exact hb ⟨⟨b.val, hb_lt⟩, rfl⟩
+    show (if h : k ≤ b.val ∧ b.val < min (Fintype.card m') (Fintype.card n') then
+      (SVD.Rectangular.singularValues A ⟨b.val, h.2⟩) ^ 2 else 0) = 0
+    rw [dif_neg hcond]
+  · -- On Fin (min #m' #n') the summands agree
+    intro c
+    show (truncatedSingularValues_rect_tail A k c) ^ 2 =
+      (if h : k ≤ c.val ∧ c.val < min (Fintype.card m') (Fintype.card n') then
+        (SVD.Rectangular.singularValues A ⟨c.val, h.2⟩) ^ 2 else 0)
+    by_cases hc : k ≤ c.val
+    · have hcond : k ≤ c.val ∧ c.val < min (Fintype.card m') (Fintype.card n') := ⟨hc, c.isLt⟩
+      rw [truncatedSingularValues_rect_tail_eq_of_ge A k c hc]
+      exact (dif_pos hcond).symm
+    · have hcond : ¬(k ≤ c.val ∧ c.val < min (Fintype.card m') (Fintype.card n')) :=
+        fun h => hc h.1
+      rw [truncatedSingularValues_rect_tail_eq_zero_of_lt A k c (not_le.mp hc), dif_neg hcond,
+        zero_pow two_ne_zero]
+
+end FrobeniusErrorRect
+
 /-! ## Part 4: Tight Bound for Kronecker Approximation
 
 The main theorems for best rank-1 Kronecker approximation error bounds.
