@@ -376,16 +376,11 @@ theorem weyl_eigenvalue_bounds (A B : Matrix n n ℂ)
 
 end WeylEigenvalue
 
-/-! ## Singular Values Zero Beyond Rank
+/-! ## Eigenvalues Zero Beyond Rank
 
-For a matrix of rank ≤ k, all singular values at indices ≥ k are zero.
-This follows from:
-1. `singularValues₀ A k = √(eigenvalues₀ (Aᴴ*A) k)`
-2. `rank(Aᴴ*A) = rank(A)` (Rank Equality)
-3. Eigenvalues₀ are sorted (descending) and nonnegative for PSD matrices
-4. If rank ≤ k, then at most k eigenvalues are nonzero
-5. Since eigenvalues₀ is antitone, eigenvalues₀ j = 0 for j ≥ k
-6. Therefore singularValues₀ j = √0 = 0
+For a PSD matrix of rank ≤ j, the sorted eigenvalue at index j is zero: eigenvalues₀ is antitone
+and nonnegative, and the rank counts its nonzero entries. The singular-value form
+(σⱼ(A) = 0 for rank A ≤ j) is `singularValues₀_eq_zero_of_rank_le` in TruncatedSVDRank1.lean.
 -/
 
 section SingularValuesBeyondRank
@@ -421,30 +416,6 @@ lemma eigenvalues₀_zero_from_rank_bound {A : Matrix n n ℂ} (hA : A.PosSemide
       _ ≤ j.val := hj
   exact antitone_nonneg_zeros_after_rank hA.isHermitian.eigenvalues₀ h_anti h_nonneg
     h_card_bound j (Nat.le_refl _)
-
-omit [Nonempty n] in
-/-- For rank(A) = r, singular values σⱼ(A) = 0 for j ≥ r. -/
-theorem singularValues₀_zero_beyond_rank (A : Matrix n n ℂ)
-    (j : Fin (Fintype.card n)) (hj : A.rank ≤ j.val) :
-    Matrix.SVD.singularValues₀ A j = 0 := by
-  unfold Matrix.SVD.singularValues₀
-  -- Need to show √(eigenvalues₀ j) = 0, i.e., eigenvalues₀ j = 0
-  let hAHA := posSemidef_conjTranspose_mul_self A
-  -- rank(Aᴴ*A) = rank(A)
-  have h_rank_eq : (Aᴴ * A).rank = A.rank := Matrix.rank_conjTranspose_mul_self A
-  -- eigenvalues₀ j = 0 since j ≥ rank(Aᴴ*A)
-  have h_eig_zero : hAHA.isHermitian.eigenvalues₀ j = 0 := by
-    apply eigenvalues₀_zero_from_rank_bound hAHA j
-    rw [h_rank_eq]
-    exact hj
-  simp only [h_eig_zero, Real.sqrt_zero]
-
-omit [Nonempty n] in
-/-- Convenience form: singular values are zero at indices ≥ k if rank ≤ k. -/
-theorem singularValues₀_zero_of_rank_le (A : Matrix n n ℂ) (k : ℕ)
-    (hA : A.rank ≤ k) (j : Fin (Fintype.card n)) (hj : k ≤ j.val) :
-    Matrix.SVD.singularValues₀ A j = 0 :=
-  singularValues₀_zero_beyond_rank A j (Nat.le_trans hA hj)
 
 end SingularValuesBeyondRank
 
