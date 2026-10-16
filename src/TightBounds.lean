@@ -2,14 +2,27 @@
 Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
+-/
+import MatrixNormRelations
+import SpectralNormGap
 
+/-!
 # Tight Bounds for Kronecker Approximation
 
 The Frobenius error of a Kronecker approximation transfers exactly through R:
-‖C - R⁻¹(X)‖_F = ‖R(C) - X‖_F (`frobenius_error_via_R_isometry`). For X the rank-1 truncated
-SVD of R(C), this error is √(σ₂² + σ₃² + ⋯) for the singular values σᵢ of R(C), not σ₂.
-That formula is not formalized here, because the repo has no rectangular Frobenius error
-formula for `truncatedSVD_rect`.
+‖C - R⁻¹(X)‖_F = ‖R(C) - X‖_F (`frobenius_error_via_R_isometry`).
+
+## Main results
+
+- `truncatedSVD_rect`, the rank-k truncated SVD of a rectangular matrix, with
+  `spectral_error_truncatedSVD_rect` (‖A - Aₖ‖₂ = σₖ) and `frobenius_error_truncatedSVD_rect`
+  (‖A - Aₖ‖_F² = Σᵢ≥ₖ σᵢ²).
+- Rectangular Eckart–Young: `eckart_young_frobenius_rect` and `eckart_young_spectral_rect`.
+- Van Loan–Pitsianis: `kroneckerApprox C = R⁻¹(truncatedSVD_rect (R C) 1)` is a Kronecker
+  product (`kroneckerApprox_isKronecker`) and is a best Kronecker-product approximation in
+  Frobenius norm (`kroneckerApprox_optimal`), with error² = Σᵢ≥₁ σᵢ(R C)²
+  (`kroneckerApprox_error_sq`; 0-indexed, so it omits only the largest singular value).
+
 Spectral bounds are upper only since R does NOT preserve ‖·‖₂.
 
 ## References
@@ -27,9 +40,6 @@ Counter-example for spectral preservation: anti-diagonal permutation.
 Complete: no unproved goals. The former Part 5 coherence claim was false and has been
 replaced by a note with an explicit counterexample.
 -/
-
-import MatrixNormRelations
-import SpectralNormGap
 
 open scoped ComplexOrder Matrix
 open Matrix
@@ -162,7 +172,8 @@ noncomputable def truncatedSingularDiagonal_rect {m' n' : Type*} [Fintype m'] [F
 
 /-- Truncated SVD for rectangular matrices: the rank-k truncation of the SVD.
     Returns Aₖ = U * Sₖ * V* where Sₖ has only the top k singular values.
-    Its optimality (rectangular Eckart-Young) is not formalized. -/
+    It is a best rank-k approximation in Frobenius and spectral norm
+    (`eckart_young_frobenius_rect`, `eckart_young_spectral_rect`). -/
 noncomputable def truncatedSVD_rect {m' n' : Type*} [Fintype m'] [Fintype n']
     [DecidableEq m'] [DecidableEq n']
     (A : Matrix m' n' ℂ) (k : ℕ) : Matrix m' n' ℂ :=
@@ -1117,7 +1128,7 @@ theorem frobenius_norm_unitary_conj_rect (U : unitaryGroup m' ℂ) (V : unitaryG
     σᵢ² over the discarded indices i ≥ k. -/
 theorem frobenius_error_truncatedSVD_rect (A : Matrix m' n' ℂ) (k : ℕ) :
     ‖A - truncatedSVD_rect A k‖ ^ 2 = ∑ i, (truncatedSingularValues_rect_tail A k i) ^ 2 := by
-  set D := truncatedSingularDiagonal_rect_tail A k with hD
+  set D := truncatedSingularDiagonal_rect_tail A k
   -- Step 1: A - Aₖ = U D V*, so ‖A - Aₖ‖_F = ‖D‖_F
   have h_norm : ‖A - truncatedSVD_rect A k‖ = ‖D‖ := by
     have h_tail : A - truncatedSVD_rect A k =
@@ -1146,7 +1157,7 @@ theorem frobenius_error_truncatedSVD_rect (A : Matrix m' n' ℂ) (k : ℕ) :
       DtD_diagonal_entry A k j
     rw [Matrix.diag_apply, h_entry]
     simp only [g]
-    split_ifs <;> simp
+    split_ifs <;> rfl
   simp only [h_diag]
   -- Step 4: reindex n' → Fin #n', then drop the indices ≥ min #m' #n'
   rw [Equiv.sum_comp (SVD.Rectangular.eigenvaluesBijection n') g]
@@ -1167,8 +1178,7 @@ theorem frobenius_error_truncatedSVD_rect (A : Matrix m' n' ℂ) (k : ℕ) :
         (SVD.Rectangular.singularValues A ⟨c.val, h.2⟩) ^ 2 else 0)
     by_cases hc : k ≤ c.val
     · have hcond : k ≤ c.val ∧ c.val < min (Fintype.card m') (Fintype.card n') := ⟨hc, c.isLt⟩
-      rw [truncatedSingularValues_rect_tail_eq_of_ge A k c hc]
-      exact (dif_pos hcond).symm
+      rw [truncatedSingularValues_rect_tail_eq_of_ge A k c hc, dif_pos hcond, Fin.eta]
     · have hcond : ¬(k ≤ c.val ∧ c.val < min (Fintype.card m') (Fintype.card n')) :=
         fun h => hc h.1
       rw [truncatedSingularValues_rect_tail_eq_zero_of_lt A k c (not_le.mp hc), dif_neg hcond,
@@ -1399,10 +1409,10 @@ private theorem l2_opNorm_le_frobenius_inline {m' n' : Type*}
     **Mathematical statement:**
     ‖C - R⁻¹(truncatedSVD(R(C), 1))‖_F = ‖R(C) - truncatedSVD(R(C), 1)‖_F
 
-    This equals √(σ₂² + σ₃² + ... + σₙ²) where σᵢ are singular values of R(C).
-    NOT σ₂ alone! (The spectral error equals σ₂, but Frobenius ≠ spectral.)
-    Only the isometry identity above is proved. The √(σ₂² + ⋯) formula and the optimality
-    of the truncated SVD are not formalized for rectangular matrices.
+    This equals √(σ₂² + σ₃² + ... + σₙ²) where σᵢ are singular values of R(C)
+    (1-indexed here; `kroneckerApprox_error_sq` states it). NOT σ₂ alone! (The spectral
+    error of R(C) - truncatedSVD_rect (R C) 1 is σ₂, but Frobenius ≠ spectral.) Optimality
+    among Kronecker products is `kroneckerApprox_optimal`.
 
     **Key property:**
     - R is a Frobenius isometry: ‖R(M)‖_F = ‖M‖_F
@@ -1440,8 +1450,8 @@ attribute [local instance] Matrix.instCStarRing
                                         = ‖R(C) - truncatedSVD(R(C), 1)‖_F
                                         = √(σ₂² + σ₃² + ...)
 
-    The theorem states only the first inequality. The first equality is
-    `frobenius_error_via_R_isometry`; the last is not formalized. -/
+    The theorem states only the first inequality. The equalities are
+    `frobenius_error_via_R_isometry` and `kroneckerApprox_error_sq`. -/
 theorem spectral_error_le_frobenius_error
     (C : Matrix (m × n) (p × q) ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
@@ -1451,6 +1461,90 @@ theorem spectral_error_le_frobenius_error
   l2_opNorm_le_frobenius_inline _
 
 end TightKroneckerBound
+
+/-! ## Part 4b: The Van Loan–Pitsianis Theorem
+
+`kroneckerApprox C = R⁻¹(truncatedSVD_rect (R C) 1)` is a Kronecker product A ⊗ B
+(`kroneckerApprox_isKronecker`) and is a best Kronecker-product approximation of C in
+Frobenius norm (`kroneckerApprox_optimal`). Its squared error is the sum of the squared
+singular values of R(C) after the first (`kroneckerApprox_error_sq`).
+-/
+
+section VanLoanPitsianis
+
+/-- A matrix of rank at most 1 is an outer product: M = u vᵀ. -/
+theorem exists_outerProduct_of_rank_le_one {I J : Type*} [Fintype I] [Fintype J]
+    [DecidableEq J] (M : Matrix I J ℂ) (hM : M.rank ≤ 1) :
+    ∃ (u : I → ℂ) (v : J → ℂ), M = KroneckerRearrangement.outerProduct u v := by
+  -- The column space has dimension ≤ 1, so it is spanned by a single vector w
+  obtain ⟨w, hw⟩ := finrank_le_one_iff.mp
+    (show Module.finrank ℂ (LinearMap.range M.mulVecLin) ≤ 1 from hM)
+  -- Each column of M is a multiple of w
+  have h_col : ∀ j, ∃ c : ℂ, ∀ i, M i j = (w : I → ℂ) i * c := by
+    intro j
+    obtain ⟨c, hc⟩ := hw ⟨M.mulVecLin (Pi.single j 1), LinearMap.mem_range_self _ _⟩
+    refine ⟨c, fun i => ?_⟩
+    have h := congrFun (congrArg Subtype.val hc) i
+    simp only [Submodule.coe_smul, Pi.smul_apply, smul_eq_mul, Matrix.mulVecLin_apply,
+      Matrix.mulVec_single_one, Matrix.col_apply] at h
+    rw [← h]
+    ring
+  choose c hc using h_col
+  refine ⟨(w : I → ℂ), c, ?_⟩
+  ext i j
+  exact hc j i
+
+/-- **The Van Loan–Pitsianis Kronecker approximation** of C : Matrix (m × n) (p × q) ℂ:
+    R⁻¹ of the rank-1 truncated SVD of the rearrangement R(C). -/
+noncomputable def kroneckerApprox (C : Matrix (m × n) (p × q) ℂ) : Matrix (m × n) (p × q) ℂ :=
+  KroneckerRearrangement.R_inv (truncatedSVD_rect (KroneckerRearrangement.R C) 1)
+
+/-- `kroneckerApprox C` is a Kronecker product A ⊗ B with A : Matrix m p ℂ, B : Matrix n q ℂ. -/
+theorem kroneckerApprox_isKronecker (C : Matrix (m × n) (p × q) ℂ) :
+    ∃ (A : Matrix m p ℂ) (B : Matrix n q ℂ), kroneckerApprox C = kroneckerMap (· * ·) A B := by
+  -- The rank-1 truncation of R(C) is an outer product u vᵀ
+  obtain ⟨u, v, huv⟩ := exists_outerProduct_of_rank_le_one
+    (truncatedSVD_rect (KroneckerRearrangement.R C) 1) (truncatedSVD_rect_rank_le _ 1)
+  refine ⟨Matrix.of fun i k => u (i, k), Matrix.of fun j l => v (j, l), ?_⟩
+  -- u vᵀ = R(A ⊗ B) for the reshaped A, B, and R⁻¹ undoes R
+  have h_outer : KroneckerRearrangement.outerProduct u v =
+      KroneckerRearrangement.R (kroneckerMap (· * ·)
+        (Matrix.of fun i k => u (i, k)) (Matrix.of fun j l => v (j, l))) := by
+    rw [KroneckerRearrangement.R_kronecker]
+    ext ⟨i, k⟩ ⟨j, l⟩
+    rfl
+  rw [kroneckerApprox, huv, h_outer, KroneckerRearrangement.R_inv_R]
+
+section Frobenius
+
+attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
+
+/-- **Van Loan–Pitsianis theorem.** `kroneckerApprox C` is a best Kronecker-product
+    approximation of C in Frobenius norm: for all A : Matrix m p ℂ and B : Matrix n q ℂ,
+    ‖C - kroneckerApprox C‖_F ≤ ‖C - A ⊗ B‖_F.
+
+    Proof: R is a Frobenius isometry taking A ⊗ B to the rank-1 matrix vec(A) vec(B)ᵀ, so
+    this is rectangular Eckart–Young for R(C) with k = 1. -/
+theorem kroneckerApprox_optimal (C : Matrix (m × n) (p × q) ℂ)
+    (A : Matrix m p ℂ) (B : Matrix n q ℂ) :
+    ‖C - kroneckerApprox C‖ ≤ ‖C - kroneckerMap (· * ·) A B‖ := by
+  rw [kroneckerApprox, frobenius_error_via_R_isometry,
+    KroneckerRearrangement.kronecker_approx_frobenius_error]
+  exact eckart_young_frobenius_rect _ _ 1
+    (Kronecker.SpectralGap.rank_outerProduct_le_one _ _)
+
+/-- **Error of the Van Loan–Pitsianis approximation:**
+    ‖C - kroneckerApprox C‖_F² = Σᵢ (truncatedSingularValues_rect_tail (R C) 1 i)², the sum of
+    σᵢ(R C)² over i ≥ 1 (0-indexed, so σ₀ is the largest). -/
+theorem kroneckerApprox_error_sq (C : Matrix (m × n) (p × q) ℂ) :
+    ‖C - kroneckerApprox C‖ ^ 2 =
+      ∑ i, (truncatedSingularValues_rect_tail (KroneckerRearrangement.R C) 1 i) ^ 2 := by
+  rw [kroneckerApprox, frobenius_error_via_R_isometry]
+  exact frobenius_error_truncatedSVD_rect _ 1
+
+end Frobenius
+
+end VanLoanPitsianis
 
 /-! ## Part 5: Coherence and Spectral-Frobenius Coincidence
 
