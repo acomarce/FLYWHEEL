@@ -2,7 +2,21 @@
 Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
+-/
+import Mathlib.Analysis.Matrix.Spectrum
+import Mathlib.Analysis.Matrix.PosDef
+import Mathlib.Analysis.Matrix.Order
+import Mathlib.Analysis.Matrix.Normed
+import Mathlib.Analysis.CStarAlgebra.Matrix
+import Mathlib.Analysis.CStarAlgebra.Spectrum
+import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
+import Mathlib.Analysis.Complex.Order
+import Mathlib.LinearAlgebra.Matrix.Charpoly.Basic
+import Mathlib.Analysis.InnerProductSpace.PiL2
+import Mathlib.LinearAlgebra.Matrix.Rank
+import Mathlib.LinearAlgebra.UnitaryGroup
 
+/-!
 # Singular Value Decomposition
 
 Singular values σᵢ(A) := √λᵢ(Aᴴ A). Standard factorisation A = UΣVᴴ.
@@ -17,23 +31,12 @@ Singular values σᵢ(A) := √λᵢ(Aᴴ A). Standard factorisation A = UΣVᴴ
 
 ## Implementation Notes
 
-We build SVD from the spectral decomposition of the Gram matrix Aᴴ A which
-is postive semidefinite hence admits real non-negative eigenvalues. The left
-singular vectors are then constructed via polar decomposition (CFC.sqrt).
+We build SVD from the spectral decomposition of the Gram matrix Aᴴ A, which is positive
+semidefinite and so has real non-negative eigenvalues. Its eigenvector unitary V gives the right
+singular vectors. The columns of A V are orthogonal; normalizing the nonzero ones gives the left
+singular vectors, which are extended to an orthonormal basis to form U. (No polar decomposition
+or `CFC.sqrt` is used; `sqrtConjTransposeMulSelf` is defined but not used by the construction.)
 -/
-
-import Mathlib.Analysis.Matrix.Spectrum
-import Mathlib.Analysis.Matrix.PosDef
-import Mathlib.Analysis.Matrix.Order
-import Mathlib.Analysis.Matrix.Normed
-import Mathlib.Analysis.CStarAlgebra.Matrix
-import Mathlib.Analysis.CStarAlgebra.Spectrum
-import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
-import Mathlib.Analysis.Complex.Order
-import Mathlib.LinearAlgebra.Matrix.Charpoly.Basic
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.LinearAlgebra.Matrix.Rank
-import Mathlib.LinearAlgebra.UnitaryGroup
 
 open Matrix Polynomial
 open scoped ComplexOrder MatrixOrder
@@ -1837,7 +1840,8 @@ For an m × n matrix A:
 - **Aᴴ*A** is an n × n positive semidefinite matrix
 - **A*Aᴴ** is an m × m positive semidefinite matrix
 - The nonzero eigenvalues of Aᴴ*A and A*Aᴴ are identical (by `Matrix.charpoly_mul_comm'`)
-- Singular values σᵢ = √λᵢ where λᵢ are eigenvalues of the smaller Gram matrix
+- Singular values σᵢ = √λᵢ where λᵢ are the sorted eigenvalues of Aᴴ*A (the n × n Gram
+  matrix, whether m ≤ n or m > n), for i < min(m, n)
 
 ### Goal Statement
 
@@ -1850,7 +1854,6 @@ Such that: **A = U * S * Vᴴ**
 
 ### References
 - Horn & Johnson, *Matrix Analysis*, Chapter 7
-- RectangularSVD-TODO.md for implementation plan
 -/
 
 namespace Matrix.SVD.Rectangular
