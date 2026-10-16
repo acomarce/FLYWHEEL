@@ -108,8 +108,8 @@ lemma trace_conjTranspose_unitary_mul (U : unitaryGroup m ℂ) (A : Matrix m n �
   -- Goal: (Aᴴ * Uᴴ * (U * A)).trace = (Aᴴ * A).trace
   have h1 : Aᴴ * (U : Matrix m m ℂ)ᴴ * ((U : Matrix m m ℂ) * A) =
             Aᴴ * ((U : Matrix m m ℂ)ᴴ * (U : Matrix m m ℂ)) * A := by
-    rw [mul_assoc, mul_assoc, mul_assoc]
-  rw [h1, h_unitary, mul_one]
+    simp only [Matrix.mul_assoc]
+  rw [h1, h_unitary, Matrix.mul_one]
 
 omit [DecidableEq m] in
 /-- Right multiplication by a unitary matrix preserves trace(Aᴴ * A), for rectangular `A`.
@@ -124,11 +124,11 @@ lemma trace_conjTranspose_mul_unitary (A : Matrix m n ℂ) (V : unitaryGroup n �
   -- Goal: ((↑V)ᴴ * Aᴴ * (A * ↑V)).trace = (Aᴴ * A).trace
   have step1 : (V : Matrix n n ℂ)ᴴ * Aᴴ * (A * (V : Matrix n n ℂ)) =
                (V : Matrix n n ℂ)ᴴ * (Aᴴ * A) * (V : Matrix n n ℂ) := by
-    rw [mul_assoc, mul_assoc, mul_assoc]
+    simp only [Matrix.mul_assoc]
   rw [step1]
   rw [trace_mul_cycle ((V : Matrix n n ℂ)ᴴ) (Aᴴ * A) ((V : Matrix n n ℂ))]
   -- (↑V * (↑V)ᴴ * (Aᴴ * A)).trace = (Aᴴ * A).trace
-  rw [← mul_assoc, h_unitary, one_mul]
+  rw [h_unitary, one_mul]
 
 /-! ### Unitary Invariance of Frobenius Norm -/
 
