@@ -406,6 +406,7 @@ lemma truncatedSingularValues_rect_tail_nonneg (A : Matrix m' n' ℂ) (k : ℕ)
   · rfl
   · exact SVD.Rectangular.singularValues_nonneg A i
 
+omit [DecidableEq m'] in
 /-- Tail singular values are zero for indices < k. -/
 lemma truncatedSingularValues_rect_tail_eq_zero_of_lt (A : Matrix m' n' ℂ) (k : ℕ)
     (i : Fin (min (Fintype.card m') (Fintype.card n'))) (hi : i.val < k) :
@@ -413,6 +414,7 @@ lemma truncatedSingularValues_rect_tail_eq_zero_of_lt (A : Matrix m' n' ℂ) (k 
   unfold truncatedSingularValues_rect_tail
   simp only [hi, ↓reduceIte]
 
+omit [DecidableEq m'] in
 /-- Tail singular values equal original values for indices ≥ k. -/
 lemma truncatedSingularValues_rect_tail_eq_of_ge (A : Matrix m' n' ℂ) (k : ℕ)
     (i : Fin (min (Fintype.card m') (Fintype.card n'))) (hi : k ≤ i.val) :
@@ -547,6 +549,7 @@ lemma l2_opNorm_unitary_mul_rect (U : unitaryGroup m' ℂ) (B : Matrix m' n' ℂ
   have h_B_nonneg : 0 ≤ ‖B‖ := norm_nonneg _
   exact (sq_eq_sq₀ h_norm_nonneg h_B_nonneg).mp h1
 
+omit [DecidableEq m'] in
 /-- Right multiplication by unitary star preserves spectral norm.
     Uses the CStarRing structure on square matrices. -/
 lemma l2_opNorm_mul_unitary_star_rect (B : Matrix m' n' ℂ) (V : unitaryGroup n' ℂ) :
@@ -602,6 +605,7 @@ theorem l2_opNorm_truncatedSVD_rect_tail (A : Matrix m' n' ℂ) (k : ℕ) :
 
 /-! ### DᴴD Entry Calculation for Rectangular Diagonal Tail -/
 
+omit [DecidableEq m'] in
 /-- Explicit computation of (DᴴD)(j, j') for D = truncatedSingularDiagonal_rect_tail A k.
 
     Key insight: D is a "rectangular diagonal" with nonzero entries only when:
@@ -773,12 +777,13 @@ lemma inner_diagonal_matrix_eq_sum
   simp only [star_mul']
   -- For Hermitian H, star (H i i) = H i i
   have h_star_diag := hH.apply i i
-  simp only [Matrix.conjTranspose_apply] at h_star_diag
+  simp only at h_star_diag
   rw [h_star_diag]
   -- star = starRingEnd ℂ for Complex
   simp only [starRingEnd_apply]
   ring
 
+omit [Fintype n'] [DecidableEq n'] in
 /-- For a Hermitian matrix, diagonal entries are real. -/
 lemma hermitian_diagonal_real (H : Matrix n' n' ℂ) (hH : H.IsHermitian) (i : n') :
     H i i = (H i i).re := by
@@ -808,7 +813,7 @@ lemma rayleigh_diagonal_le_bound
         intro k _
         rw [hermitian_diagonal_real H hH_herm k]
         -- (↑r : ℂ) * z has Re = r * Re(z) when Im(↑r) = 0
-        simp only [Complex.normSq_eq_conj_mul_self, starRingEnd_apply]
+        simp only [starRingEnd_apply]
         simp only [Complex.ofReal_re, Complex.ofReal_im, Complex.mul_re]
         -- star on ℂ equals starRingEnd ℂ = conj
         rw [show star (x.ofLp k) = (starRingEnd ℂ) (x.ofLp k) from rfl]
@@ -833,8 +838,7 @@ lemma rayleigh_diagonal_le_bound
 /-- For a diagonal-like matrix, diagonal entries are in the spectrum.
     Standard basis vector e_j is an eigenvector with eigenvalue H_jj. -/
 lemma diagonal_entry_in_spectrum
-    (H : Matrix n' n' ℂ) (hH : H.IsHermitian)
-    (h_diag : ∀ i j, i ≠ j → H i j = 0) (j : n') :
+    (H : Matrix n' n' ℂ) (h_diag : ∀ i j, i ≠ j → H i j = 0) (j : n') :
     H j j ∈ spectrum ℂ H := by
   rw [← Matrix.spectrum_toLin']
   rw [Module.End.hasEigenvalue_iff_mem_spectrum.symm]
@@ -844,8 +848,7 @@ lemma diagonal_entry_in_spectrum
   · -- e_j is in eigenspace for H_jj
     rw [Module.End.mem_eigenspace_iff]
     ext i
-    simp only [Matrix.toLin'_apply, LinearMap.sub_apply, Module.algebraMap_end_apply,
-               LinearMap.smul_apply, Pi.sub_apply, Pi.smul_apply, LinearMap.id_apply]
+    simp only [Matrix.toLin'_apply, Pi.smul_apply]
     rw [Matrix.mulVec, dotProduct]
     by_cases h_eq : i = j
     · -- i = j case
@@ -856,9 +859,9 @@ lemma diagonal_entry_in_spectrum
         · simp only [Pi.single_eq_same, mul_one]
         · intro k hk
           simp [Ne.symm hk, mul_zero]
-      simp only [h_sum_eq, sub_self]
+      simp only [h_sum_eq]
     · -- i ≠ j case
-      simp only [Pi.single_eq_of_ne h_eq, smul_zero, sub_zero]
+      simp only [Pi.single_eq_of_ne h_eq, smul_zero]
       have h_sum_eq : ∑ k, H i k * ((Pi.single j 1 : n' → ℂ) k) = H i j := by
         rw [Fintype.sum_eq_single j]
         · simp only [Pi.single_eq_same, mul_one]
@@ -871,14 +874,13 @@ lemma diagonal_entry_in_spectrum
     rw [h_zero] at h_one
     simp only [Pi.zero_apply, zero_ne_one] at h_one
 
-/-- For a "diagonal-like" PSD matrix H where H(j,j) = 0 ↔ eigenvalue at j = 0,
-    all eigenvalues are bounded by the maximum diagonal entry.
+/-- For a Hermitian matrix H with zero off-diagonal entries, every eigenvalue is at most any
+    upper bound on the real parts of the diagonal entries.
     This is the upper bound helper for `l2_opNorm_truncatedSingularDiagonal_rect_tail`. -/
 lemma eigenvalues_le_max_diagonal_entry_of_diagonal_psd
-    (H : Matrix n' n' ℂ) (hH : H.PosSemidef) (hH_herm : H.IsHermitian)
+    (H : Matrix n' n' ℂ) (hH_herm : H.IsHermitian)
     (h_diag_zeros : ∀ j j', j ≠ j' → H j j' = 0)
-    (bound : ℝ) (h_bound_nonneg : 0 ≤ bound)
-    (h_diag_le : ∀ j, Complex.re (H j j) ≤ bound) :
+    (bound : ℝ) (h_diag_le : ∀ j, Complex.re (H j j) ≤ bound) :
     ∀ j : n', hH_herm.eigenvalues j ≤ bound := by
   intro j
   by_cases h_nonempty : Nonempty n'
@@ -1014,10 +1016,8 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
       · -- Entry is 0
         simp only [Complex.zero_re]
         apply sq_nonneg
-    have h_bound_nonneg : 0 ≤ (singularValues₀_rect A ⟨k, hk⟩) ^ 2 := sq_nonneg _
     exact eigenvalues_le_max_diagonal_entry_of_diagonal_psd
-      (Dᴴ * D) h_psd h_herm h_diag_zeros
-      ((singularValues₀_rect A ⟨k, hk⟩) ^ 2) h_bound_nonneg h_diag_le j
+      (Dᴴ * D) h_herm h_diag_zeros ((singularValues₀_rect A ⟨k, hk⟩) ^ 2) h_diag_le j
 
   -- Lower bound: σₖ(A)² ≤ sup' eigenvalues(DᴴD)
   -- Strategy: σₖ² is a diagonal entry of DᴴD, and for diagonal Hermitian matrices,
@@ -1043,7 +1043,7 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
     -- Use the helper lemma: diagonal entries are in the spectrum
     have h_in_spectrum : Complex.ofReal ((singularValues₀_rect A ⟨k, hk⟩) ^ 2) ∈ spectrum ℂ (Dᴴ * D) := by
       rw [← h_entry]
-      exact diagonal_entry_in_spectrum (Dᴴ * D) h_herm h_diag_zeros j₀
+      exact diagonal_entry_in_spectrum (Dᴴ * D) h_diag_zeros j₀
 
     -- Extract the eigenvalue from spectrum membership
     rw [Matrix.IsHermitian.spectrum_eq_image_range h_herm] at h_in_spectrum

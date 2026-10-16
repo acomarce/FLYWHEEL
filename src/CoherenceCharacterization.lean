@@ -52,9 +52,8 @@ theorem singularValues_ne_zero_iff_eigenvalues_ne_zero (A : Matrix n n ℂ) (i :
   have h_psd := posSemidef_conjTranspose_mul_self A
   have h_eig_nonneg := h_psd.eigenvalues_nonneg i
   constructor
-  · intro h_sv_ne
-    -- If σᵢ ≠ 0, then σᵢ² ≠ 0, so λᵢ ≠ 0
-    intro h_eig_eq
+  · -- If σᵢ ≠ 0, then σᵢ² ≠ 0, so λᵢ ≠ 0
+    intro h_sv_ne h_eig_eq
     rw [SVD.singularValues] at h_sv_ne
     simp only [h_eig_eq, Real.sqrt_zero, ne_eq, not_true] at h_sv_ne
   · intro h_eig_ne
@@ -91,8 +90,6 @@ theorem rank_eq_card_nonzero_singularValues (A : Matrix n n ℂ) :
   rw [h_rank_eq, h_herm_rank, h_card_eq]
 
 end RankSingularValues
-
-variable [Nonempty n]
 
 /-- The sum of squared singular values is bounded by rank(A) times the max squared.
     Key insight: only rank(A) singular values are nonzero, and each is ≤ max. -/
@@ -131,11 +128,12 @@ theorem sum_singularValues_sq_le_rank_mul_max_sq (A : Matrix n n ℂ) :
       intro i hi
       simp only [Finset.mem_filter, Finset.mem_univ, true_and] at hi
       simp [hi]
-    simp only [Finset.mem_filter, Finset.mem_univ, true_and, not_not]
+    simp only [not_not]
     rw [h_zero_sum, add_zero]
     congr 1
     ext i
-    simp only [Finset.mem_filter, Finset.mem_univ, true_and, ne_eq, S, Set.mem_toFinset, Set.mem_setOf_eq]
+    simp only [Finset.mem_filter, Finset.mem_univ, true_and, ne_eq, Set.mem_toFinset,
+      Set.mem_setOf_eq]
 
   calc ∑ i, SVD.singularValues A i ^ 2
       = ∑ i ∈ S, SVD.singularValues A i ^ 2 := h_sum_eq
@@ -176,8 +174,6 @@ theorem rank_pos_of_ne_zero (A : Matrix n n ℂ) (hA : A ≠ 0) : 0 < A.rank := 
   exact hA h_zero
 
 end RankPos
-
-variable [Nonempty n]
 
 /-- The sum of squared singular values is bounded by n times the max squared singular value.
     This follows from the antitonicity of sorted singular values. -/
@@ -387,6 +383,7 @@ The upper bound comes from spectral ≤ Frobenius.
 The lower bound is achieved by the witness w = v.
 -/
 
+omit [DecidableEq m] in
 /-- Lower bound via witness: ‖uv*‖₂ ≥ ‖u‖·‖v‖ when v ≠ 0.
     Achieved by applying uv* to the witness w = v:
     ‖(uv*)v‖ = ‖u·⟨v,v⟩‖ = ‖u‖·‖v‖² → ‖uv*‖₂ ≥ ‖u‖·‖v‖
@@ -687,6 +684,7 @@ theorem incoherent_improved_bound (E : Matrix n n ℂ) (hE : E ≠ 0) (α : ℝ)
         apply div_le_div_of_nonneg_left (frobeniusNorm'_nonneg E) h_denom_pos
         exact h_denom_le
 
+omit [Nonempty n] in
 /-- The incoherent bound holds when coherence factor equals 1.
     If μ(E) = 1 (maximally incoherent), then ‖E‖ = ‖E‖_F / √rank(E).
 
@@ -897,6 +895,7 @@ noncomputable def normalizedSingularValueSq (E : Matrix n n ℂ) (i : n) : ℝ :
   if frobeniusNorm' E = 0 then 1 / Fintype.card n
   else (SVD.singularValues E i) ^ 2 / (frobeniusNorm' E) ^ 2
 
+omit [Nonempty n] in
 /-- The normalized singular values are nonnegative. -/
 theorem normalizedSingularValueSq_nonneg (E : Matrix n n ℂ) (i : n) :
     0 ≤ normalizedSingularValueSq E i := by
@@ -1184,6 +1183,7 @@ theorem effectiveRank_eq_one_of_rank_one (E : Matrix n n ℂ)
   -- Step 9: exp(0) = 1
   rw [h_entropy_zero, neg_zero, Real.exp_zero]
 
+omit [Nonempty n] in
 /-- Effective rank equals rank for flat spectrum (maximally incoherent).
     When all nonzero singular values are equal, pᵢ = 1/r for i ∈ support.
     Entropy H = -r·(1/r)·log(1/r) = log(r), so erank = exp(log r) = r. -/
@@ -1360,6 +1360,7 @@ The effective rank and coherence factor are related: both measure how
 concentrated or spread the singular values are.
 -/
 
+omit [Nonempty n] in
 /-- Relationship between coherence factor and effective rank.
     For a matrix E with coherence μ and effective rank r_eff:
     - μ ≈ 1 (incoherent) ⟹ r_eff ≈ rank (flat spectrum)
@@ -1431,6 +1432,7 @@ of R(C) are, which determines the quality of spectral norm bounds.
 noncomputable def kroneckerCoherence (C : Matrix (m × n) (p × q) ℂ) : ℝ :=
   coherenceFactorRect (R C)
 
+omit [DecidableEq m] [DecidableEq p] in
 /-- For the zero matrix, Kronecker coherence is 1. -/
 theorem kroneckerCoherence_zero : kroneckerCoherence (0 : Matrix (m × n) (p × q) ℂ) = 1 := by
   unfold kroneckerCoherence
@@ -1439,11 +1441,13 @@ theorem kroneckerCoherence_zero : kroneckerCoherence (0 : Matrix (m × n) (p × 
     rfl
   rw [h_R_zero, coherenceFactorRect_zero]
 
+omit [DecidableEq m] [DecidableEq p] in
 /-- Kronecker coherence is non-negative. -/
 theorem kroneckerCoherence_nonneg (C : Matrix (m × n) (p × q) ℂ) :
     0 ≤ kroneckerCoherence C :=
   coherenceFactorRect_nonneg (R C)
 
+omit [DecidableEq m] [DecidableEq p] in
 /-- For nonzero matrices, Kronecker coherence is positive. -/
 theorem kroneckerCoherence_pos_of_ne_zero (C : Matrix (m × n) (p × q) ℂ)
     (hC : R C ≠ 0) :
@@ -1866,7 +1870,7 @@ theorem frobenius_spectral_distance_with_gap (A : Matrix n n ℂ)
     have h_norm_eq : frobeniusNorm' (A - SVD.truncatedSVD A 1) ^ 2 =
                      ∑ i : n, (SVD.truncatedSingularValues_tail A 1 i)^2 := by
       -- The two norms are definitionally equal
-      convert h_frob_error using 1 <;> rfl
+      convert h_frob_error using 1
     rw [h_norm_eq]
     -- Step 2: Reindex from n to Fin (Fintype.card n)
     -- truncatedSingularValues_tail A 1 i = if 1 ≤ (e.symm i).val then singularValues₀ A (e.symm i) else 0

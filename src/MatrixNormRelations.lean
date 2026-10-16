@@ -315,6 +315,7 @@ theorem l2_opNorm_truncatedSVD_tail (A : Matrix n n ℂ) (k : ℕ) :
   unfold truncatedSVD_tail
   exact l2_opNorm_unitary_conj (constructedU A) (rightUnitary A) _
 
+omit [Fintype n] in
 /-- Diagonal matrices with real entries are Hermitian. -/
 lemma diagonal_real_isHermitian (d : n → ℝ) :
     (diagonal (Complex.ofReal ∘ d)).IsHermitian := by
@@ -790,6 +791,7 @@ lemma Finset.sup'_prod_eq_mul_sup' [Nonempty p] [Nonempty q]
 
 /-! #### Eigenvalue Structure of Kronecker Products -/
 
+omit [Fintype p] [Fintype q] in
 /-- The diagonal of H₁ ⊗ H₂ when both are diagonal matrices.
     diagonal d₁ ⊗ diagonal d₂ = diagonal (fun (i,j) => d₁ i * d₂ j) -/
 lemma diagonal_kronecker_diagonal_apply (d₁ : p → ℂ) (d₂ : q → ℂ) :
@@ -1069,6 +1071,8 @@ variable [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q]
 
 section Decomposition
 
+omit [Fintype m] [Fintype n] [Fintype p] [Fintype q]
+  [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q] in
 /-- Kronecker subtraction decomposition:
     B ⊗ C - B′ ⊗ C′ = (B - B′) ⊗ C + B′ ⊗ (C - C′) -/
 theorem kronecker_sub_decomposition
@@ -1080,6 +1084,8 @@ theorem kronecker_sub_decomposition
   simp only [sub_apply, add_apply, kroneckerMap_apply]
   ring
 
+omit [Fintype m] [Fintype n] [Fintype p] [Fintype q]
+  [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q] in
 /-- Alternative form: B ⊗ C - B' ⊗ C' = (B - B') ⊗ C' + B ⊗ (C - C')
     This equivalent decomposition uses B on the right term instead of B'. -/
 theorem kronecker_sub_decomposition' (B B' : Matrix m p ℂ) (C C' : Matrix n q ℂ) :
@@ -1176,8 +1182,7 @@ attribute [local instance] Matrix.instL2OpMetricSpace
     the estimated coefficient matrix β̂₁ ⊗ β̂₂ is bounded by this formula. -/
 theorem kronecker_estimation_perturbation_bound [Nonempty p] [Nonempty q]
     (B B' : Matrix m p ℂ) (C C' : Matrix n q ℂ)
-    {εB εC : ℝ} (hεB : 0 ≤ εB) (hεC : 0 ≤ εC)
-    (hB : ‖B - B'‖ ≤ εB) (hC : ‖C - C'‖ ≤ εC) :
+    {εB εC : ℝ} (hB : ‖B - B'‖ ≤ εB) (hC : ‖C - C'‖ ≤ εC) :
     ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖ ≤
     εB * ‖C‖ + ‖B'‖ * εC := by
   calc ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖
@@ -1194,8 +1199,7 @@ theorem kronecker_estimation_perturbation_bound [Nonempty p] [Nonempty q]
     For small perturbations, this shows the relative error in the Kronecker product
     is approximately the sum of relative errors in the factors. -/
 theorem kronecker_relative_perturbation [Nonempty p] [Nonempty q]
-    (B B' : Matrix m p ℂ) (C C' : Matrix n q ℂ)
-    (hB : B ≠ 0) (hC : C ≠ 0) :
+    (B B' : Matrix m p ℂ) (C C' : Matrix n q ℂ) :
     ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖ ≤
     ‖B - B'‖ * ‖C‖ + ‖B‖ * ‖C - C'‖ + ‖B - B'‖ * ‖C - C'‖ := by
   -- This follows from expanding the decomposition more carefully

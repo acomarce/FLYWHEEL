@@ -41,11 +41,13 @@ section OuterProductNorms
 -- Use Frobenius norm instance for matrices
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
+omit [DecidableEq m] in
 /-- Helper: sum of squared norms equals inner product with self for EuclideanSpace. -/
 lemma sum_norm_sq_eq_norm_sq_euclidean (u : EuclideanSpace ℂ m) :
     ∑ i, ‖u i‖ ^ 2 = ‖u‖ ^ 2 := by
   rw [EuclideanSpace.norm_sq_eq]
 
+omit [DecidableEq m] [DecidableEq n] in
 /-- The Frobenius norm squared of an outer product of EuclideanSpace vectors.
     ‖uv*‖_F² = (Σᵢ Σⱼ |u(i)v(j)|²) = (Σᵢ |u(i)|²)(Σⱼ |v(j)|²) = ‖u‖² ‖v‖²
 
@@ -269,18 +271,18 @@ end Rank1SpectralBound
 
 section UpperBound
 
-variable {m n p q : Type*}
-variable [Fintype m] [Fintype n] [Fintype p] [Fintype q]
-variable [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q]
-
 /-! ### R linearity lemmas -/
 
+omit [Fintype m] [Fintype n] [Fintype p] [Fintype q]
+  [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q] in
 /-- R distributes over subtraction. -/
 lemma R_sub (M N : Matrix (m × n) (p × q) ℂ) :
     KroneckerRearrangement.R (M - N) = KroneckerRearrangement.R M - KroneckerRearrangement.R N := by
   ext ⟨i, k⟩ ⟨j, l⟩
   simp only [KroneckerRearrangement.R, sub_apply]
 
+omit [Fintype m] [Fintype n] [Fintype p] [Fintype q]
+  [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q] in
 /-- R_inv distributes over subtraction. -/
 lemma R_inv_sub (M N : Matrix (m × p) (n × q) ℂ) :
     KroneckerRearrangement.R_inv (M - N) =
@@ -384,6 +386,7 @@ variable {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
+omit [Nonempty n'] in
 /-- **Kronecker Spectral Error with Explicit Singular Value Bound (Square Case):**
     For a square rearranged matrix R(C) : Matrix n' n' ℂ, the spectral error of
     the rank-k Kronecker approximation equals the Frobenius tail error.
@@ -401,6 +404,7 @@ theorem kronecker_spectral_error_truncatedSVD
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (C - Matrix.SVD.truncatedSVD C k) :=
   l2_opNorm_le_frobenius _
 
+omit [Nonempty n'] in
 /-- **The Frobenius error of truncated SVD equals sum of squared tail singular values.**
     Re-exported from FrobeniusNorm.lean for convenience. -/
 theorem frobenius_error_truncatedSVD_sq (A : Matrix n' n' ℂ) (k : ℕ) :
@@ -471,10 +475,6 @@ For rank-1 M: ‖M‖₂ = σ₁ = ‖M‖_F, so bound is tight.
 
 section Tightness
 
-variable {m n p q : Type*}
-variable [Fintype m] [Fintype n] [Fintype p] [Fintype q]
-variable [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q]
-
 /-! ### Part A: Rank-1 Matrix Norm Bounds
 
 For rank-1 matrices M = uv*, the spectral norm is bounded by the Frobenius norm,
@@ -483,11 +483,13 @@ with equality achieved. This shows the bound ‖A‖₂ ≤ ‖A‖_F is tight f
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
+omit [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n] in
 /-- Helper: outerProduct of zero vector is zero matrix. -/
 lemma outerProduct_zero_left (v : EuclideanSpace ℂ n) :
     KroneckerRearrangement.outerProduct (0 : EuclideanSpace ℂ m) v = 0 := by
   ext i j; simp [KroneckerRearrangement.outerProduct]
 
+omit [Fintype m] [Fintype n] [DecidableEq m] [DecidableEq n] in
 /-- Helper: outerProduct with zero vector on right is zero matrix. -/
 lemma outerProduct_zero_right (u : EuclideanSpace ℂ m) :
     KroneckerRearrangement.outerProduct u (0 : EuclideanSpace ℂ n) = 0 := by
@@ -504,6 +506,7 @@ theorem outerProduct_spectral_norm_le (u : EuclideanSpace ℂ m) (v : EuclideanS
           (KroneckerRearrangement.outerProduct u v) := l2_opNorm_le_frobenius _
     _ = ‖u‖ * ‖v‖ := outerProduct_frobenius_norm' u v
 
+omit [DecidableEq m] in
 /-- Tightness bound: spectral ≤ Frobenius for outer products, with equality in Frobenius case. -/
 theorem outerProduct_spectral_le_frobenius (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
