@@ -3,15 +3,17 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import Mathlib.Analysis.Matrix.Normed
-import Mathlib.Analysis.Complex.Order
-import Mathlib.LinearAlgebra.UnitaryGroup
-import Mathlib.LinearAlgebra.Matrix.Trace
-import Mathlib.Analysis.Real.Sqrt
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.Complex.Norm
-import SVD
-import WeylInequality
+module
+
+public import Mathlib.Analysis.Matrix.Normed
+public import Mathlib.Analysis.Complex.Order
+public import Mathlib.LinearAlgebra.UnitaryGroup
+public import Mathlib.LinearAlgebra.Matrix.Trace
+public import Mathlib.Analysis.Real.Sqrt
+public import Mathlib.Analysis.SpecialFunctions.Pow.Real
+public import Mathlib.Analysis.Complex.Norm
+public import SVD
+public import WeylInequality
 
 /-!
 # Frobenius Norm and Eckart-Young
@@ -42,6 +44,8 @@ Implementation via `Matrix.frobeniusSeminormedAddCommGroup` instance.
 - Should we use `NNReal` for the norm squared? Would simplify some proofs
 - Is there a better way to handle the sqrt vs rpow (1/2) situation?
 -/
+
+public section
 
 open Matrix
 open scoped BigOperators ComplexConjugate ComplexOrder MatrixOrder

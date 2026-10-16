@@ -3,8 +3,10 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import SVD
-import Mathlib.LinearAlgebra.Matrix.Rank
+module
+
+public import SVD
+public import Mathlib.LinearAlgebra.Matrix.Rank
 
 /-!
 # Truncated SVD of Low-Rank Matrices
@@ -16,6 +18,8 @@ j ≥ k (`singularValues₀_eq_zero_of_rank_le`). The rank-1 case is
 Created: 2025-01-02
 Last modified: 2025-01-05 (fixed off-by-one in index bounds)
 -/
+
+public section
 
 open Matrix Matrix.SVD
 open scoped ComplexOrder

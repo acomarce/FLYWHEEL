@@ -3,7 +3,9 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import MatrixNormRelations
+module
+
+public import MatrixNormRelations
 
 /-!
 # Spectral Norm Bounds for Kronecker Approximation
@@ -24,6 +26,8 @@ m = n = Fin 2 this is R⁻¹(vec I₂ (vec I₂)ᵀ) = I₄.
 [1] Van Loan & Pitsianis (1993). NATO ASI Series E vol 232.
 [2] Golub & Van Loan (2013). Matrix Computations, 4th ed.
 -/
+
+public section
 
 open scoped ComplexOrder Matrix
 open Matrix
