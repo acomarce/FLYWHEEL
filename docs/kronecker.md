@@ -87,8 +87,9 @@ best rank-1 approximation of `R C`.
 
 **TightBounds, `Matrix.TightBounds`:**
 - `frobenius_error_via_R_isometry : ‖C − R_inv X‖ = ‖R C − X‖` (Frobenius).
-- `spectral_error_le_frobenius_error` for `X = truncatedSVD_rect (R C) 1`; with
-  `kroneckerApprox_error_sq` the right side is `√(σ₁² + σ₂² + …)` of `R C` (0-indexed).
+- Spectral error of `kroneckerApprox C`: `spectral_error_bound_via_R` with
+  `M = truncatedSVD_rect (R C) 1` bounds it by `‖R C − M‖_F`, which `kroneckerApprox_error_sq`
+  evaluates as `√(σ₁² + σ₂² + …)` of `R C` (0-indexed).
 
 **CoherenceCharacterization, `Matrix.Coherence`:**
 - `kroneckerCoherence C := coherenceFactorRect (R C)`.

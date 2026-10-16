@@ -39,17 +39,14 @@ theorem toEuclideanLin_add (A B : Matrix n n ℂ) (x : EuclideanSpace ℂ n) :
   rfl
 
 omit [Nonempty n] in
-/-- The Rayleigh quotient is additive for Hermitian matrices.
+/-- The real part of the Rayleigh quotient is additive in the matrix.
 
-For Hermitian A, B and any vector x:
+For any A, B and any vector x:
   Re⟨(A+B)x, x⟩ = Re⟨Ax, x⟩ + Re⟨Bx, x⟩
 
-This is the fundamental lemma enabling Weyl's inequality proof. -/
--- Q: Do we actually need hA and hB here? The proof doesn't seem to use them...
--- A: Yes we do - we need the inner products to be real. Actually wait, we're
--- taking Re anyway so maybe not? TODO: try removing them
-theorem rayleigh_add (A B : Matrix n n ℂ) (_hA : A.IsHermitian) (_hB : B.IsHermitian)
-    (x : EuclideanSpace ℂ n) :
+This is the fundamental lemma enabling Weyl's inequality proof. It is linearity of the inner
+product in its first argument, so A and B need not be Hermitian. -/
+theorem rayleigh_add (A B : Matrix n n ℂ) (x : EuclideanSpace ℂ n) :
     (@inner ℂ _ _ (Matrix.toEuclideanLin (A + B) x) x).re =
     (@inner ℂ _ _ (Matrix.toEuclideanLin A x) x).re +
     (@inner ℂ _ _ (Matrix.toEuclideanLin B x) x).re := by
@@ -134,7 +131,7 @@ theorem weyl_eigenvalue_lower_bound (A B : Matrix n n ℂ)
   -- R_{A+B}(v) = R_A(v) + R_B(v) ≥ λₖ(A) + λₙ₋₁(B)
   have hRv_sum : (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin (A + B) v) v).re ≥
       hA.eigenvalues₀ k + hB.eigenvalues₀ minEigenvalueIdx := by
-    rw [rayleigh_add A B hA hB v]
+    rw [rayleigh_add A B v]
     have h1 : (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin A v) v).re +
           (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin B v) v).re
         = hA.eigenvalues₀ k + (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin B v) v).re := by
@@ -171,7 +168,7 @@ theorem weyl_eigenvalue_lower_bound (A B : Matrix n n ℂ)
       (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin (A + B) x) x).re ≥
         hA.eigenvalues₀ k + hB.eigenvalues₀ minEigenvalueIdx := by
     intro x hx hx_unit
-    rw [rayleigh_add A B hA hB x]
+    rw [rayleigh_add A B x]
     exact add_le_add (h_RA_lower x hx hx_unit) (h_RB_lower x hx_unit)
 
   -- W is nonempty (has nonzero vectors)
@@ -291,7 +288,7 @@ theorem weyl_eigenvalue_upper_bound (A B : Matrix n n ℂ)
       (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin (A + B) x) x).re ≤
         hA.eigenvalues₀ k + hB.eigenvalues₀ 0 := by
     intro x hx hx_unit
-    rw [rayleigh_add A B hA hB x]
+    rw [rayleigh_add A B x]
     exact add_le_add (h_RA_upper x hx hx_unit) (h_RB_upper x hx_unit)
 
   -- Using Courant-Fischer min-max:
@@ -377,46 +374,6 @@ theorem weyl_eigenvalue_bounds (A B : Matrix n n ℂ)
   ⟨weyl_eigenvalue_lower_bound A B hA hB k, weyl_eigenvalue_upper_bound A B hA hB k⟩
 
 end WeylEigenvalue
-
-/-! ## Rank Equality for Aᴴ A
-
-The key lemma `rank(Aᴴ A) = rank(A)` is provided by Mathlib as `Matrix.rank_conjTranspose_mul_self`.
-We provide convenience aliases and additional lemmas needed for singular value arguments.
-
-### Key results from Mathlib:
-- `Matrix.rank_conjTranspose_mul_self : (Aᴴ * A).rank = A.rank`
-- `Matrix.rank_conjTranspose : Aᴴ.rank = A.rank`
-
-### Mathematical note:
-The equality `rank(Aᴴ A) = rank(A)` follows from `ker(Aᴴ A) = ker(A)`:
-- If Aᴴ Ax = 0, then ⟨Ax, Ax⟩ = xᴴ Aᴴ Ax = 0, so Ax = 0
-- By rank-nullity: rank(A) = n - nullity(A) = n - nullity(Aᴴ A) = rank(Aᴴ A)
--/
-
-section RankEquality
-
-variable {m' n' : Type*} [Fintype m'] [Fintype n']
-
-/-- `rank(Aᴴ A) = rank(A)` - alias for Mathlib's `rank_conjTranspose_mul_self`.
-
-This is fundamental for relating singular values to eigenvalues:
-- Singular values of A are square roots of eigenvalues of Aᴴ A
-- rank(A) = #{i | σᵢ(A) ≠ 0} = #{i | λᵢ(Aᴴ A) ≠ 0} = rank(Aᴴ A) -/
-theorem rank_conjTranspose_mul_self_eq (A : Matrix m' n' ℂ) :
-    (Aᴴ * A).rank = A.rank :=
-  Matrix.rank_conjTranspose_mul_self A
-
-/-- `rank(A Aᴴ) = rank(A)` - the transpose version.
-
-Follows from `rank_conjTranspose_mul_self` applied to Aᴴ. -/
-theorem rank_mul_conjTranspose_eq (A : Matrix m' n' ℂ) :
-    (A * Aᴴ).rank = A.rank := by
-  have h1 : (A * Aᴴ).rank = Aᴴ.rank := by
-    rw [← Matrix.rank_conjTranspose_mul_self Aᴴ]
-    simp only [conjTranspose_conjTranspose]
-  rw [h1, Matrix.rank_conjTranspose]
-
-end RankEquality
 
 /-! ## Singular Values Zero Beyond Rank
 

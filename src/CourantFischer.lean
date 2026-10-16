@@ -176,9 +176,9 @@ theorem rayleigh_eq_eigenvalue_on_eigenvector
 omit [Nonempty n] in
 /-- The Rayleigh quotient equals the eigenvalue-weighted sum of squared coefficients.
 
-For a unit vector x: Re⟨Ax, x⟩ = ∑ᵢ |⟨uᵢ, x⟩|² · λᵢ -/
+For every vector x: Re⟨Ax, x⟩ = ∑ᵢ |⟨uᵢ, x⟩|² · λᵢ -/
 theorem rayleigh_eq_eigenvalue_weighted_sum
-    (A : Matrix n n ℂ) (hA : A.IsHermitian) (x : EuclideanSpace ℂ n) (_hx : ‖x‖ = 1) :
+    (A : Matrix n n ℂ) (hA : A.IsHermitian) (x : EuclideanSpace ℂ n) :
     (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin A x) x).re =
       ∑ i, ‖@inner ℂ (EuclideanSpace ℂ n) _ (hA.eigenvectorBasis i) x‖ ^ 2 * hA.eigenvalues i := by
   have h := inner_toEuclideanLin_eq_eigenvalue_sum A hA x
@@ -225,7 +225,7 @@ For a unit vector x: Re⟨Ax, x⟩ ≤ λ_max -/
 theorem rayleigh_le_eigenvalue_max
     (A : Matrix n n ℂ) (hA : A.IsHermitian) (x : EuclideanSpace ℂ n) (hx : ‖x‖ = 1) :
     (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin A x) x).re ≤ hA.eigenvalues₀ 0 := by
-  rw [rayleigh_eq_eigenvalue_weighted_sum A hA x hx]
+  rw [rayleigh_eq_eigenvalue_weighted_sum A hA x]
   have h_sum_one := eigencoeff_sum_eq_one A hA x hx
   -- eigenvalues₀ is sorted in descending order, so eigenvalues₀ 0 is the maximum
   have h_le : ∀ i, hA.eigenvalues i ≤ hA.eigenvalues₀ 0 := by
@@ -250,7 +250,7 @@ theorem rayleigh_ge_eigenvalue_min
     (A : Matrix n n ℂ) (hA : A.IsHermitian) (x : EuclideanSpace ℂ n) (hx : ‖x‖ = 1) :
     (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin A x) x).re ≥
       hA.eigenvalues₀ ⟨Fintype.card n - 1, Nat.sub_lt (Fintype.card_pos) Nat.one_pos⟩ := by
-  rw [rayleigh_eq_eigenvalue_weighted_sum A hA x hx]
+  rw [rayleigh_eq_eigenvalue_weighted_sum A hA x]
   have h_sum_one := eigencoeff_sum_eq_one A hA x hx
   let n_last : Fin (Fintype.card n) := ⟨Fintype.card n - 1, Nat.sub_lt (Fintype.card_pos) Nat.one_pos⟩
   have h_ge : ∀ i, hA.eigenvalues i ≥ hA.eigenvalues₀ n_last := by
@@ -356,7 +356,7 @@ theorem rayleigh_le_on_eigenvectorSpanTail
     fun j hj => inner_eigenvectorHead_eigenvectorSpanTail_eq_zero A hA k j hj x hspan
 
   -- Use the Rayleigh quotient formula: R(x) = ∑ᵢ |⟨uᵢ, x⟩|² λᵢ
-  rw [rayleigh_eq_eigenvalue_weighted_sum A hA x hx]
+  rw [rayleigh_eq_eigenvalue_weighted_sum A hA x]
 
   -- Now we bound the sum
   calc ∑ i, ‖@inner ℂ (EuclideanSpace ℂ n) _ (hA.eigenvectorBasis i) x‖ ^ 2 * hA.eigenvalues i
@@ -425,7 +425,7 @@ theorem rayleigh_ge_on_eigenvectorSpanHead
     fun j hj => inner_eigenvectorTail_eigenvectorSpanHead_eq_zero A hA k j hj x hspan
 
   -- Use the Rayleigh quotient formula: R(x) = ∑ᵢ |⟨uᵢ, x⟩|² λᵢ
-  rw [rayleigh_eq_eigenvalue_weighted_sum A hA x hx]
+  rw [rayleigh_eq_eigenvalue_weighted_sum A hA x]
 
   -- For the lower bound, we use λₖ₋₁ since that's the smallest eigenvalue in the head
   let k_pred : Fin (Fintype.card n) := ⟨k.val - 1, by omega⟩
@@ -1207,16 +1207,6 @@ which goes through Thompson interlacing).
 section EckartYoungBridge
 
 variable {n : Type*} [DecidableEq n] [Fintype n] [Nonempty n]
-
-/-! ### Singular Value - Eigenvalue Connection -/
-
-omit [Nonempty n] in
-/-- The k-th sorted singular value squared equals the k-th sorted eigenvalue of AᴴA.
-    This is the fundamental bridge between SVD and Courant-Fischer. -/
-theorem singularValue₀_sq_eq_eigenvalue₀ (A : Matrix n n ℂ) (k : Fin (Fintype.card n)) :
-    (Matrix.SVD.singularValues₀ A k)^2 =
-      (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ k := by
-  exact Matrix.SVD.singularValues₀_sq A k
 
 /-! ### Rayleigh Quotient on AᴴA -/
 
