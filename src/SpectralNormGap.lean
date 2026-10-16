@@ -5,7 +5,9 @@ Authors: Aleksandar Markovski
 
 # Spectral Norm Gap for Kronecker Approximation
 
-Key bound: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖. This is tight for unit vectors.
+Key bound: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖. This is an upper bound only, and it is not tight
+in general: R⁻¹(vec I₂ (vec I₂)ᵀ) = I₂ ⊗ I₂ = I₄ has spectral norm 1, while
+‖vec I₂‖·‖vec I₂‖ = 2.
 Enables spectral error control via Frobenius-space SVD.
 
 ## References
@@ -110,12 +112,13 @@ end RInvIsometry
 /-! ## Part C: Rank-1 Spectral Bound (THE CRUX)
 
 This is the key result: when R⁻¹ acts on a rank-1 matrix (outer product),
-the spectral norm can be bounded tightly using the Frobenius isometry property.
+the spectral norm is bounded using the Frobenius isometry property.
 
 **The Key Mathematical Insight:**
 ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖
 
-This bound of 1 for unit vectors is MUCH tighter than the √(min dims) bound!
+For unit vectors u, v this gives ‖R⁻¹(uv*)‖₂ ≤ 1. The bound is an upper bound only; see the
+`Tightness` section for an example where it is not attained.
 -/
 
 section Rank1SpectralBound
@@ -473,15 +476,24 @@ spectral error is explicitly bounded.
 
 /-! ## Tightness
 
-For rank-1 M: ‖M‖₂ = σ₁ = ‖M‖_F, so bound is tight.
+Despite the section name, no result in this section shows that a bound is attained. The
+results are upper bounds (`≤`), norm identities and helper lemmas.
+
+The R⁻¹ bound ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖ is not tight in general. Write u = vec A and
+v = vec B. Then R⁻¹(outerProduct u v) = A ⊗ B (by `R_kronecker`), whose spectral norm
+‖A‖₂·‖B‖₂ is less than ‖A‖_F·‖B‖_F = ‖u‖·‖v‖ unless A or B is 0 or both have rank 1 (this
+is not formalized). For example, A = B = I₂ gives R⁻¹(vec I₂ (vec I₂)ᵀ) = I₄, with spectral
+norm 1 < 2.
 -/
 
 section Tightness
 
 /-! ### Part A: Rank-1 Matrix Norm Bounds
 
-For rank-1 matrices M = uv*, the spectral norm is bounded by the Frobenius norm,
-with equality achieved. This shows the bound ‖A‖₂ ≤ ‖A‖_F is tight for rank-1 matrices.
+For rank-1 matrices M = uv*, the spectral norm is bounded by the Frobenius norm:
+‖uv*‖₂ ≤ ‖uv*‖_F = ‖u‖·‖v‖. Only this upper bound is proved here. The equality
+‖uv*‖₂ = ‖u‖·‖v‖ is proved later, in CoherenceCharacterization
+(`Matrix.Coherence.outerProduct_spectral_norm_eq`).
 -/
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
@@ -511,7 +523,7 @@ theorem outerProduct_spectral_norm_le (u : EuclideanSpace ℂ m) (v : EuclideanS
     _ = ‖u‖ * ‖v‖ := outerProduct_frobenius_norm' u v
 
 omit [DecidableEq m] in
-/-- Tightness bound: spectral ≤ Frobenius for outer products, with equality in Frobenius case. -/
+/-- Spectral ≤ Frobenius for outer products: ‖uv*‖₂ ≤ ‖uv*‖_F. Only the inequality is proved. -/
 theorem outerProduct_spectral_le_frobenius (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (KroneckerRearrangement.outerProduct u v) ≤
@@ -519,16 +531,18 @@ theorem outerProduct_spectral_le_frobenius (u : EuclideanSpace ℂ m) (v : Eucli
       (KroneckerRearrangement.outerProduct u v) :=
   l2_opNorm_le_frobenius _
 
-/-! ### Part B: R⁻¹ Bound Tightness for Kronecker Products
+/-! ### Part B: R⁻¹ Bounds for Outer Products
 
-The bound ‖R⁻¹(M)‖₂ ≤ ‖M‖_F is tight when M is a Kronecker product of
-outer products, since R⁻¹ acts as an "inverse shuffle" that preserves
-Kronecker structure.
+Upper bounds for ‖R⁻¹(uv*)‖₂. They are not tight in general: see the counterexample at the
+start of the `Tightness` section.
 -/
 
-/-- The R⁻¹ bound for outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖₂.
-    Combined with spectral ≤ Frobenius and R isometry, this gives:
-    ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖ -/
+/-- The R⁻¹ bound for outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖u‖·‖v‖.
+    The proof uses spectral ≤ Frobenius and the R isometry:
+    ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖.
+
+    Despite the name, nothing shows the bound is achieved; it is not tight in general
+    (see the `Tightness` section). -/
 theorem R_inv_bound_achievable_rank1 (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) ≤
@@ -544,7 +558,7 @@ theorem R_inv_bound_achievable_rank1 (u : EuclideanSpace ℂ (m × p)) (v : Eucl
         R_inv_frobenius_norm_eq _
     _ = ‖u‖ * ‖v‖ := outerProduct_frobenius_norm' u v
 
-/-- The R⁻¹ bound compared to outer product spectral norm. -/
+/-- The R⁻¹ bound against the Frobenius norm of the outer product: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F. -/
 theorem R_inv_outerProduct_le_outerProduct_frobenius
     (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
@@ -565,8 +579,10 @@ theorem R_inv_outerProduct_le_outerProduct_frobenius
 The "gap" between spectral and Frobenius norms for a matrix A is characterized by:
   gap(A) = ‖A‖_F / ‖A‖₂ = √(Σᵢ σᵢ²) / σ₁
 
-This ratio is always ≥ 1, with equality iff A has rank 1.
-For matrices with "flat" singular value spectrum, the gap is large.
+This ratio is always ≥ 1 (`frobenius_spectral_ratio_ge_one`). Only that inequality is
+proved here. CoherenceCharacterization proves that outer products attain it
+(`Matrix.Coherence.rank_one_spectral_eq_frobenius`); the converse (equality only for rank 1)
+is not formalized.
 -/
 
 /-- The ratio ‖A‖_F / ‖A‖₂ is always at least 1 (for nonzero A).
@@ -574,7 +590,9 @@ For matrices with "flat" singular value spectrum, the gap is large.
 
     gap(A) = ‖A‖_F / ‖A‖₂ ≥ 1
 
-    with equality iff rank(A) = 1. -/
+    Only the inequality is proved here. Outer products attain it
+    (`Matrix.Coherence.rank_one_spectral_eq_frobenius`); the converse (equality only for
+    rank 1) is not formalized. -/
 theorem frobenius_spectral_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
     (A : Matrix n' n' ℂ) (hA : A ≠ 0) :
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A /
@@ -589,31 +607,27 @@ theorem frobenius_spectral_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n
   exact h_le
 
 omit [DecidableEq m] [DecidableEq n] in
-/-- For rank-1 matrices (outer products), the coherence ratio equals 1 when computed
-    using the Frobenius norm identity. -/
+/-- The Frobenius norm of an outer product: ‖uv*‖_F = ‖u‖·‖v‖.
+    This restates `outerProduct_frobenius_norm'`; it does not compute a coherence ratio. -/
 theorem coherence_ratio_outerProduct_frobenius (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
       (KroneckerRearrangement.outerProduct u v) = ‖u‖ * ‖v‖ :=
   outerProduct_frobenius_norm' u v
 
-/-- The spectral-to-Frobenius gap for the Kronecker approximation error.
-    When the error has many nonzero singular values, the gap is large.
-    When the error is nearly rank-1, the gap approaches 1. -/
+/-- Spectral ≤ Frobenius for an approximation error: ‖C - M‖₂ ≤ ‖C - M‖_F.
+    Only this inequality is proved here; it says nothing about how the gap depends on
+    the singular values of C - M. -/
 theorem kronecker_error_gap_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
     (C M : Matrix n' n' ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (C - M) ≤
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (C - M) :=
   l2_opNorm_le_frobenius _
 
-/-- **Key tightness result**: The bound ‖R⁻¹(M)‖₂ ≤ ‖M‖_F is achieved
-    when M is a rank-1 outer product, since both sides equal ‖u‖·‖v‖ for the
-    Frobenius norm.
+/-- The R⁻¹ bound for rank-1 outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F.
 
-    More precisely:
-    - LHS: ‖R⁻¹(uv*)‖₂ ≤ ‖R⁻¹(uv*)‖_F = ‖uv*‖_F = ‖u‖·‖v‖
-    - RHS: ‖uv*‖_F = ‖u‖·‖v‖
-
-    So the bound is tight for rank-1 matrices! -/
+    Despite the name, this proves only the upper bound. It has the same statement as
+    `R_inv_outerProduct_le_outerProduct_frobenius`. The bound is not tight in general:
+    R⁻¹(vec I₂ (vec I₂)ᵀ) = I₄ has spectral norm 1, while ‖vec I₂ (vec I₂)ᵀ‖_F = 2. -/
 theorem bound_tight_rank1 (u : EuclideanSpace ℂ (m × p)) (v : EuclideanSpace ℂ (n × q)) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (KroneckerRearrangement.R_inv (KroneckerRearrangement.outerProduct u v)) ≤
@@ -640,16 +654,14 @@ The main results of are:
 
 3. `R_inv_bound_achievable_rank1`: ‖R⁻¹(uv*)‖₂ ≤ ‖u‖·‖v‖ (the bound)
 
-4. `R_inv_outerProduct_le_outerProduct_frobenius`: R⁻¹ preserves the spectral-Frobenius bound
+4. `R_inv_outerProduct_le_outerProduct_frobenius`: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F
 
 5. `frobenius_spectral_ratio_ge_one`: The coherence ratio is always ≥ 1
 
-6. `bound_tight_rank1`: The bound is tight for rank-1 matrices
+6. `bound_tight_rank1`: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F (an upper bound only, despite the name)
 
-These results establish that:
-- The bounds from prior sections are tight (achieved by rank-1 matrices)
-- The gap between spectral and Frobenius norms characterizes the "spread" of singular values
-- For Kronecker approximation, the error bound quality depends on the effective rank of the error
+All of these are upper bounds or norm identities. None of them shows that a bound is
+attained, and the R⁻¹ bounds are not tight in general (see the start of `Tightness`).
 -/
 
 end Matrix.Kronecker.SpectralGap
@@ -765,7 +777,8 @@ theorem frobenius_norm_sq_eq_sum_singularValues_sq {n' : Type*} [Fintype n'] [De
     ‖A‖₂ = σ₀ ≤ √(Σᵢ σᵢ²) = ‖A‖_F
 
     The ratio ‖A‖_F / ‖A‖₂ = √(1 + Σᵢ≥₁ (σᵢ/σ₀)²) measures the "effective rank".
-    For rank-1 matrices, the ratio is exactly 1. -/
+    Only ‖A‖₂ ≤ ‖A‖_F is proved here, not the ratio formula or the rank-1 equality
+    case. -/
 theorem spectral_le_frobenius_with_gap {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
     (A : Matrix n' n' ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≤
@@ -773,8 +786,9 @@ theorem spectral_le_frobenius_with_gap {n' : Type*} [Fintype n'] [DecidableEq n'
   SpectralGap.l2_opNorm_le_frobenius A
 
 /-- **Coherence Ratio Bound:**
-    For any nonzero matrix, the ratio of Frobenius to spectral norm is at least 1,
-    with equality if and only if the matrix has rank 1.
+    For any nonzero matrix, the ratio of Frobenius to spectral norm is at least 1.
+    Only the inequality is proved here. Outer products attain it
+    (`Matrix.Coherence.rank_one_spectral_eq_frobenius`); the converse is not formalized.
 
     This ratio is sometimes called the "stable rank" or "effective rank". -/
 theorem coherence_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']

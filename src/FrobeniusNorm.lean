@@ -487,31 +487,32 @@ See: Horn & Johnson, "Matrix Analysis" (2012), Theorem 7.4.9 (Eckart-Young-Mirsk
 
 /-! ### Eckart-Young Theorem -/
 
-/-- The Eckart-Young theorem (Frobenius norm): The truncated SVD is the
+/-- **Eckart-Young Theorem (Frobenius norm):** The truncated SVD is an
     optimal rank-k approximation in Frobenius norm.
 
     For any matrix B with rank(B) ≤ k:
     ‖A - truncatedSVD A k‖_F ≤ ‖A - B‖_F
 
-    Proof strategy (Horn & Johnson):
-    1. Transform to SVD basis using unitary invariance
-    2. In SVD basis, A becomes diagonal Σ
-    3. Any rank-k approximation C = U* B V also has rank ≤ k
-    4. The truncated diagonal achieves minimum error among all matrices
+    Proof (singular value interlacing):
+    1. Rotate into the SVD basis: with C = U* B V, rank(C) ≤ k and
+       ‖A - B‖_F = ‖Σ - C‖_F (`frobenius_error_in_svd_basis`).
+    2. ‖A - truncatedSVD A k‖_F² = Σⱼ≥ₖ σⱼ² (`frobenius_error_truncatedSVD`).
+    3. ‖Σ - C‖_F² is the sum of the squared singular values of Σ - C, and Σ has the
+       same singular values as A.
+    4. Thompson interlacing (`Matrix.WeylInequality.interlacing_low_rank_subtraction`)
+       gives σⱼ(Σ) ≤ σⱼ₋ₖ(Σ - C) for j ≥ k. The shift j ↦ j - k is injective, so the
+       tail sum is at most ‖Σ - C‖_F².
 
-**IMPORTANT NOTE ON PROOF CORRECTNESS:**
+**Note on an earlier, false lemma:**
 
 The previously used `eckartYoungCoreLemma` claimed that diagonal deviations alone
-bound the tail singular values. This is FALSE - see EckartYoung-BugReport.md.
+bound the tail singular values. That is false.
 
 Counterexample: For A = diag(2,1), the rank-1 matrix C = [[2,1],[2,1]] has
 diagonal entries (2,1) = σ, giving RHS = 0, but LHS = 1.
 
-The correct proof uses the FULL Frobenius norm. The key insight is that while
-diagonal deviations alone may be insufficient, the off-diagonal terms of any
-non-diagonal rank-k approximation add enough error to compensate.
-
-For a rigorous proof, we use an alternative approach via projection optimality. -/
+The proof above does not rely on that lemma; it bounds the full Frobenius error
+through interlacing. -/
 theorem eckart_young_frobenius (A : Matrix n n ℂ) (k : ℕ)
     (B : Matrix n n ℂ) (hB : B.rank ≤ k) :
     ‖A - Matrix.SVD.truncatedSVD A k‖ ≤ ‖A - B‖ := by

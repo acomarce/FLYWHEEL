@@ -5,8 +5,8 @@ best rank-1 approximation of `R C`.
 
 ## Definitions (`src/KroneckerRearrangement.lean`, `Matrix.KroneckerRearrangement`)
 
-- `vec (M : Matrix m n α) : m × n → α` maps `⟨i, j⟩ ↦ M i j`. The docstring calls this both
-  "column-major" and "row-major"; the definition above is the truth.
+- `vec (M : Matrix m n α) : m × n → α` maps `⟨i, j⟩ ↦ M i j`. Entries stay indexed by the pair,
+  so no row- or column-major order is chosen.
 - `outerProduct u v i j = u i * v j`, with no conjugation.
 - `R (M : Matrix (m × n) (p × q) α) : Matrix (m × p) (n × q) α`, where `R M ⟨i, k⟩ ⟨j, l⟩ = M ⟨i,
   j⟩ ⟨k, l⟩`. It needs only `[Semiring α]`.
@@ -66,7 +66,8 @@ best rank-1 approximation of `R C`.
 **TightBounds, `Matrix.TightBounds`:**
 - `frobenius_error_via_R_isometry : ‖C − R_inv X‖ = ‖R C − X‖` (Frobenius).
 - `spectral_error_le_frobenius_error` for `X = truncatedSVD_rect (R C) 1`. The Frobenius error
-  equals `√(σ₂² + σ₃² + …)` of `R C`, not `σ₂`, despite the TightBounds header.
+  equals `√(σ₂² + σ₃² + …)` of `R C`, not `σ₂`. That formula is not formalized: there is no
+  rectangular Frobenius error formula for `truncatedSVD_rect`.
 
 **CoherenceCharacterization, `Matrix.Coherence`:**
 - `kroneckerCoherence C := coherenceFactorRect (R C)`.
@@ -83,15 +84,11 @@ best rank-1 approximation of `R C`.
   - The `coherenceFactor` docstring calls `μ ≈ 1` *incoherent*, so "nearly coherent (μ ≥ 1 − ε)"
     uses the opposite convention.
 
-## Claims in comments that are not proved
+## Names that overstate what is proved
 
-- **SpectralNormGap header, "tight for unit vectors", and the `Tightness` section.**
-  `bound_tight_rank1` proves only `≤` and duplicates
+- **SpectralNormGap's `Tightness` section, `R_inv_bound_achievable_rank1` and
+  `bound_tight_rank1`** prove only `≤`; their docstrings say so. `bound_tight_rank1` duplicates
   `R_inv_outerProduct_le_outerProduct_frobenius`. Equality fails in general:
   `R_inv (vec A (vec B)ᵀ) = A ⊗ B` has spectral norm `‖A‖₂‖B‖₂`, which is `< ‖vec A‖‖vec B‖`
-  unless `A` and `B` have rank ≤ 1. For example, `A = B = I₂` gives `1 < 2`.
-- **Docstrings that promise more than the statement:**
-  - `R_inv_bound_achievable_rank1` says `≤ ‖uv*‖₂`, but the statement is `≤ ‖u‖‖v‖`.
-  - `frobenius_spectral_ratio_ge_one` mentions "equality iff rank 1", but only `≥ 1` is proved.
-- **A "√(min dims) bound" mentioned in SpectralNormGap.** No such bound exists anywhere in the
-  repo. The only `R_inv` spectral bound is `‖R_inv X‖₂ ≤ ‖X‖_F`.
+  unless `A` or `B` is 0 or both have rank 1. For example, `A = B = I₂` gives `1 < 2`.
+- The only `R_inv` spectral bound is `‖R_inv X‖₂ ≤ ‖X‖_F`.

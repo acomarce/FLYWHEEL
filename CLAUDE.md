@@ -179,13 +179,14 @@ Traps:
   the file) and a bogus proof step. If you see odd duplicated lines, suspect this. The index
   script reports unterminated comments and mismatched `end`s.
 
-## Source comments that overstate what is proved
+## Known gaps and names that overstate what is proved
 
 Details are in the `docs/` notes.
 - No rectangular Eckart–Young (optimality) theorem exists. TightBounds proves the rectangular
   spectral error formula and the rank bound only.
-- SpectralNormGap's "tight for unit vectors" and its `Tightness` section prove only `≤`.
-  Tightness is false in general (`R_inv (vec I₂ vec I₂ᵀ) = I₄`).
+- SpectralNormGap's `R_inv_bound_achievable_rank1`, `bound_tight_rank1` and its `Tightness`
+  section prove only `≤`. Tightness is false in general (`R_inv (vec I₂ vec I₂ᵀ) = I₄`). The
+  names overstate them; their docstrings say what is proved.
 - CoherenceCharacterization's `nearly_coherent_bound`, `nearly_coherent_spectral_lower_bound`,
   `frobenius_spectral_distance_with_gap` and `decision_criterion` take no coherence or gap
   hypothesis. Their names overstate them; their docstrings say what is proved.

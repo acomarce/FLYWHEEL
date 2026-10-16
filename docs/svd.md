@@ -120,8 +120,8 @@ These sit outside any namespace:
   - `coherenceFactorRect_le_one` and `coherenceFactorRect_bounds`;
   - `frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect`.
 
-  The section docstring cites `coherenceFactorRect_eq_square_case`, which does not exist. The
-  nearest lemma is `coherenceFactorRect_eq_formula`, which only unfolds the definition.
+  - `coherenceFactorRect_eq_formula` only unfolds the definition for nonzero square `E`. No
+    lemma relates `coherenceFactorRect` to the square `Matrix.Coherence.coherenceFactor`.
 
 ## Rectangular truncation lives in TightBounds
 

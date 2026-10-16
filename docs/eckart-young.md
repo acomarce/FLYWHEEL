@@ -45,7 +45,6 @@ Derived forms:
    The shift `j ↦ j - k` is injective, so the tail sum is at most the full sum.
 
 Notes:
-- The docstring still mentions "projection optimality". The proof actually uses interlacing.
 - The diagonal/off-diagonal split in the proof is expanded and then folded back; it is not
   essential.
 - The `EckartYoungBridge` section of CourantFischer opens with a note on why an earlier
