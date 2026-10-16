@@ -245,82 +245,27 @@ theorem coherenceFactorRect_eq_coherenceFactor (E : Matrix n n ℂ) :
     -- Both sides are ‖E‖_F / (√rank(E) · ‖E‖₂), with the same norms unfolded differently
     rfl
 
-/-! ## Upper Bound: coherence_factor ≤ 1 -/
+/-! ## Bounds on the coherence factor
 
-/-- The coherence factor is at most 1.
-    This follows from ‖E‖_F² = ∑ σᵢ² ≤ rank(E) · σ₁² = rank(E) · ‖E‖₂² -/
+The square results are the rectangular ones of SVD.lean (`coherenceFactorRect_le_one`, …)
+transported by `coherenceFactorRect_eq_coherenceFactor`. -/
+
+omit [Nonempty n] in
+/-- The coherence factor is at most 1, since ‖E‖_F² = ∑ σᵢ² ≤ rank(E) · σ₀² = rank(E) · ‖E‖₂².
+    The square case of `coherenceFactorRect_le_one`. -/
 theorem coherenceFactor_le_one (E : Matrix n n ℂ) : coherenceFactor E ≤ 1 := by
-  unfold coherenceFactor
-  split_ifs with hE
-  · linarith
-  · -- E ≠ 0
-    have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
-    have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero E hE
-    have h_denom_pos : 0 < Real.sqrt E.rank * ‖E‖ := by
-      apply mul_pos
-      · exact Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
-      · exact h_spectral_pos
-    rw [div_le_one h_denom_pos]
-    -- Need: frobeniusNorm' E ≤ √rank(E) · ‖E‖
-    -- Strategy: Show ‖E‖_F² ≤ rank(E) · ‖E‖², then take square roots
+  rw [← coherenceFactorRect_eq_coherenceFactor]
+  exact coherenceFactorRect_le_one E
 
-    -- The maximum singular value squared
-    let M := Finset.sup' Finset.univ Finset.univ_nonempty (SVD.singularValues E)
-    have h_spec_eq : ‖E‖ = M := spectral_norm_eq_max_singularValue E
-
-    -- Square bound: ‖E‖_F² ≤ rank(E) · ‖E‖²
-    have h_sq : frobeniusNorm' E ^ 2 ≤ E.rank * ‖E‖ ^ 2 := by
-      calc frobeniusNorm' E ^ 2
-          = ∑ i, SVD.singularValues E i ^ 2 := by
-            rw [frobeniusNorm'_sq, SVD.sum_sq_singularValues_eq_trace]
-            simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
-            rw [Finset.sum_comm]
-            simp [Complex.re_sum, Complex.normSq]
-        _ ≤ E.rank * M ^ 2 := sum_singularValues_sq_le_rank_mul_max_sq E
-        _ = E.rank * ‖E‖ ^ 2 := by rw [h_spec_eq]
-
-    -- Take square roots
-    have h_frob_nonneg : 0 ≤ frobeniusNorm' E := frobeniusNorm'_nonneg E
-    have h_rank_nonneg : (0 : ℝ) ≤ E.rank := Nat.cast_nonneg _
-    have h_rhs_nonneg : 0 ≤ Real.sqrt E.rank * ‖E‖ :=
-      mul_nonneg (Real.sqrt_nonneg _) (le_of_lt h_spectral_pos)
-
-    have h_sq' : frobeniusNorm' E ^ 2 ≤ (Real.sqrt E.rank * ‖E‖) ^ 2 := by
-      rw [mul_pow, Real.sq_sqrt h_rank_nonneg]
-      exact h_sq
-
-    calc frobeniusNorm' E
-        = Real.sqrt (frobeniusNorm' E ^ 2) := (Real.sqrt_sq h_frob_nonneg).symm
-      _ ≤ Real.sqrt ((Real.sqrt E.rank * ‖E‖) ^ 2) := Real.sqrt_le_sqrt h_sq'
-      _ = Real.sqrt E.rank * ‖E‖ := Real.sqrt_sq h_rhs_nonneg
-
-/-! ## Lower Bound: 1/√rank(E) ≤ coherence_factor -/
-
-/-- The coherence factor is at least 1/√rank(E).
-    This follows from ‖E‖_F ≥ ‖E‖₂ (spectral norm ≤ Frobenius norm). -/
+omit [Nonempty n] in
+/-- The coherence factor is at least 1/√rank(E), since ‖E‖₂ ≤ ‖E‖_F.
+    The square case of `coherenceFactorRect_ge_inv_sqrt_rank`. -/
 theorem coherenceFactor_ge_inv_sqrt_rank (E : Matrix n n ℂ) (hE : E ≠ 0) :
     1 / Real.sqrt E.rank ≤ coherenceFactor E := by
-  unfold coherenceFactor
-  simp only [hE, ↓reduceIte]
-  have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
-  have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero E hE
-  have h_sqrt_rank_pos : 0 < Real.sqrt E.rank := Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
-  have h_frob_nonneg : 0 ≤ frobeniusNorm' E := frobeniusNorm'_nonneg E
-  -- Use frobenius_spectral_ratio_ge_one: frobeniusNorm' E / ‖E‖ ≥ 1
-  have h_ratio_ge_one := Kronecker.SpectralGap.frobenius_spectral_ratio_ge_one E hE
-  -- Goal: 1/√r ≤ frobeniusNorm' E / (√r · ‖E‖)
-  -- Equivalently: ‖E‖ ≤ frobeniusNorm' E
-  have h_le : ‖E‖ ≤ frobeniusNorm' E := spectral_norm_le_frobenius_norm E
-  rw [one_div, le_div_iff₀' (mul_pos h_sqrt_rank_pos h_spectral_pos)]
-  -- Goal: √r⁻¹ * (√r * ‖E‖) ≤ frobeniusNorm' E
-  -- But we need: (√r * ‖E‖) * √r⁻¹ ≤ frobeniusNorm' E
-  rw [mul_comm]
-  calc (Real.sqrt E.rank)⁻¹ * (Real.sqrt E.rank * ‖E‖)
-      = ‖E‖ := by field_simp
-    _ ≤ frobeniusNorm' E := h_le
+  rw [← coherenceFactorRect_eq_coherenceFactor]
+  exact coherenceFactorRect_ge_inv_sqrt_rank E hE
 
-/-! ## Combined Bounds -/
-
+omit [Nonempty n] in
 /-- The coherence factor is bounded: 1/√rank(E) ≤ μ(E) ≤ 1 -/
 theorem coherenceFactor_bounds (E : Matrix n n ℂ) (hE : E ≠ 0) :
     1 / Real.sqrt E.rank ≤ coherenceFactor E ∧ coherenceFactor E ≤ 1 :=
@@ -328,34 +273,18 @@ theorem coherenceFactor_bounds (E : Matrix n n ℂ) (hE : E ≠ 0) :
 
 /-! ## Spectral Bound with Coherence -/
 
+omit [Nonempty n] in
 /-- The spectral norm in terms of the coherence factor, for E ≠ 0:
     ‖E‖₂ = frobeniusNorm' E / (√rank(E) · μ(E)).
 
-    This is the definition of μ solved for ‖E‖₂.
+    This is the definition of μ solved for ‖E‖₂ (the square case of
+    `spectral_norm_eq_frobenius_div_coherence_rect`).
     For incoherent matrices (μ ≈ 1), ‖E‖₂ ≈ ‖E‖_F / √rank.
     For coherent matrices (μ ≈ 1/√rank), ‖E‖₂ ≈ ‖E‖_F. -/
 theorem spectral_norm_eq_frobenius_div_coherence (E : Matrix n n ℂ) (hE : E ≠ 0) :
     ‖E‖ = frobeniusNorm' E / (Real.sqrt E.rank * coherenceFactor E) := by
-  unfold coherenceFactor
-  simp only [hE, ↓reduceIte]
-  have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
-  have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero E hE
-  have h_sqrt_rank_pos : 0 < Real.sqrt E.rank := Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
-  have h_frob_nonneg : 0 ≤ frobeniusNorm' E := frobeniusNorm'_nonneg E
-  -- Simplify: √r · (frobeniusNorm' E / (√r · ‖E‖)) = frobeniusNorm' E / ‖E‖
-  have h_denom_eq : Real.sqrt E.rank * (frobeniusNorm' E / (Real.sqrt E.rank * ‖E‖)) =
-      frobeniusNorm' E / ‖E‖ := by
-    field_simp
-  rw [h_denom_eq]
-  -- Goal: ‖E‖ = frobeniusNorm' E / (frobeniusNorm' E / ‖E‖)
-  -- = ‖E‖ (by algebraic simplification when frobeniusNorm' E > 0)
-  have h_frob_pos : 0 < frobeniusNorm' E := by
-    have h_le : ‖E‖ ≤ frobeniusNorm' E := spectral_norm_le_frobenius_norm E
-    linarith
-  -- Simplify: frobeniusNorm' E / (frobeniusNorm' E / ‖E‖) = ‖E‖
-  have h_simp : frobeniusNorm' E / (frobeniusNorm' E / ‖E‖) = ‖E‖ := by
-    field_simp
-  rw [h_simp]
+  rw [← coherenceFactorRect_eq_coherenceFactor]
+  exact spectral_norm_eq_frobenius_div_coherence_rect E hE
 
 /-! ## Coherent (Rank-1) Case - Tight Bounds
 
@@ -604,8 +533,9 @@ section IncoherentCase
 
 variable {n : Type*} [Fintype n] [DecidableEq n] [Nonempty n]
 
+omit [Nonempty n] in
 /-- **Incoherent improved bound**: When coherence factor is at least α,
-    we get ‖E‖ ≤ ‖E‖_F / (α · √rank).
+    we get ‖E‖ ≤ ‖E‖_F / (α · √rank). The square case of `incoherent_improved_bound_rect`.
 
     For maximally incoherent matrices (μ = 1), this gives ‖E‖ ≤ ‖E‖_F / √rank.
     For more coherent matrices (μ < 1), the bound is weaker.
@@ -615,24 +545,8 @@ variable {n : Type*} [Fintype n] [DecidableEq n] [Nonempty n]
 theorem incoherent_improved_bound (E : Matrix n n ℂ) (hE : E ≠ 0) (α : ℝ)
     (hα_pos : 0 < α) (h_coh : α ≤ coherenceFactor E) :
     ‖E‖ ≤ frobeniusNorm' E / (α * Real.sqrt E.rank) := by
-  have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero E hE
-  have h_sqrt_rank_pos : 0 < Real.sqrt E.rank := Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
-  have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
-  have h_denom_pos : 0 < α * Real.sqrt E.rank := mul_pos hα_pos h_sqrt_rank_pos
-  -- From spectral_norm_eq_frobenius_div_coherence: ‖E‖ ≤ ‖E‖_F / (√r · μ)
-  -- Since μ ≥ α, we have √r · μ ≥ √r · α = α · √r
-  -- Therefore: ‖E‖ ≤ ‖E‖_F / (√r · μ) ≤ ‖E‖_F / (α · √r)
-  have h_bound := (spectral_norm_eq_frobenius_div_coherence E hE).le
-  have h_denom_le : α * Real.sqrt E.rank ≤ Real.sqrt E.rank * coherenceFactor E := by
-    rw [mul_comm]
-    exact mul_le_mul_of_nonneg_left h_coh (Real.sqrt_nonneg _)
-  have h_coh_pos : 0 < coherenceFactor E := lt_of_lt_of_le hα_pos h_coh
-  have h_denom_pos' : 0 < Real.sqrt E.rank * coherenceFactor E :=
-    mul_pos h_sqrt_rank_pos h_coh_pos
-  calc ‖E‖ ≤ frobeniusNorm' E / (Real.sqrt E.rank * coherenceFactor E) := h_bound
-    _ ≤ frobeniusNorm' E / (α * Real.sqrt E.rank) := by
-        apply div_le_div_of_nonneg_left (frobeniusNorm'_nonneg E) h_denom_pos
-        exact h_denom_le
+  rw [← coherenceFactorRect_eq_coherenceFactor] at h_coh
+  exact incoherent_improved_bound_rect E hE α hα_pos h_coh
 
 omit [Nonempty n] in
 /-- The incoherent bound holds when coherence factor equals 1.

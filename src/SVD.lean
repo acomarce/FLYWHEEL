@@ -613,93 +613,18 @@ theorem singularValues_conjTranspose (A : Matrix n n ℂ) :
 
   rw [h1, h2]
 
-/-! ### Helper lemmas for characteristic polynomial similarity invariance -/
-
-/-- Scalar matrices commute with all matrices. -/
-private lemma scalar_mul_eq_mul_scalar' (M : Matrix n n (Polynomial ℂ)) (x : Polynomial ℂ) :
-    M * scalar n x = scalar n x * M := by
-  have h : Commute (scalar n x) M := Matrix.scalar_commute x (fun r' => mul_comm x r') M
-  exact h.symm.eq
-
-/-- The characteristic matrix expressed as scalar minus map. -/
-private lemma charmatrix_eq_scalar_sub_map (M : Matrix n n ℂ) :
-    M.charmatrix = scalar n Polynomial.X - M.map Polynomial.C := by
-  ext i j
-  simp only [charmatrix_apply, sub_apply, scalar_apply, diagonal, of_apply, map_apply]
-
-/-- Ring homomorphism map preserves inverses for invertible matrices. -/
-private lemma map_inv_of_isUnit {R S : Type*} [CommRing R] [CommRing S]
-    (M : Matrix n n R) (f : R →+* S) (hM : IsUnit M.det) :
-    (M⁻¹).map f = (M.map f)⁻¹ := by
-  have h1 : M.map f = f.mapMatrix M := by ext; simp [RingHom.mapMatrix_apply]
-  have h2 : M⁻¹.map f = f.mapMatrix M⁻¹ := by ext; simp [RingHom.mapMatrix_apply]
-  have hMf : IsUnit (M.map f).det := by
-    rw [h1, ← RingHom.map_det f M]
-    exact hM.map f
-  rw [h1, h2]
-  symm
-  apply Matrix.inv_eq_right_inv
-  rw [← RingHom.map_mul, mul_nonsing_inv M hM]
-  simp
-
-/-- IsUnit lifts through polynomial C map. -/
-private lemma isUnit_det_map_C (P : Matrix n n ℂ) (hP : IsUnit P.det) :
-    IsUnit (P.map Polynomial.C).det := by
-  have h := RingHom.map_det (Polynomial.C (R := ℂ)) P
-  have h2 : P.map Polynomial.C = Polynomial.C.mapMatrix P := by
-    ext; simp [RingHom.mapMatrix_apply]
-  rw [h2, ← h]
-  exact hP.map _
-
-/-- Determinant is invariant under similarity. -/
-private lemma det_conj_of_isUnit' {R : Type*} [CommRing R] (M P : Matrix n n R) (hP : IsUnit P.det) :
-    (P * M * P⁻¹).det = M.det := by
-  rw [det_mul, det_mul]
-  rw [mul_comm P.det M.det, mul_assoc]
-  have h : P.det * P⁻¹.det = 1 := by
-    rw [det_nonsing_inv]
-    rw [Ring.mul_inverse_cancel _ hP]
-  rw [h, mul_one]
-
-/-- The characteristic matrix transforms under similarity. -/
-private lemma charmatrix_conj_of_isUnit (M P : Matrix n n ℂ) (hP : IsUnit P.det) :
-    (P * M * P⁻¹).charmatrix = (P.map Polynomial.C) * M.charmatrix * (P.map Polynomial.C)⁻¹ := by
-  rw [charmatrix_eq_scalar_sub_map, charmatrix_eq_scalar_sub_map]
-  rw [Matrix.map_mul, Matrix.map_mul]
-  rw [map_inv_of_isUnit P Polynomial.C hP]
-  have h_scalar_central : (P.map Polynomial.C) * scalar n Polynomial.X * (P.map Polynomial.C)⁻¹ =
-      scalar n Polynomial.X := by
-    rw [scalar_mul_eq_mul_scalar' (P.map Polynomial.C) Polynomial.X]
-    rw [mul_assoc, mul_nonsing_inv (P.map Polynomial.C) (isUnit_det_map_C P hP)]
-    rw [mul_one]
-  have h_rhs : (P.map Polynomial.C) * (scalar n Polynomial.X - M.map Polynomial.C) *
-      (P.map Polynomial.C)⁻¹ =
-      (P.map Polynomial.C) * scalar n Polynomial.X * (P.map Polynomial.C)⁻¹ -
-      (P.map Polynomial.C) * M.map Polynomial.C * (P.map Polynomial.C)⁻¹ := by
-    rw [mul_sub, sub_mul]
-  rw [h_rhs, h_scalar_central]
+/-! ### Characteristic polynomial under similarity -/
 
 /-- **Characteristic polynomial is invariant under similarity**:
     For any invertible P, charpoly(P * M * P⁻¹) = charpoly(M). -/
 theorem charpoly_conj_of_isUnit (M P : Matrix n n ℂ) (hP : IsUnit P.det) :
     (P * M * P⁻¹).charpoly = M.charpoly := by
-  unfold charpoly
-  rw [charmatrix_conj_of_isUnit M P hP]
-  have hPC := isUnit_det_map_C P hP
-  exact det_conj_of_isUnit' M.charmatrix (P.map Polynomial.C) hPC
-
-/-- For unitary matrices, star U = U⁻¹. -/
-private lemma unitary_star_eq_inv (U : unitaryGroup n ℂ) :
-    star (U : Matrix n n ℂ) = (U : Matrix n n ℂ)⁻¹ := by
-  have h : (U : Matrix n n ℂ) * star (U : Matrix n n ℂ) = 1 := mem_unitaryGroup_iff.mp U.2
-  symm
-  exact Matrix.inv_eq_right_inv h
+  rw [charpoly_mul_comm, ← mul_assoc, nonsing_inv_mul P hP, one_mul]
 
 /-- Characteristic polynomial is invariant under unitary conjugation. -/
 theorem charpoly_unitary_conj (M : Matrix n n ℂ) (U : unitaryGroup n ℂ) :
     ((U : Matrix n n ℂ) * M * star (U : Matrix n n ℂ)).charpoly = M.charpoly := by
-  rw [unitary_star_eq_inv U]
-  exact charpoly_conj_of_isUnit M (U : Matrix n n ℂ) (UnitaryGroup.det_isUnit U)
+  rw [charpoly_mul_comm, ← mul_assoc, mem_unitaryGroup_iff'.mp U.2, one_mul]
 
 /-! ### Eigenvalues of squared matrices and Hermitian singular values -/
 
@@ -790,8 +715,7 @@ private lemma eigenvalues_sq_multiset (A : Matrix n n ℂ) (hA : A.IsHermitian) 
     bijection, and sorting by λ² differs from sorting by λ when eigenvalues are negative.
 
     **Proof**: Uses helper lemmas `hermitian_conjTranspose_mul_self_eq_sq`,
-    `eigenvalues_conjTranspose_mul_self_eq_sq`, and `eigenvalues_sq_multiset`
-    defined above in the charpoly invariance machinery. -/
+    `eigenvalues_conjTranspose_mul_self_eq_sq`, and `eigenvalues_sq_multiset` above. -/
 theorem singularValues_hermitian_multiset (A : Matrix n n ℂ) (hA : A.IsHermitian) :
     Multiset.map (singularValues A) Finset.univ.val =
     Multiset.map (|hA.eigenvalues ·|) Finset.univ.val := by
