@@ -337,8 +337,9 @@ theorem eq_mul_indicator_of_frobenius_sq_le (S C : Matrix m n ℂ) (d : n → �
     · have hwj : (Q j j).re = 1 := by rw [hw_eq j, if_pos hj]
       have hQjj : Q j j = 1 := Complex.ext (by simpa using hwj) (by simpa using hQjj_im j)
       have h_rest : ∑ l ∈ Finset.univ.erase j, Complex.normSq (Q l j) = 0 := by
-        have h_split := Finset.add_sum_erase Finset.univ (fun l => Complex.normSq (Q l j))
-          (Finset.mem_univ j)
+        have h_split : Complex.normSq (Q j j) +
+            ∑ l ∈ Finset.univ.erase j, Complex.normSq (Q l j) = ∑ l, Complex.normSq (Q l j) :=
+          Finset.add_sum_erase Finset.univ (fun l => Complex.normSq (Q l j)) (Finset.mem_univ j)
         rw [hQjj, Complex.normSq_one] at h_split
         linarith [hw_sum j]
       by_cases hij : i = j
@@ -595,7 +596,7 @@ theorem eckart_young_frobenius_rect_unique (A : Matrix m n ℂ) (k : ℕ)
       (fun p _ q _ hpq => Fin.ext (by simpa using hpq))
     simpa using h
   -- The gap on the eigenvalues of AᴴA, which are the σ² in sorted position
-  have hλ_k1 : hH.eigenvalues₀ ⟨k, hk_n⟩ < hH.eigenvalues₀ ⟨k - 1, by omega⟩ := by
+  have hlam_k1 : hH.eigenvalues₀ ⟨k, hk_n⟩ < hH.eigenvalues₀ ⟨k - 1, by omega⟩ := by
     have hsq_k := SVD.Rectangular.singularValues_sq_rect A ⟨k, hk⟩
     have hsq_k1 := SVD.Rectangular.singularValues_sq_rect A ⟨k - 1, by omega⟩
     have h0 := SVD.Rectangular.singularValues_nonneg A ⟨k, hk⟩
