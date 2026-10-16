@@ -1580,7 +1580,7 @@ theorem kronecker_spectral_eq_frobenius_div_coherence {n' : Type*} [Fintype n'] 
     frobeniusNormRect (A - truncatedSVD A k) /
     (Real.sqrt (A - truncatedSVD A k).rank * kroneckerErrorCoherence A k) := by
   unfold kroneckerErrorCoherence
-  exact spectral_bound_via_coherence_rect _ h_err
+  exact spectral_norm_eq_frobenius_div_coherence_rect _ h_err
 
 /-- **Incoherent improved bound**: When the error coherence is bounded below by α,
     we get an improved spectral bound.
@@ -1694,7 +1694,7 @@ theorem kronecker_approximation_coherence_characterization
     have h := Matrix.Kronecker.SpectralGap.spectral_error_bound_via_R C M
     convert h using 1
   · -- Second part: exact formula from coherence
-    exact spectral_bound_via_coherence_rect _ h_err
+    exact spectral_norm_eq_frobenius_div_coherence_rect _ h_err
 
 /-- **The R⁻¹ bound is attained on rank-one matrices:** for X = R(u vᵀ), ‖R⁻¹ X‖₂ = ‖X‖_F.
     So the constant in `Matrix.Kronecker.SpectralGap.R_inv_spectral_le_frobenius`
