@@ -346,7 +346,7 @@ end UpperBound
 
 For a square matrix A, the spectral error of the rank-k truncated SVD is at most its Frobenius
 error √(Σᵢ≥ₖ σᵢ²). It is in fact exactly σₖ
-(`Matrix.SVD.Rectangular.spectral_error_truncatedSVD`).
+(`Matrix.SVD.spectral_error_truncatedSVD`).
 -/
 
 section SquareCase

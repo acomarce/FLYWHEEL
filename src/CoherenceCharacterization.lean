@@ -1342,18 +1342,17 @@ theorem effectiveRank_eq_rank_of_flat_spectrum (E : Matrix n n ℂ) (hE : E ≠ 
 
 /-! ### Connection to Coherence Factor
 
-The effective rank and coherence factor are related: both measure how
-concentrated or spread the singular values are.
+The coherence factor and the effective rank both measure how spread out the singular values
+are. With pᵢ = σᵢ² / ‖E‖_F², the stable rank ‖E‖_F² / ‖E‖₂² = 1 / maxᵢ pᵢ is exp of the
+min-entropy of p, and `effectiveRank` is exp of its Shannon entropy, so the stable rank is at
+most the effective rank (`stableRank_le_effectiveRank`). Since μ² · rank equals the stable rank
+(`coherenceFactor_sq_mul_rank_eq`), μ(E)² · rank(E) ≤ effectiveRank E.
 -/
 
 omit [Nonempty n] in
-/-- Relationship between coherence factor and effective rank.
-    For a matrix E with coherence μ and effective rank r_eff:
-    - μ ≈ 1 (incoherent) ⟹ r_eff ≈ rank (flat spectrum)
-    - μ ≈ 1/√rank (coherent) ⟹ r_eff ≈ 1 (rank-1 like)
-
-    More precisely: μ² · rank = ‖E‖_F² / ‖E‖² relates to r_eff. -/
-theorem coherence_effectiveRank_relation (E : Matrix n n ℂ) (hE : E ≠ 0) :
+/-- **Coherence and stable rank:** μ(E)² · rank(E) = (‖E‖_F / ‖E‖₂)², the stable rank of E,
+    for E ≠ 0. -/
+theorem coherenceFactor_sq_mul_rank_eq (E : Matrix n n ℂ) (hE : E ≠ 0) :
     coherenceFactor E ^ 2 * E.rank =
     (frobeniusNorm' E / ‖E‖) ^ 2 := by
   unfold coherenceFactor
@@ -1366,6 +1365,68 @@ theorem coherence_effectiveRank_relation (E : Matrix n n ℂ) (hE : E ≠ 0) :
   -- μ² · r = (‖E‖_F / (√r · ‖E‖))² · r = ‖E‖_F² / (r · ‖E‖²) · r = ‖E‖_F² / ‖E‖²
   rw [div_pow, div_pow, mul_pow, Real.sq_sqrt h_rank_nonneg]
   field_simp
+
+/-- **Stable rank is at most effective rank:** (‖E‖_F / ‖E‖₂)² ≤ effectiveRank E for E ≠ 0.
+
+    With pᵢ = σᵢ² / ‖E‖_F², every pᵢ ≤ ‖E‖₂² / ‖E‖_F², so the entropy -Σ pᵢ log pᵢ is at least
+    -log(‖E‖₂² / ‖E‖_F²). -/
+theorem stableRank_le_effectiveRank (E : Matrix n n ℂ) (hE : E ≠ 0) :
+    (frobeniusNorm' E / ‖E‖) ^ 2 ≤ effectiveRank E := by
+  have h_spec_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
+  have h_frob_pos : 0 < frobeniusNorm' E :=
+    lt_of_lt_of_le h_spec_pos (spectral_norm_le_frobenius_norm E)
+  have h_pmax_pos : 0 < ‖E‖ ^ 2 / frobeniusNorm' E ^ 2 :=
+    div_pos (pow_pos h_spec_pos 2) (pow_pos h_frob_pos 2)
+  -- Each σᵢ is at most the largest singular value ‖E‖₂
+  have h_sv_le : ∀ i, SVD.singularValues E i ≤ ‖E‖ := by
+    intro i
+    rw [spectral_norm_eq_max_singularValue]
+    exact Finset.le_sup' _ (Finset.mem_univ i)
+  -- So every pᵢ is at most pmax = ‖E‖₂² / ‖E‖_F²
+  have h_p_le : ∀ i, normalizedSingularValueSq E i ≤ ‖E‖ ^ 2 / frobeniusNorm' E ^ 2 := by
+    intro i
+    unfold normalizedSingularValueSq
+    rw [if_neg h_frob_pos.ne']
+    exact div_le_div_of_nonneg_right
+      (pow_le_pow_left₀ (SVD.singularValues_nonneg E i) (h_sv_le i) 2) (sq_nonneg _)
+  -- Termwise, pᵢ log pᵢ ≤ pᵢ log pmax (both sides vanish when pᵢ = 0)
+  have h_term : ∀ i, normalizedSingularValueSq E i *
+      (if normalizedSingularValueSq E i = 0 then 0
+        else Real.log (normalizedSingularValueSq E i)) ≤
+      normalizedSingularValueSq E i * Real.log (‖E‖ ^ 2 / frobeniusNorm' E ^ 2) := by
+    intro i
+    by_cases hp : normalizedSingularValueSq E i = 0
+    · rw [hp, zero_mul, zero_mul]
+    · rw [if_neg hp]
+      have hp_pos : 0 < normalizedSingularValueSq E i :=
+        lt_of_le_of_ne (normalizedSingularValueSq_nonneg E i) (Ne.symm hp)
+      exact mul_le_mul_of_nonneg_left (Real.log_le_log hp_pos (h_p_le i)) hp_pos.le
+  -- Summing, the entropy is at least -log pmax
+  have h_entropy : -Real.log (‖E‖ ^ 2 / frobeniusNorm' E ^ 2) ≤
+      -∑ i, normalizedSingularValueSq E i *
+        (if normalizedSingularValueSq E i = 0 then 0
+          else Real.log (normalizedSingularValueSq E i)) := by
+    rw [neg_le_neg_iff]
+    calc ∑ i, normalizedSingularValueSq E i *
+          (if normalizedSingularValueSq E i = 0 then 0
+            else Real.log (normalizedSingularValueSq E i))
+        ≤ ∑ i, normalizedSingularValueSq E i * Real.log (‖E‖ ^ 2 / frobeniusNorm' E ^ 2) :=
+          Finset.sum_le_sum (fun i _ => h_term i)
+      _ = Real.log (‖E‖ ^ 2 / frobeniusNorm' E ^ 2) := by
+          rw [← Finset.sum_mul, normalizedSingularValueSq_sum_eq_one E, one_mul]
+  -- exp(-log pmax) = 1 / pmax = (‖E‖_F / ‖E‖₂)²
+  have h_lhs : (frobeniusNorm' E / ‖E‖) ^ 2 =
+      Real.exp (-Real.log (‖E‖ ^ 2 / frobeniusNorm' E ^ 2)) := by
+    rw [Real.exp_neg, Real.exp_log h_pmax_pos, inv_div, div_pow]
+  rw [h_lhs]
+  unfold effectiveRank
+  exact Real.exp_le_exp.mpr h_entropy
+
+/-- **Coherence bounds effective rank:** μ(E)² · rank(E) ≤ effectiveRank E for E ≠ 0. -/
+theorem coherenceFactor_sq_mul_rank_le_effectiveRank (E : Matrix n n ℂ) (hE : E ≠ 0) :
+    coherenceFactor E ^ 2 * E.rank ≤ effectiveRank E := by
+  rw [coherenceFactor_sq_mul_rank_eq E hE]
+  exact stableRank_le_effectiveRank E hE
 
 end IncoherentCase
 
@@ -1718,7 +1779,7 @@ theorem spectralGap_nonneg (A : Matrix n n ℂ) : 0 ≤ spectralGap A := by
 /-- The spectral gap is at most the spectral norm: `spectralGap A ≤ ‖A‖`. -/
 theorem spectralGap_le_norm (A : Matrix n n ℂ) : spectralGap A ≤ ‖A‖ := by
   have h_norm : ‖A‖ = SVD.singularValues₀ A 0 :=
-    Matrix.SVD.Rectangular.spectral_norm_eq_singularValues₀_zero A
+    Matrix.SVD.spectral_norm_eq_singularValues₀_zero A
   rw [h_norm]
   unfold spectralGap
   split_ifs with h
@@ -1736,7 +1797,7 @@ theorem exists_spectral_minimizer_rank1 (A : Matrix n n ℂ) :
     ∃ M : Matrix n n ℂ, M.rank ≤ 1 ∧
       ∀ N : Matrix n n ℂ, N.rank ≤ 1 → ‖A - M‖ ≤ ‖A - N‖ :=
   ⟨Matrix.SVD.truncatedSVD A 1, Matrix.SVD.truncatedSVD_rank_le A 1,
-    fun N hN => Matrix.SVD.Rectangular.eckart_young_spectral A 1 N hN⟩
+    fun N hN => Matrix.SVD.eckart_young_spectral A 1 N hN⟩
 
 /-- The spectral-optimal rank-1 approximation (chosen via `Classical.choose`). -/
 noncomputable def spectralOptimalRank1 (A : Matrix n n ℂ) : Matrix n n ℂ :=
@@ -1757,7 +1818,7 @@ theorem spectral_error_truncatedSVD_one_eq_spectralOptimalRank1 (A : Matrix n n 
   have ⟨h_rank, h_opt⟩ := spectralOptimalRank1_is_optimal A
   -- A_F is no worse than A_*, by spectral Eckart–Young
   have h_le : ‖A - Matrix.SVD.truncatedSVD A 1‖ ≤ ‖A - spectralOptimalRank1 A‖ :=
-    Matrix.SVD.Rectangular.eckart_young_spectral A 1 _ h_rank
+    Matrix.SVD.eckart_young_spectral A 1 _ h_rank
   -- A_* is no worse than A_F, by its own optimality
   have h_ge : ‖A - spectralOptimalRank1 A‖ ≤ ‖A - Matrix.SVD.truncatedSVD A 1‖ :=
     h_opt _ (Matrix.SVD.truncatedSVD_rank_le A 1)
@@ -1770,13 +1831,13 @@ theorem spectral_error_truncatedSVD_one_eq_spectralOptimalRank1 (A : Matrix n n 
 theorem norm_sub_truncatedSVD_one_eq_norm_sub_spectralGap (A : Matrix n n ℂ) :
     ‖A - Matrix.SVD.truncatedSVD A 1‖ = ‖A‖ - spectralGap A := by
   have h_norm : ‖A‖ = SVD.singularValues₀ A 0 :=
-    Matrix.SVD.Rectangular.spectral_norm_eq_singularValues₀_zero A
+    Matrix.SVD.spectral_norm_eq_singularValues₀_zero A
   rw [h_norm]
   unfold spectralGap
   split_ifs with h
   · -- card n > 1: the error is σ₁
     have h_err : ‖A - Matrix.SVD.truncatedSVD A 1‖ = SVD.singularValues₀ A ⟨1, h⟩ :=
-      Matrix.SVD.Rectangular.spectral_error_truncatedSVD A 1 h
+      Matrix.SVD.spectral_error_truncatedSVD A 1 h
     rw [h_err]
     ring
   · -- card n ≤ 1: the truncation is A itself
