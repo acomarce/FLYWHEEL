@@ -3,7 +3,9 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import CoherenceCharacterization
+module
+
+public import CoherenceCharacterization
 
 /-!
 # Davis–Kahan sin θ bound for the top eigenvector
@@ -42,6 +44,8 @@ Not formalized: the operator-norm sin Θ bound ‖sin Θ‖₂ ≤ ‖E‖₂ / 
 Sylvester-equation argument, not a vector-by-vector one), and Wedin's theorem for left and right
 singular subspaces of rectangular matrices.
 -/
+
+@[expose] public section
 
 open scoped ComplexOrder Matrix
 open Matrix

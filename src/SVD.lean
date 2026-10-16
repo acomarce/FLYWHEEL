@@ -3,18 +3,20 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import Mathlib.Analysis.Matrix.Spectrum
-import Mathlib.Analysis.Matrix.PosDef
-import Mathlib.Analysis.Matrix.Order
-import Mathlib.Analysis.Matrix.Normed
-import Mathlib.Analysis.CStarAlgebra.Matrix
-import Mathlib.Analysis.CStarAlgebra.Spectrum
-import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
-import Mathlib.Analysis.Complex.Order
-import Mathlib.LinearAlgebra.Matrix.Charpoly.Basic
-import Mathlib.Analysis.InnerProductSpace.PiL2
-import Mathlib.LinearAlgebra.Matrix.Rank
-import Mathlib.LinearAlgebra.UnitaryGroup
+module
+
+public import Mathlib.Analysis.Matrix.Spectrum
+public import Mathlib.Analysis.Matrix.PosDef
+public import Mathlib.Analysis.Matrix.Order
+public import Mathlib.Analysis.Matrix.Normed
+public import Mathlib.Analysis.CStarAlgebra.Matrix
+public import Mathlib.Analysis.CStarAlgebra.Spectrum
+public import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
+public import Mathlib.Analysis.Complex.Order
+public import Mathlib.LinearAlgebra.Matrix.Charpoly.Basic
+public import Mathlib.Analysis.InnerProductSpace.PiL2
+public import Mathlib.LinearAlgebra.Matrix.Rank
+public import Mathlib.LinearAlgebra.UnitaryGroup
 
 /-!
 # Singular Value Decomposition
@@ -37,6 +39,8 @@ singular vectors. The columns of A V are orthogonal; normalizing the nonzero one
 singular vectors, which are extended to an orthonormal basis to form U. (No polar decomposition
 or `CFC.sqrt` is used; `sqrtConjTransposeMulSelf` is defined but not used by the construction.)
 -/
+
+@[expose] public section
 
 open Matrix Polynomial
 open scoped ComplexOrder MatrixOrder
@@ -1367,7 +1371,7 @@ private lemma transpose_eq_conjTranspose (A : Matrix n n ℝ) :
 
 omit [DecidableEq n] in
 /-- Aᵀ * A is Hermitian for real A (since transpose = conjTranspose). -/
-private lemma transpose_mul_self_isHermitian' (A : Matrix n n ℝ) :
+lemma transpose_mul_self_isHermitian' (A : Matrix n n ℝ) :
     (A.transpose * A).IsHermitian := by
   rw [transpose_eq_conjTranspose]
   exact (posSemidef_conjTranspose_mul_self A).isHermitian

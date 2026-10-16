@@ -3,8 +3,10 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import Mathlib
-import SVD
+module
+
+public import Mathlib
+public import SVD
 
 /-!
 # Courant-Fischer Min-Max Theorem
@@ -31,6 +33,8 @@ For Hermitian `A` and `1 ≤ k ≤ n`, with eigenvalues sorted so that `λ₀ �
 ## TODO
 - [ ] Generalize to normal matrices (not just Hermitian)?
 -/
+
+@[expose] public section
 
 -- HACK: importing all of Mathlib is slow, but I kept getting random missing lemmas
 -- when trying to import specific files. Fix later.

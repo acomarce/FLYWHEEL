@@ -3,8 +3,10 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import MatrixNormRelations
-import SpectralNormGap
+module
+
+public import MatrixNormRelations
+public import SpectralNormGap
 
 /-!
 # Coherence Characterization for Kronecker Approximation
@@ -30,6 +32,8 @@ into separate files for:
 
 But that's a refactor for another day...
 -/
+
+@[expose] public section
 
 open scoped ComplexOrder Matrix
 open Matrix SpectralNorm

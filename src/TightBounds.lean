@@ -3,8 +3,10 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import MatrixNormRelations
-import SpectralNormGap
+module
+
+public import MatrixNormRelations
+public import SpectralNormGap
 
 /-!
 # Tight Bounds for Kronecker Approximation
@@ -39,6 +41,8 @@ Kronecker approximation are inequalities; they are in SpectralNormGap.lean.
 Complete: no unproved goals. The former Part 5 coherence claim was false and has been
 replaced by a note with an explicit counterexample.
 -/
+
+@[expose] public section
 
 open scoped ComplexOrder Matrix
 open Matrix

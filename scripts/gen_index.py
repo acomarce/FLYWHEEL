@@ -9,6 +9,8 @@ Usage (from anywhere; stdlib only, Python >= 3.11):
 Both modes also check the source structure and the lakefile:
   * every src/*.lean file is a `lean_lib` in lakefile.toml and is listed in
     `defaultTargets` (so a bare `lake build` really builds everything);
+  * every src/*.lean file starts with a `module` header (the project uses the
+    module system, and a module cannot import a non-module file);
   * block comments are terminated (Lean comments nest, so a stray `/-`
     silently comments out the rest of a file);
   * `namespace`/`section`/`end` lines match.
@@ -34,7 +36,7 @@ INDEX = ROOT / "docs" / "INDEX.md"
 
 KINDS = ("theorem", "lemma", "def", "abbrev", "instance", "structure", "class",
          "inductive", "opaque", "axiom")
-MODIFIERS = ("private", "protected", "noncomputable", "nonrec", "partial", "unsafe")
+MODIFIERS = ("private", "public", "protected", "noncomputable", "nonrec", "partial", "unsafe")
 
 DECL_RE = re.compile(
     r"^(?:@\[[^\]]*\]\s*)*"
@@ -43,10 +45,13 @@ DECL_RE = re.compile(
 )
 IDENT_RE = re.compile(r"[^\s:(){}\[\]⦃⦄,]+")
 NAMESPACE_RE = re.compile(r"^namespace\s+(\S+)\s*$")
-SECTION_RE = re.compile(r"^(?:noncomputable\s+)?section(?:\s+(\S+))?\s*$")
+# `@[expose] public section` (module system) opens the file-level scope; it stays open at EOF.
+SECTION_RE = re.compile(
+    r"^(?P<public>(?:@\[expose\]\s+)?public\s+)?(?:noncomputable\s+)?section(?:\s+(?P<name>\S+))?\s*$")
 MUTUAL_RE = re.compile(r"^mutual\s*$")
 END_RE = re.compile(r"^end(?:\s+(\S+))?\s*$")
-IMPORT_RE = re.compile(r"^import\s+(\S+)")
+MODULE_RE = re.compile(r"^module\b")
+IMPORT_RE = re.compile(r"^(?:public\s+)?(?:meta\s+)?import\s+(?:all\s+)?(\S+)")
 # Lines allowed between a doc comment and the declaration it documents.
 PREFIX_LINE_RE = re.compile(r"^(?:@\[.*\]|(?:omit|include|set_option|open)\b.*\bin)$")
 
@@ -147,7 +152,11 @@ def parse_module(module: str, path: Path) -> ModuleInfo:
         offsets.append(offsets[-1] + len(ln) + 1)
 
     info = ModuleInfo(module, path)
-    scopes: list[tuple[str, str]] = []  # (kind, name) with kind in ns/section/mutual
+    first = next((ln.strip() for ln in lines if ln.strip()), "")
+    if not MODULE_RE.match(first):
+        raise SourceError(f"{rel}:1: missing `module` header (every file uses the module system; "
+                          "the header is the copyright comment, `module`, then `public import`s)")
+    scopes: list[tuple[str, str]] = []  # (kind, name) with kind in ns/section/public/mutual
     doc_idx = 0
     last_doc: DocComment | None = None
 
@@ -173,7 +182,7 @@ def parse_module(module: str, path: Path) -> ModuleInfo:
                 info.namespaces.append(ns)
             continue
         if m := SECTION_RE.match(line):
-            scopes.append(("section", m.group(1) or ""))
+            scopes.append(("public" if m.group("public") else "section", m.group("name") or ""))
             continue
         if MUTUAL_RE.match(line):
             scopes.append(("mutual", ""))
@@ -217,6 +226,7 @@ def parse_module(module: str, path: Path) -> ModuleInfo:
                 summary = summarize(last_doc.text)
         info.decls.append(Decl(full, kind, lineno, summary, root=not ns))
 
+    scopes = [s for s in scopes if s != ("public", "")]  # file-level public section
     if scopes:
         open_ = ", ".join(f"{k} {n}".strip() for k, n in scopes)
         print(f"warning: {rel}: scopes still open at end of file: {open_}", file=sys.stderr)

@@ -3,17 +3,19 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import Mathlib.Analysis.Matrix.Spectrum
-import Mathlib.Analysis.Matrix.PosDef
-import Mathlib.Analysis.Matrix.Order
-import Mathlib.Analysis.CStarAlgebra.Matrix
-import Mathlib.Analysis.CStarAlgebra.Spectrum
-import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
-import Mathlib.Analysis.Matrix.Normed
-import Mathlib.LinearAlgebra.Matrix.Kronecker
-import Mathlib.Analysis.Complex.Order
-import FrobeniusNorm
-import KroneckerRearrangement
+module
+
+public import Mathlib.Analysis.Matrix.Spectrum
+public import Mathlib.Analysis.Matrix.PosDef
+public import Mathlib.Analysis.Matrix.Order
+public import Mathlib.Analysis.CStarAlgebra.Matrix
+public import Mathlib.Analysis.CStarAlgebra.Spectrum
+public import Mathlib.Analysis.CStarAlgebra.ContinuousFunctionalCalculus.Order
+public import Mathlib.Analysis.Matrix.Normed
+public import Mathlib.LinearAlgebra.Matrix.Kronecker
+public import Mathlib.Analysis.Complex.Order
+public import FrobeniusNorm
+public import KroneckerRearrangement
 
 /-!
 # Matrix Norm Relations and Eckart-Young
@@ -46,6 +48,8 @@ the explicit frobeniusNorm' function instead of ‖·‖.
 I wasted an entire afternoon debugging a proof that was silently using
 the wrong norm instance. Don't be like me.
 -/
+
+@[expose] public section
 
 open Matrix
 open scoped ComplexOrder BigOperators

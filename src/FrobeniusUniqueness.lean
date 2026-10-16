@@ -3,7 +3,9 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import TightBounds
+module
+
+public import TightBounds
 
 /-!
 # Uniqueness of the best rank-k approximation in the Frobenius norm
@@ -36,6 +38,8 @@ So the error is at least Σ_{j ∉ T} dⱼ, and attaining it forces w = 1_T, hen
 S Q = C, i.e. C = S diag(1_T), the truncation (`eq_mul_indicator_of_frobenius_sq_le`). No
 eigenvalue interlacing is needed.
 -/
+
+public section
 
 open scoped ComplexOrder Matrix
 open Matrix

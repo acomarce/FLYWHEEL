@@ -2,8 +2,6 @@ name = "FLYWHEEL"
 version = "0.1.0"
 # All sources live in src/; each file is its own library.
 srcDir = "src"
-# Mathlib uses the module system; these files do not (yet), so do not warn on every import.
-allowNonModules = true
 # Every library, so a bare `lake build` checks the whole project.
 # scripts/gen_index.py --check fails if a src/*.lean file is missing here.
 defaultTargets = [

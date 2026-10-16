@@ -3,9 +3,11 @@ Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
 -/
-import Mathlib
-import SVD
-import CourantFischer
+module
+
+public import Mathlib
+public import SVD
+public import CourantFischer
 
 /-!
 # Weyl's Eigenvalue Inequalities
@@ -19,6 +21,8 @@ For Hermitian A, B: λₖ(A) + λₙ(B) ≤ λₖ(A+B) ≤ λₖ(A) + λ₁(B).
 [3] Isabelle AFP (2024). Two Theorems on Hermitian Matrices.
 
 -/
+
+@[expose] public section
 
 -- unused, but keeping around in case we need it for the singular value version
 -- private def _root_.Nat.triangular (n : ℕ) : ℕ := n * (n + 1) / 2
