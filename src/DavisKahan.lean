@@ -29,10 +29,18 @@ at least `Matrix.Coherence.spectralGap A * ‖A‖₂` (`spectralGap_mul_norm_le
 a Wedin-type bound through the Gram matrix, not Wedin's theorem itself (which has the gap
 σ₀ - σ₁ and the perturbation ‖E‖₂ directly).
 
+The same argument with the indices of λ₀, …, λₖ₋₁ (`topIndices k`) in place of the top index
+gives the top-k version: if μ > λₖ and P is the orthogonal projection onto the span of the
+eigenvectors for λ₀, …, λₖ₋₁, then (μ - λₖ) ‖v - P v‖ ≤ ‖E‖₂ ‖v‖ (`davis_kahan_topIndices`).
+Summed over the top-k eigenvectors ũⱼ of A + E, this bounds ‖sin Θ‖_F² = Σⱼ ‖ũⱼ - P ũⱼ‖² by
+k (‖E‖₂ / (λₖ₋₁ - λₖ - ‖E‖₂))² (`davis_kahan_sin_theta`).
+
 Here ‖·‖ on square matrices is the L2 operator norm (the global instance of
 MatrixNormRelations).
 
-Not formalized: the top-k eigenspace version (sin Θ for invariant subspaces).
+Not formalized: the operator-norm sin Θ bound ‖sin Θ‖₂ ≤ ‖E‖₂ / δ for k > 1 (it needs a
+Sylvester-equation argument, not a vector-by-vector one), and Wedin's theorem for left and right
+singular subspaces of rectangular matrices.
 -/
 
 open scoped ComplexOrder Matrix
@@ -72,6 +80,49 @@ theorem eigenvalues_le_of_ne_topIndex {A : Matrix n n ℂ} (hA : A.IsHermitian)
 
 end TopIndex
 
+/-! ## Coefficients in the eigenbasis -/
+
+section Eigenbasis
+
+/-- The vectors of `hA.eigenvectorBasis` are eigenvectors of `toEuclideanLin A`. -/
+theorem toEuclideanLin_eigenvectorBasis {A : Matrix n n ℂ} (hA : A.IsHermitian) (i : n) :
+    toEuclideanLin A (hA.eigenvectorBasis i) = (hA.eigenvalues i : ℂ) • hA.eigenvectorBasis i := by
+  ext j
+  have := hA.mulVec_eigenvectorBasis i
+  simp only [Matrix.toEuclideanLin_apply] at this ⊢
+  exact congr_fun this j
+
+/-- If (A + E) v = μ v for a Hermitian A with eigenvector basis uᵢ, then
+    ‖E v‖² = Σᵢ (μ - λᵢ)² |⟨uᵢ, v⟩|². E need not be Hermitian. -/
+theorem norm_sq_perturbation_eq_sum (A E : Matrix n n ℂ) (hA : A.IsHermitian)
+    (v : EuclideanSpace ℂ n) (μ : ℝ) (hv : toEuclideanLin (A + E) v = (μ : ℂ) • v) :
+    ‖toEuclideanLin E v‖ ^ 2 =
+      ∑ i, (μ - hA.eigenvalues i) ^ 2 * ‖⟪hA.eigenvectorBasis i, v⟫‖ ^ 2 := by
+  have hSym : (toEuclideanLin A).IsSymmetric := isHermitian_iff_isSymmetric.mp hA
+  -- Coefficients of A x in the eigenbasis: ⟨uᵢ, A x⟩ = λᵢ ⟨uᵢ, x⟩
+  have hcoefA : ∀ i x, ⟪hA.eigenvectorBasis i, toEuclideanLin A x⟫ =
+      (hA.eigenvalues i : ℂ) * ⟪hA.eigenvectorBasis i, x⟫ := by
+    intro i x
+    rw [← hSym (hA.eigenvectorBasis i) x, toEuclideanLin_eigenvectorBasis hA i, inner_smul_left,
+      Complex.conj_ofReal]
+  -- E v = μ v - A v, so ⟨uᵢ, E v⟩ = (μ - λᵢ) ⟨uᵢ, v⟩
+  have hEv : toEuclideanLin E v = (μ : ℂ) • v - toEuclideanLin A v := by
+    rw [← hv, WeylInequality.toEuclideanLin_add]
+    abel
+  have hcoefE : ∀ i, ⟪hA.eigenvectorBasis i, toEuclideanLin E v⟫ =
+      ((μ - hA.eigenvalues i : ℝ) : ℂ) * ⟪hA.eigenvectorBasis i, v⟫ := by
+    intro i
+    rw [hEv, inner_sub_right, inner_smul_right, hcoefA]
+    push_cast
+    ring
+  -- Parseval in the eigenbasis
+  rw [← hA.eigenvectorBasis.sum_sq_norm_inner_right (toEuclideanLin E v)]
+  apply Finset.sum_congr rfl
+  intro i _
+  rw [hcoefE i, norm_mul, mul_pow, Complex.norm_real, Real.norm_eq_abs, sq_abs]
+
+end Eigenbasis
+
 /-! ## The sin θ bound -/
 
 section SinTheta
@@ -85,36 +136,8 @@ theorem davis_kahan_top (A E : Matrix n n ℂ) (hA : A.IsHermitian) (h2 : 1 < Fi
     (μ - hA.eigenvalues₀ ⟨1, h2⟩) *
         ‖v - ⟪hA.eigenvectorBasis (topIndex h2), v⟫ • hA.eigenvectorBasis (topIndex h2)‖ ≤
       ‖E‖ * ‖v‖ := by
-  have hSym : (toEuclideanLin A).IsSymmetric := isHermitian_iff_isSymmetric.mp hA
-  have hEig : ∀ i, toEuclideanLin A (hA.eigenvectorBasis i) =
-      (hA.eigenvalues i : ℂ) • hA.eigenvectorBasis i := by
-    intro i
-    ext j
-    have := hA.mulVec_eigenvectorBasis i
-    simp only [Matrix.toEuclideanLin_apply] at this ⊢
-    exact congr_fun this j
-  -- Coefficients of A x in the eigenbasis: ⟨uᵢ, A x⟩ = λᵢ ⟨uᵢ, x⟩
-  have hcoefA : ∀ i x, ⟪hA.eigenvectorBasis i, toEuclideanLin A x⟫ =
-      (hA.eigenvalues i : ℂ) * ⟪hA.eigenvectorBasis i, x⟫ := by
-    intro i x
-    rw [← hSym (hA.eigenvectorBasis i) x, hEig i, inner_smul_left, Complex.conj_ofReal]
-  -- E v = μ v - A v, so ⟨uᵢ, E v⟩ = (μ - λᵢ) ⟨uᵢ, v⟩
-  have hEv : toEuclideanLin E v = (μ : ℂ) • v - toEuclideanLin A v := by
-    rw [← hv, WeylInequality.toEuclideanLin_add]
-    abel
-  have hcoefE : ∀ i, ⟪hA.eigenvectorBasis i, toEuclideanLin E v⟫ =
-      ((μ - hA.eigenvalues i : ℝ) : ℂ) * ⟪hA.eigenvectorBasis i, v⟫ := by
-    intro i
-    rw [hEv, inner_sub_right, inner_smul_right, hcoefA]
-    push_cast
-    ring
-  -- ‖E v‖² = Σᵢ (μ - λᵢ)² |cᵢ|²
-  have hEv_sq : ‖toEuclideanLin E v‖ ^ 2 =
-      ∑ i, (μ - hA.eigenvalues i) ^ 2 * ‖⟪hA.eigenvectorBasis i, v⟫‖ ^ 2 := by
-    rw [← hA.eigenvectorBasis.sum_sq_norm_inner_right (toEuclideanLin E v)]
-    apply Finset.sum_congr rfl
-    intro i _
-    rw [hcoefE i, norm_mul, mul_pow, Complex.norm_real, Real.norm_eq_abs, sq_abs]
+  -- ‖E v‖² = Σᵢ (μ - λᵢ)² |cᵢ|² with cᵢ = ⟨uᵢ, v⟩
+  have hEv_sq := norm_sq_perturbation_eq_sum A E hA v μ hv
   -- The residual w = v - ⟨u₀, v⟩ u₀ has coefficients cᵢ off the top index and 0 on it
   obtain ⟨w, hw⟩ : ∃ w : EuclideanSpace ℂ n,
       w = v - ⟪hA.eigenvectorBasis (topIndex h2), v⟫ • hA.eigenvectorBasis (topIndex h2) :=
@@ -232,6 +255,167 @@ theorem davis_kahan_top_eigenvector (A E : Matrix n n ℂ) (hA : A.IsHermitian)
 
 end WeylForm
 
+/-! ## Top-k eigenspaces -/
+
+section TopK
+
+/-- The indices of the k largest eigenvalues: the images of the sorted indices 0, …, k - 1 under
+    Mathlib's eigenvalue bijection. The set depends only on `n`, not on the matrix. -/
+noncomputable def topIndices (k : ℕ) (hk : k < Fintype.card n) : Finset n :=
+  (Finset.Iio (⟨k, hk⟩ : Fin (Fintype.card n))).map
+    (Fintype.equivOfCardEq (Fintype.card_fin _) : Fin (Fintype.card n) ≃ n).toEmbedding
+
+/-- `topIndices k` has k elements. -/
+theorem card_topIndices (k : ℕ) (hk : k < Fintype.card n) : (topIndices k hk).card = k := by
+  have h := Fin.card_Iio (⟨k, hk⟩ : Fin (Fintype.card n))
+  rw [topIndices, Finset.card_map]
+  exact h
+
+/-- i ∈ `topIndices k` iff the sorted index of i is less than k. -/
+theorem mem_topIndices {k : ℕ} {hk : k < Fintype.card n} {i : n} :
+    i ∈ topIndices k hk ↔ ((Fintype.equivOfCardEq (Fintype.card_fin _)).symm i).val < k := by
+  rw [topIndices, Finset.mem_map_equiv, Finset.mem_Iio, Fin.lt_iff_val_lt_val]
+
+/-- An eigenvalue whose index is not in `topIndices k` is at most λₖ. -/
+theorem eigenvalues_le_of_not_mem_topIndices {A : Matrix n n ℂ} (hA : A.IsHermitian) {k : ℕ}
+    (hk : k < Fintype.card n) {i : n} (hi : i ∉ topIndices k hk) :
+    hA.eigenvalues i ≤ hA.eigenvalues₀ ⟨k, hk⟩ := by
+  have h_le : k ≤ ((Fintype.equivOfCardEq (Fintype.card_fin _)).symm i).val :=
+    not_lt.mp (fun h => hi (mem_topIndices.mpr h))
+  rw [CourantFischer.eigenvalues_eq_eigenvalues₀_comp A hA]
+  exact hA.eigenvalues₀_antitone (Fin.le_def.mpr h_le)
+
+/-- An eigenvalue whose index is in `topIndices k` is at least λₖ₋₁. -/
+theorem le_eigenvalues_of_mem_topIndices {A : Matrix n n ℂ} (hA : A.IsHermitian) {k : ℕ}
+    (hk : k < Fintype.card n) {i : n} (hi : i ∈ topIndices k hk) :
+    hA.eigenvalues₀ ⟨k - 1, by omega⟩ ≤ hA.eigenvalues i := by
+  have h_le : ((Fintype.equivOfCardEq (Fintype.card_fin _)).symm i).val ≤ k - 1 :=
+    Nat.le_sub_one_of_lt (mem_topIndices.mp hi)
+  rw [CourantFischer.eigenvalues_eq_eigenvalues₀_comp A hA]
+  exact hA.eigenvalues₀_antitone (Fin.le_def.mpr h_le)
+
+/-- **Davis–Kahan sin θ bound for a top-k eigenspace, one vector at a time.** Let A be Hermitian
+    with eigenvector basis uᵢ and (k+1)-th largest eigenvalue λₖ (0-indexed), and let v satisfy
+    (A + E) v = μ v with μ > λₖ. With P v = Σ_{i ∈ topIndices k} ⟨uᵢ, v⟩ uᵢ the orthogonal
+    projection onto the span of the eigenvectors for λ₀, …, λₖ₋₁,
+    (μ - λₖ) ‖v - P v‖ ≤ ‖E‖₂ ‖v‖. E need not be Hermitian. -/
+theorem davis_kahan_topIndices (A E : Matrix n n ℂ) (hA : A.IsHermitian) (k : ℕ)
+    (hk : k < Fintype.card n) (v : EuclideanSpace ℂ n) (μ : ℝ)
+    (hv : toEuclideanLin (A + E) v = (μ : ℂ) • v) (hμ : hA.eigenvalues₀ ⟨k, hk⟩ < μ) :
+    (μ - hA.eigenvalues₀ ⟨k, hk⟩) *
+        ‖v - ∑ i ∈ topIndices k hk, ⟪hA.eigenvectorBasis i, v⟫ • hA.eigenvectorBasis i‖ ≤
+      ‖E‖ * ‖v‖ := by
+  -- ‖E v‖² = Σᵢ (μ - λᵢ)² |cᵢ|² with cᵢ = ⟨uᵢ, v⟩
+  have hEv_sq := norm_sq_perturbation_eq_sum A E hA v μ hv
+  -- The residual w = v - P v has coefficients 0 on topIndices k and cᵢ off it
+  obtain ⟨w, hw⟩ : ∃ w : EuclideanSpace ℂ n,
+      w = v - ∑ i ∈ topIndices k hk, ⟪hA.eigenvectorBasis i, v⟫ • hA.eigenvectorBasis i :=
+    ⟨_, rfl⟩
+  rw [← hw]
+  have hw_coef : ∀ i, ⟪hA.eigenvectorBasis i, w⟫ =
+      if i ∈ topIndices k hk then 0 else ⟪hA.eigenvectorBasis i, v⟫ := by
+    intro i
+    have h_term : ∀ l ∈ topIndices k hk,
+        ⟪hA.eigenvectorBasis i, ⟪hA.eigenvectorBasis l, v⟫ • hA.eigenvectorBasis l⟫ =
+          if i = l then ⟪hA.eigenvectorBasis l, v⟫ else 0 := by
+      intro l _
+      rw [inner_smul_right, orthonormal_iff_ite.mp hA.eigenvectorBasis.orthonormal i l]
+      split_ifs <;> ring
+    rw [hw, inner_sub_right, inner_sum, Finset.sum_congr rfl h_term, Finset.sum_ite_eq]
+    split_ifs <;> ring
+  have hw_sq : ‖w‖ ^ 2 = ∑ i ∈ (topIndices k hk)ᶜ, ‖⟪hA.eigenvectorBasis i, v⟫‖ ^ 2 := by
+    have h_in : ∑ i ∈ topIndices k hk, ‖⟪hA.eigenvectorBasis i, w⟫‖ ^ 2 = 0 := by
+      apply Finset.sum_eq_zero
+      intro i hi
+      rw [hw_coef i, if_pos hi, norm_zero, zero_pow two_ne_zero]
+    rw [← hA.eigenvectorBasis.sum_sq_norm_inner_right w,
+      ← Finset.sum_add_sum_compl (topIndices k hk), h_in, zero_add]
+    apply Finset.sum_congr rfl
+    intro i hi
+    rw [hw_coef i, if_neg (Finset.mem_compl.mp hi)]
+  -- Off topIndices k, λᵢ ≤ λₖ, so (μ - λᵢ)² ≥ (μ - λₖ)²
+  have h_gap_i : ∀ i ∈ (topIndices k hk)ᶜ,
+      (μ - hA.eigenvalues₀ ⟨k, hk⟩) ^ 2 ≤ (μ - hA.eigenvalues i) ^ 2 := by
+    intro i hi
+    have h_le := eigenvalues_le_of_not_mem_topIndices hA hk (Finset.mem_compl.mp hi)
+    exact pow_le_pow_left₀ (by linarith) (by linarith) 2
+  have h_key : (μ - hA.eigenvalues₀ ⟨k, hk⟩) ^ 2 * ‖w‖ ^ 2 ≤ ‖toEuclideanLin E v‖ ^ 2 := by
+    rw [hw_sq, Finset.mul_sum, hEv_sq]
+    calc ∑ i ∈ (topIndices k hk)ᶜ,
+          (μ - hA.eigenvalues₀ ⟨k, hk⟩) ^ 2 * ‖⟪hA.eigenvectorBasis i, v⟫‖ ^ 2
+        ≤ ∑ i ∈ (topIndices k hk)ᶜ,
+          (μ - hA.eigenvalues i) ^ 2 * ‖⟪hA.eigenvectorBasis i, v⟫‖ ^ 2 :=
+          Finset.sum_le_sum (fun i hi => mul_le_mul_of_nonneg_right (h_gap_i i hi) (sq_nonneg _))
+      _ ≤ ∑ i, (μ - hA.eigenvalues i) ^ 2 * ‖⟪hA.eigenvectorBasis i, v⟫‖ ^ 2 :=
+          Finset.sum_le_sum_of_subset_of_nonneg (Finset.subset_univ _)
+            (fun i _ _ => mul_nonneg (sq_nonneg _) (sq_nonneg _))
+  -- ‖E v‖ ≤ ‖E‖₂ ‖v‖
+  have h_op : ‖toEuclideanLin E v‖ ≤ ‖E‖ * ‖v‖ := Matrix.l2_opNorm_mulVec E v
+  have h1 : (μ - hA.eigenvalues₀ ⟨k, hk⟩) * ‖w‖ ≤ ‖toEuclideanLin E v‖ := by
+    refine le_of_sq_le_sq ?_ (norm_nonneg _)
+    rw [mul_pow]
+    exact h_key
+  exact h1.trans h_op
+
+/-- **Davis–Kahan for a top-k eigenspace in gap form, one vector at a time.** Let A be Hermitian
+    with gap δ = λₖ₋₁ - λₖ > ‖E‖₂, and let v be a unit vector with (A + E) v = μ v for some
+    μ ≥ λₖ₋₁ - ‖E‖₂. Then ‖v - P v‖ ≤ ‖E‖₂ / (δ - ‖E‖₂), with P as in `davis_kahan_topIndices`.
+    (For k = 0 the index k - 1 is 0 in ℕ, so δ = 0 and the hypothesis cannot hold.) -/
+theorem davis_kahan_topIndices_of_norm_lt_gap (A E : Matrix n n ℂ) (hA : A.IsHermitian) (k : ℕ)
+    (hk : k < Fintype.card n) (v : EuclideanSpace ℂ n) (hv1 : ‖v‖ = 1) (μ : ℝ)
+    (hv : toEuclideanLin (A + E) v = (μ : ℂ) • v)
+    (hμ : hA.eigenvalues₀ ⟨k - 1, by omega⟩ - ‖E‖ ≤ μ)
+    (h_small : ‖E‖ < hA.eigenvalues₀ ⟨k - 1, by omega⟩ - hA.eigenvalues₀ ⟨k, hk⟩) :
+    ‖v - ∑ i ∈ topIndices k hk, ⟪hA.eigenvectorBasis i, v⟫ • hA.eigenvectorBasis i‖ ≤
+      ‖E‖ / (hA.eigenvalues₀ ⟨k - 1, by omega⟩ - hA.eigenvalues₀ ⟨k, hk⟩ - ‖E‖) := by
+  have hμk : hA.eigenvalues₀ ⟨k, hk⟩ < μ := by linarith
+  have h_main := davis_kahan_topIndices A E hA k hk v μ hv hμk
+  rw [hv1, mul_one] at h_main
+  have h_den : 0 < hA.eigenvalues₀ ⟨k - 1, by omega⟩ - hA.eigenvalues₀ ⟨k, hk⟩ - ‖E‖ := by
+    linarith
+  rw [le_div_iff₀ h_den]
+  calc ‖v - ∑ i ∈ topIndices k hk, ⟪hA.eigenvectorBasis i, v⟫ • hA.eigenvectorBasis i‖ *
+        (hA.eigenvalues₀ ⟨k - 1, by omega⟩ - hA.eigenvalues₀ ⟨k, hk⟩ - ‖E‖)
+      ≤ ‖v - ∑ i ∈ topIndices k hk, ⟪hA.eigenvectorBasis i, v⟫ • hA.eigenvectorBasis i‖ *
+        (μ - hA.eigenvalues₀ ⟨k, hk⟩) :=
+        mul_le_mul_of_nonneg_left (by linarith) (norm_nonneg _)
+    _ = (μ - hA.eigenvalues₀ ⟨k, hk⟩) *
+        ‖v - ∑ i ∈ topIndices k hk, ⟪hA.eigenvectorBasis i, v⟫ • hA.eigenvectorBasis i‖ :=
+        mul_comm _ _
+    _ ≤ ‖E‖ := h_main
+
+/-- **Davis–Kahan sin Θ bound for the top-k eigenspace (Frobenius form).** Let A, E be
+    Hermitian, k < n, and ‖E‖₂ < δ = λₖ₋₁(A) - λₖ(A) (which forces k ≥ 1). Let uᵢ and ũᵢ be the
+    eigenvector bases of A and A + E, and P the orthogonal projection onto
+    span {uᵢ : i ∈ topIndices k}. Then Σ_{j ∈ topIndices k} ‖ũⱼ - P ũⱼ‖² ≤ k (‖E‖₂ / (δ - ‖E‖₂))².
+    The left side is ‖sin Θ‖_F² for the top-k eigenspaces of A and A + E. -/
+theorem davis_kahan_sin_theta (A E : Matrix n n ℂ) (hA : A.IsHermitian) (hE : E.IsHermitian)
+    (k : ℕ) (hk : k < Fintype.card n)
+    (h_small : ‖E‖ < hA.eigenvalues₀ ⟨k - 1, by omega⟩ - hA.eigenvalues₀ ⟨k, hk⟩) :
+    ∑ j ∈ topIndices k hk,
+        ‖(hA.add hE).eigenvectorBasis j - ∑ i ∈ topIndices k hk,
+          ⟪hA.eigenvectorBasis i, (hA.add hE).eigenvectorBasis j⟫ • hA.eigenvectorBasis i‖ ^ 2 ≤
+      k * (‖E‖ / (hA.eigenvalues₀ ⟨k - 1, by omega⟩ - hA.eigenvalues₀ ⟨k, hk⟩ - ‖E‖)) ^ 2 := by
+  have h_each : ∀ j ∈ topIndices k hk,
+      ‖(hA.add hE).eigenvectorBasis j - ∑ i ∈ topIndices k hk,
+          ⟪hA.eigenvectorBasis i, (hA.add hE).eigenvectorBasis j⟫ • hA.eigenvectorBasis i‖ ^ 2 ≤
+        (‖E‖ / (hA.eigenvalues₀ ⟨k - 1, by omega⟩ - hA.eigenvalues₀ ⟨k, hk⟩ - ‖E‖)) ^ 2 := by
+    intro j hj
+    -- ũⱼ is a unit eigenvector of A + E with eigenvalue ≥ λₖ₋₁(A + E) ≥ λₖ₋₁(A) - ‖E‖₂
+    have hv1 : ‖(hA.add hE).eigenvectorBasis j‖ = 1 :=
+      (hA.add hE).eigenvectorBasis.orthonormal.1 j
+    have hμ : hA.eigenvalues₀ ⟨k - 1, by omega⟩ - ‖E‖ ≤ (hA.add hE).eigenvalues j :=
+      (eigenvalues₀_sub_norm_le_add hA hE ⟨k - 1, by omega⟩).trans
+        (le_eigenvalues_of_mem_topIndices (hA.add hE) hk hj)
+    have h := davis_kahan_topIndices_of_norm_lt_gap A E hA k hk _ hv1 _
+      (toEuclideanLin_eigenvectorBasis (hA.add hE) j) hμ h_small
+    exact pow_le_pow_left₀ (norm_nonneg _) h 2
+  have h_sum := Finset.sum_le_sum h_each
+  rw [Finset.sum_const, card_topIndices, nsmul_eq_mul] at h_sum
+  exact h_sum
+
+end TopK
+
 /-! ## Top right singular vectors (through the Gram matrix) -/
 
 section SingularVector
@@ -296,6 +480,39 @@ theorem spectralGap_mul_norm_le_sq_sub_sq [Nonempty n] (A : Matrix n n ℂ)
   have h01 : SVD.singularValues₀ A ⟨1, h2⟩ ≤ SVD.singularValues₀ A ⟨0, by omega⟩ :=
     SVD.singularValues₀_antitone A (Fin.le_def.mpr (Nat.zero_le _))
   nlinarith
+
+/-- ‖Ãᴴ Ã - Aᴴ A‖₂ ≤ ‖Ã - A‖₂ (‖Ã‖₂ + ‖A‖₂), from Ãᴴ Ã - Aᴴ A = Ãᴴ (Ã - A) + (Ã - A)ᴴ A. -/
+theorem norm_gram_sub_le (A Ã : Matrix n n ℂ) :
+    ‖Ãᴴ * Ã - Aᴴ * A‖ ≤ ‖Ã - A‖ * (‖Ã‖ + ‖A‖) := by
+  have h_split : Ãᴴ * Ã - Aᴴ * A = Ãᴴ * (Ã - A) + (Ã - A)ᴴ * A := by
+    rw [conjTranspose_sub, Matrix.mul_sub, Matrix.sub_mul]
+    abel
+  have h_star : ∀ X : Matrix n n ℂ, ‖Xᴴ‖ = ‖X‖ := fun X => Matrix.l2_opNorm_conjTranspose X
+  calc ‖Ãᴴ * Ã - Aᴴ * A‖ = ‖Ãᴴ * (Ã - A) + (Ã - A)ᴴ * A‖ := by rw [h_split]
+    _ ≤ ‖Ãᴴ * (Ã - A)‖ + ‖(Ã - A)ᴴ * A‖ := norm_add_le _ _
+    _ ≤ ‖Ãᴴ‖ * ‖Ã - A‖ + ‖(Ã - A)ᴴ‖ * ‖A‖ := add_le_add (norm_mul_le _ _) (norm_mul_le _ _)
+    _ = ‖Ã - A‖ * (‖Ã‖ + ‖A‖) := by rw [h_star, h_star]; ring
+
+/-- **Perturbation of the top right singular vector, in ‖Ã - A‖₂ and the spectral gap.** Let
+    η = ‖Ã - A‖₂ (‖Ã‖₂ + ‖A‖₂) and γ = `spectralGap A * ‖A‖₂` = (σ₀ - σ₁) σ₀. If η < γ and v is
+    a unit eigenvector of Ãᴴ Ã for its largest eigenvalue, then ‖v - ⟨u₀, v⟩ u₀‖ ≤ η / (γ - η),
+    where u₀ is the top eigenvector of Aᴴ A. For small ‖Ã - A‖₂ this is about
+    2 ‖Ã - A‖₂ / (σ₀ - σ₁), twice Wedin's bound. -/
+theorem top_right_singular_vector_perturbation_of_spectralGap [Nonempty n] (A Ã : Matrix n n ℂ)
+    (h2 : 1 < Fintype.card n) (v : EuclideanSpace ℂ n) (hv1 : ‖v‖ = 1)
+    (hv : toEuclideanLin (Ãᴴ * Ã) v =
+      ((posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues₀ ⟨0, by omega⟩ : ℂ) • v)
+    (h_small : ‖Ã - A‖ * (‖Ã‖ + ‖A‖) < Coherence.spectralGap A * ‖A‖) :
+    ‖v - ⟪(posSemidef_conjTranspose_mul_self A).isHermitian.eigenvectorBasis (topIndex h2), v⟫ •
+        (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvectorBasis (topIndex h2)‖ ≤
+      ‖Ã - A‖ * (‖Ã‖ + ‖A‖) / (Coherence.spectralGap A * ‖A‖ - ‖Ã - A‖ * (‖Ã‖ + ‖A‖)) := by
+  have hF := norm_gram_sub_le A Ã
+  have hγ := spectralGap_mul_norm_le_sq_sub_sq A h2
+  have h_small' : ‖Ãᴴ * Ã - Aᴴ * A‖ <
+      SVD.singularValues₀ A ⟨0, by omega⟩ ^ 2 - SVD.singularValues₀ A ⟨1, h2⟩ ^ 2 := by
+    linarith
+  have h := top_right_singular_vector_perturbation A Ã h2 v hv1 hv h_small'
+  exact h.trans (div_le_div₀ (by positivity) hF (by linarith) (by linarith))
 
 end SingularVector
 
