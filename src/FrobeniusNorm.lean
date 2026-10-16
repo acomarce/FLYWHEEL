@@ -62,12 +62,12 @@ lemma Complex.norm_rpow_two_eq_star_mul_self (z : ℂ) : ‖z‖ ^ (2:ℝ) = (st
   rw [Real.rpow_two]
   exact Complex.norm_sq_eq_star_mul_self z
 
-omit [DecidableEq n] in
-/-- ‖A‖_F² = Re tr(Aᴴ A). Standard identity. -/
-theorem frobenius_norm_sq_eq_trace (A : Matrix n n ℂ) :
+omit [DecidableEq n] [DecidableEq m] in
+/-- ‖A‖_F² = Re tr(Aᴴ A), for rectangular `A`. Standard identity. -/
+theorem frobenius_norm_sq_eq_trace (A : Matrix m n ℂ) :
     ‖A‖^2 = (trace (Aᴴ * A)).re := by
   -- Show the sum part directly using ℝ powers
-  have key : ∑ i : n, ∑ j : n, ‖A i j‖ ^ (2:ℝ) = (trace (Aᴴ * A)).re := by
+  have key : ∑ i : m, ∑ j : n, ‖A i j‖ ^ (2:ℝ) = (trace (Aᴴ * A)).re := by
     simp only [trace, diag_apply, mul_apply, conjTranspose_apply]
     rw [Finset.sum_comm]
     conv_rhs => rw [Complex.re_sum]
@@ -79,13 +79,13 @@ theorem frobenius_norm_sq_eq_trace (A : Matrix n n ℂ) :
     exact Complex.norm_rpow_two_eq_star_mul_self (A i j)
   -- Now the goal is to show ‖A‖^2 = ...
   rw [frobenius_norm_def]
-  have h_nonneg : 0 ≤ ∑ i : n, ∑ j : n, ‖A i j‖ ^ (2:ℝ) :=
+  have h_nonneg : 0 ≤ ∑ i : m, ∑ j : n, ‖A i j‖ ^ (2:ℝ) :=
     Finset.sum_nonneg (fun i _ => Finset.sum_nonneg (fun j _ => Real.rpow_nonneg (norm_nonneg _) _))
   rw [sq]
   -- x^(1/2) * x^(1/2) = x for x ≥ 0
-  have rpow_half_mul_self : (∑ i : n, ∑ j : n, ‖A i j‖ ^ (2:ℝ)) ^ (1/2 : ℝ) *
-                            (∑ i : n, ∑ j : n, ‖A i j‖ ^ (2:ℝ)) ^ (1/2 : ℝ) =
-                            ∑ i : n, ∑ j : n, ‖A i j‖ ^ (2:ℝ) := by
+  have rpow_half_mul_self : (∑ i : m, ∑ j : n, ‖A i j‖ ^ (2:ℝ)) ^ (1/2 : ℝ) *
+                            (∑ i : m, ∑ j : n, ‖A i j‖ ^ (2:ℝ)) ^ (1/2 : ℝ) =
+                            ∑ i : m, ∑ j : n, ‖A i j‖ ^ (2:ℝ) := by
     have h2ne : (2 : ℝ)⁻¹ + (2 : ℝ)⁻¹ ≠ 0 := by norm_num
     have half_eq : (1 : ℝ) / 2 = (2 : ℝ)⁻¹ := one_div 2
     rw [half_eq]
@@ -95,24 +95,26 @@ theorem frobenius_norm_sq_eq_trace (A : Matrix n n ℂ) :
 
 /-! ### Unitary Invariance of Trace -/
 
-/-- Left multiplication by a unitary matrix preserves trace(Aᴴ * A).
+omit [DecidableEq n] in
+/-- Left multiplication by a unitary matrix preserves trace(Aᴴ * A), for rectangular `A`.
 Uses: (U*A)ᴴ*(U*A) = Aᴴ*Uᴴ*U*A = Aᴴ*A since Uᴴ*U = 1. -/
-lemma trace_conjTranspose_unitary_mul (U : unitaryGroup n ℂ) (A : Matrix n n ℂ) :
-    trace (((U : Matrix n n ℂ) * A)ᴴ * ((U : Matrix n n ℂ) * A)) = trace (Aᴴ * A) := by
-  have h_unitary : (U : Matrix n n ℂ)ᴴ * (U : Matrix n n ℂ) = 1 := by
+lemma trace_conjTranspose_unitary_mul (U : unitaryGroup m ℂ) (A : Matrix m n ℂ) :
+    trace (((U : Matrix m m ℂ) * A)ᴴ * ((U : Matrix m m ℂ) * A)) = trace (Aᴴ * A) := by
+  have h_unitary : (U : Matrix m m ℂ)ᴴ * (U : Matrix m m ℂ) = 1 := by
     have h := mem_unitaryGroup_iff'.mp U.2
     simp only [star_eq_conjTranspose] at h
     exact h
   simp only [conjTranspose_mul]
   -- Goal: (Aᴴ * Uᴴ * (U * A)).trace = (Aᴴ * A).trace
-  have h1 : Aᴴ * (U : Matrix n n ℂ)ᴴ * ((U : Matrix n n ℂ) * A) =
-            Aᴴ * ((U : Matrix n n ℂ)ᴴ * (U : Matrix n n ℂ)) * A := by
+  have h1 : Aᴴ * (U : Matrix m m ℂ)ᴴ * ((U : Matrix m m ℂ) * A) =
+            Aᴴ * ((U : Matrix m m ℂ)ᴴ * (U : Matrix m m ℂ)) * A := by
     rw [mul_assoc, mul_assoc, mul_assoc]
   rw [h1, h_unitary, mul_one]
 
-/-- Right multiplication by a unitary matrix preserves trace(Aᴴ * A).
+omit [DecidableEq m] in
+/-- Right multiplication by a unitary matrix preserves trace(Aᴴ * A), for rectangular `A`.
 Uses trace cyclicity: trace(VᴴAᴴAV) = trace(VVᴴAᴴA) = trace(AᴴA) since VVᴴ = 1. -/
-lemma trace_conjTranspose_mul_unitary (A : Matrix n n ℂ) (V : unitaryGroup n ℂ) :
+lemma trace_conjTranspose_mul_unitary (A : Matrix m n ℂ) (V : unitaryGroup n ℂ) :
     trace ((A * (V : Matrix n n ℂ))ᴴ * (A * (V : Matrix n n ℂ))) = trace (Aᴴ * A) := by
   have h_unitary : (V : Matrix n n ℂ) * (V : Matrix n n ℂ)ᴴ = 1 := by
     have h := mem_unitaryGroup_iff.mp V.2
@@ -130,18 +132,20 @@ lemma trace_conjTranspose_mul_unitary (A : Matrix n n ℂ) (V : unitaryGroup n �
 
 /-! ### Unitary Invariance of Frobenius Norm -/
 
-/-- Left multiplication by unitary preserves Frobenius norm. -/
-theorem frobenius_norm_unitary_mul (U : unitaryGroup n ℂ) (A : Matrix n n ℂ) :
-    ‖(U : Matrix n n ℂ) * A‖ = ‖A‖ := by
-  have h_sq : ‖(U : Matrix n n ℂ) * A‖^2 = ‖A‖^2 := by
+omit [DecidableEq n] in
+/-- Left multiplication by unitary preserves Frobenius norm, for rectangular `A`. -/
+theorem frobenius_norm_unitary_mul (U : unitaryGroup m ℂ) (A : Matrix m n ℂ) :
+    ‖(U : Matrix m m ℂ) * A‖ = ‖A‖ := by
+  have h_sq : ‖(U : Matrix m m ℂ) * A‖^2 = ‖A‖^2 := by
     rw [frobenius_norm_sq_eq_trace, frobenius_norm_sq_eq_trace]
     rw [trace_conjTranspose_unitary_mul]
-  have h1 : 0 ≤ ‖(U : Matrix n n ℂ) * A‖ := norm_nonneg _
+  have h1 : 0 ≤ ‖(U : Matrix m m ℂ) * A‖ := norm_nonneg _
   have h2 : 0 ≤ ‖A‖ := norm_nonneg _
   rw [← Real.sqrt_sq h1, ← Real.sqrt_sq h2, h_sq]
 
-/-- Right multiplication by unitary preserves Frobenius norm. -/
-theorem frobenius_norm_mul_unitary (A : Matrix n n ℂ) (V : unitaryGroup n ℂ) :
+omit [DecidableEq m] in
+/-- Right multiplication by unitary preserves Frobenius norm, for rectangular `A`. -/
+theorem frobenius_norm_mul_unitary (A : Matrix m n ℂ) (V : unitaryGroup n ℂ) :
     ‖A * (V : Matrix n n ℂ)‖ = ‖A‖ := by
   have h_sq : ‖A * (V : Matrix n n ℂ)‖^2 = ‖A‖^2 := by
     rw [frobenius_norm_sq_eq_trace, frobenius_norm_sq_eq_trace]
