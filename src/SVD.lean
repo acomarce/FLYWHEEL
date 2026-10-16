@@ -1982,6 +1982,25 @@ noncomputable def eigenvaluesBijection (α : Type*) [Fintype α] : α ≃ Fin (F
 
 /-! ### Rectangular "Diagonal" Matrix -/
 
+/-- The rectangular "diagonal" matrix `Matrix m n ℂ` with diagonal entries
+`σ : Fin (min #m #n) → ℝ`.
+
+- `rectDiagonal σ i j = (σ k : ℂ)` if `eigenvaluesBijection m i` and `eigenvaluesBijection n j` have
+  the same value `k < min(#m, #n)`
+- `rectDiagonal σ i j = 0` otherwise
+
+So every row and every column has at most one nonzero entry. This is the rectangular
+analogue of `diagonal`, with the diagonal positions fixed by `eigenvaluesBijection`.
+`singularDiagonal A` is `rectDiagonal (singularValues A)` (`singularDiagonal_eq_rectDiagonal`). -/
+noncomputable def rectDiagonal (σ : Fin (min (Fintype.card m) (Fintype.card n)) → ℝ) :
+    Matrix m n ℂ := fun i j =>
+  let fi : Fin (Fintype.card m) := eigenvaluesBijection m i
+  let fj : Fin (Fintype.card n) := eigenvaluesBijection n j
+  if h : fi.val = fj.val ∧ fi.val < min (Fintype.card m) (Fintype.card n) then
+    Complex.ofReal (σ ⟨fi.val, h.2⟩)
+  else
+    0
+
 /-- The rectangular "diagonal" matrix S : Matrix m n ℂ containing singular values.
 
 For a rectangular m×n matrix, S has the structure:
@@ -1999,6 +2018,12 @@ noncomputable def singularDiagonal (A : Matrix m n ℂ) : Matrix m n ℂ := fun 
     Complex.ofReal (singularValues A ⟨fi.val, h.2⟩)
   else
     0
+
+omit [DecidableEq m] in
+/-- `singularDiagonal A` is the rectangular diagonal matrix of the singular values of `A`. -/
+theorem singularDiagonal_eq_rectDiagonal (A : Matrix m n ℂ) :
+    singularDiagonal A = rectDiagonal (singularValues A) :=
+  rfl
 
 /-! ### Key Lemmas for Rectangular SVD
 
@@ -3529,18 +3554,25 @@ theorem AV_eq_US_rectangular (A : Matrix m n ℂ) :
 /-! #### Main Decomposition Theorem -/
 
 /-- **Rectangular SVD Decomposition (Existence Form)**:
-    Any m × n complex matrix A can be decomposed as A = U * S * Vᴴ
+    Any m × n complex matrix A can be decomposed as A = U * rectDiagonal σ * Vᴴ
     where:
-    - U ∈ unitaryGroup m ℂ (m × m unitary matrix of left singular vectors)
-    - V ∈ unitaryGroup n ℂ (n × n unitary matrix of right singular vectors)
-    - S : Matrix m n ℂ (rectangular "diagonal" with non-negative singular values)
+    - U ∈ unitaryGroup m ℂ (m × m unitary)
+    - V ∈ unitaryGroup n ℂ (n × n unitary)
+    - σ : Fin (min #m #n) → ℝ is non-negative and non-increasing, and `rectDiagonal σ`
+      is the m × n matrix with σ on its diagonal and 0 elsewhere
 
-    This is the natural extension of SVD to non-square matrices. -/
+    The proof takes U = `constructedU_rectangular A`, V = `rightUnitary A` and
+    σ = `singularValues A`, and uses `AV_eq_US_rectangular`. This mirrors the square
+    `Matrix.SVD.svd_decomposition`. -/
 theorem svd_decomposition_rectangular (A : Matrix m n ℂ) :
-    ∃ (U : unitaryGroup m ℂ) (V : unitaryGroup n ℂ) (S : Matrix m n ℂ),
-      A = (U : Matrix m m ℂ) * S * star (V : Matrix n n ℂ) := by
-  use constructedU_rectangular A, rightUnitary A, singularDiagonal A
-  -- Main equation: A = U * S * Vᴴ
+    ∃ (U : unitaryGroup m ℂ) (V : unitaryGroup n ℂ)
+      (σ : Fin (min (Fintype.card m) (Fintype.card n)) → ℝ),
+      (∀ k, 0 ≤ σ k) ∧ Antitone σ ∧
+      A = (U : Matrix m m ℂ) * rectDiagonal σ * star (V : Matrix n n ℂ) := by
+  refine ⟨constructedU_rectangular A, rightUnitary A, singularValues A,
+    singularValues_nonneg A, singularValues_antitone A, ?_⟩
+  -- Main equation: A = U * S * Vᴴ, where S = singularDiagonal A = rectDiagonal σ
+  rw [← singularDiagonal_eq_rectDiagonal]
   have h_AV := AV_eq_US_rectangular A
   have h_V_unitary := mem_unitaryGroup_iff.mp (rightUnitary A).2
   calc A = A * (1 : Matrix n n ℂ) := by rw [Matrix.mul_one]

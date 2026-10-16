@@ -182,8 +182,6 @@ Traps:
 ## Source comments that overstate what is proved
 
 Details are in the `docs/` notes.
-- `Matrix.SVD.Rectangular.svd_decomposition_rectangular` does not constrain `S`, so as stated
-  it is trivially true. The real content is `AV_eq_US_rectangular` with `singularDiagonal`.
 - No rectangular Eckart–Young (optimality) theorem exists. TightBounds proves the rectangular
   spectral error formula and the rank bound only.
 - SpectralNormGap's "tight for unit vectors" and its `Tightness` section prove only `≤`.

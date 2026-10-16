@@ -79,9 +79,12 @@ explains why: it stays consistent with `rightUnitary`, and it avoids the `equivF
 - `finMinOfAbstract`, which goes the other way.
 - `correspondingN`, which pairs `m`-indices with `n`-indices.
 
-**`S`.** `singularDiagonal A : Matrix m n ℂ` holds `σ` at `(i, j)` when
-`eigenvaluesBijection m i` and `eigenvaluesBijection n j` are equal and `< min`; it is 0
-elsewhere.
+**`S`.**
+- `rectDiagonal σ : Matrix m n ℂ`, for any `σ : Fin (min #m #n) → ℝ`, holds `σ k` at `(i, j)`
+  when `eigenvaluesBijection m i` and `eigenvaluesBijection n j` both have value `k < min`;
+  it is 0 elsewhere.
+- `singularDiagonal A` is the same matrix for `σ = singularValues A`, written out separately
+  (TightBounds unfolds it). `singularDiagonal_eq_rectDiagonal` relates the two by `rfl`.
 
 **`U`.**
 - `extendedONB_rectangular_v2` extends the `m`-indexed `leftSingularVectorByM`. This gives
@@ -91,10 +94,12 @@ elsewhere.
 
 **Results:**
 - `AV_eq_US_rectangular : A * rightUnitary A = constructedU_rectangular A * singularDiagonal A`.
-  This is the usable form of the theorem.
-- **`svd_decomposition_rectangular` is vacuous as stated.** It says `∃ U V S, A = U * S * star V`
-  with no constraint on `S` (take `U = V = 1`, `S = A`). Cite `AV_eq_US_rectangular` together
-  with `singularDiagonal` instead.
+  This names the witnesses.
+- `svd_decomposition_rectangular`:
+  `∃ U V σ, (∀ k, 0 ≤ σ k) ∧ Antitone σ ∧ A = U * rectDiagonal σ * star V`, the rectangular
+  analogue of `Matrix.SVD.svd_decomposition`. The witnesses are
+  `constructedU_rectangular A`, `rightUnitary A` and `singularValues A`. It does not state
+  `σ = singularValues A`; use `AV_eq_US_rectangular` when you need that.
 - Rank and trace facts: `rank_eq_card_nonzero_singularValues_rect`, `singularValues_sq_rect`,
   `sum_sq_singularValues_rect_eq_trace`.
 
