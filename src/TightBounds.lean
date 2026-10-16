@@ -1176,6 +1176,121 @@ theorem frobenius_error_truncatedSVD_rect (A : Matrix m' n' ℂ) (k : ℕ) :
 
 end FrobeniusErrorRect
 
+/-! ## Part 3c: Eckart–Young for Rectangular Matrices
+
+Both optimality theorems follow from rectangular Thompson interlacing
+(`Matrix.WeylInequality.interlacing_low_rank_subtraction_rect`): if rank(B) ≤ k, then
+σⱼ(A) ≤ σⱼ₋ₖ(A - B) for j ≥ k.
+-/
+
+section EckartYoungRect
+
+variable {m' n' : Type*} [Fintype m'] [Fintype n'] [DecidableEq m'] [DecidableEq n']
+
+/-- **Tail sum bound behind Eckart–Young:** if rank(B) ≤ k, then the squared discarded
+    singular values of A sum to at most the squared singular values of A - B:
+    Σᵢ (truncatedSingularValues_rect_tail A k i)² ≤ Σᵢ σᵢ(A - B)². -/
+theorem sum_sq_tail_le_sum_sq_singularValues_sub (A B : Matrix m' n' ℂ) (k : ℕ)
+    (hB : B.rank ≤ k) :
+    ∑ i, (truncatedSingularValues_rect_tail A k i) ^ 2 ≤
+      ∑ i, (SVD.Rectangular.singularValues (A - B) i) ^ 2 := by
+  -- Shift j ↦ j - k on the tail indices {j ≥ k}
+  let shift : Fin (min (Fintype.card m') (Fintype.card n')) →
+      Fin (min (Fintype.card m') (Fintype.card n')) := fun j => ⟨j.val - k, by omega⟩
+  let g : Fin (min (Fintype.card m') (Fintype.card n')) → ℝ := fun j =>
+    (SVD.Rectangular.singularValues (A - B) j) ^ 2
+  -- Step 1: the tail sum is a sum over {j ≥ k}
+  have h_lhs : ∑ i, (truncatedSingularValues_rect_tail A k i) ^ 2 =
+      ∑ j ∈ Finset.univ.filter (fun j : Fin (min (Fintype.card m') (Fintype.card n')) =>
+        k ≤ j.val), (SVD.Rectangular.singularValues A j) ^ 2 := by
+    rw [Finset.sum_filter]
+    apply Finset.sum_congr rfl
+    intro j _
+    by_cases hj : k ≤ j.val
+    · rw [if_pos hj, truncatedSingularValues_rect_tail_eq_of_ge A k j hj]
+    · rw [if_neg hj, truncatedSingularValues_rect_tail_eq_zero_of_lt A k j (not_le.mp hj),
+        zero_pow two_ne_zero]
+  -- Step 2: termwise interlacing σⱼ(A) ≤ σⱼ₋ₖ(A - B)
+  have h_term : ∀ j ∈ Finset.univ.filter
+      (fun j : Fin (min (Fintype.card m') (Fintype.card n')) => k ≤ j.val),
+      (SVD.Rectangular.singularValues A j) ^ 2 ≤ g (shift j) := by
+    intro j hj
+    have hjk : k ≤ j.val := (Finset.mem_filter.mp hj).2
+    have h := Matrix.WeylInequality.interlacing_low_rank_subtraction_rect A B k hB j hjk
+    exact (sq_le_sq₀ (SVD.Rectangular.singularValues_nonneg A j)
+      (SVD.Rectangular.singularValues_nonneg (A - B) (shift j))).mpr h
+  -- Step 3: the shift is injective on {j ≥ k}, so the shifted sum is at most the full sum
+  have h_inj : Set.InjOn shift
+      (↑(Finset.univ.filter
+        (fun j : Fin (min (Fintype.card m') (Fintype.card n')) => k ≤ j.val)) :
+        Set (Fin (min (Fintype.card m') (Fintype.card n')))) := by
+    intro j₁ hj₁ j₂ hj₂ heq
+    have h1 : k ≤ j₁.val := (Finset.mem_filter.mp (Finset.mem_coe.mp hj₁)).2
+    have h2 : k ≤ j₂.val := (Finset.mem_filter.mp (Finset.mem_coe.mp hj₂)).2
+    have h_val : j₁.val - k = j₂.val - k := congrArg Fin.val heq
+    exact Fin.ext (by omega)
+  calc ∑ i, (truncatedSingularValues_rect_tail A k i) ^ 2
+      = ∑ j ∈ Finset.univ.filter (fun j : Fin (min (Fintype.card m') (Fintype.card n')) =>
+          k ≤ j.val), (SVD.Rectangular.singularValues A j) ^ 2 := h_lhs
+    _ ≤ ∑ j ∈ Finset.univ.filter (fun j : Fin (min (Fintype.card m') (Fintype.card n')) =>
+          k ≤ j.val), g (shift j) := Finset.sum_le_sum h_term
+    _ = ∑ j ∈ (Finset.univ.filter (fun j : Fin (min (Fintype.card m') (Fintype.card n')) =>
+          k ≤ j.val)).image shift, g j := (Finset.sum_image h_inj).symm
+    _ ≤ ∑ j, g j :=
+        Finset.sum_le_sum_of_subset_of_nonneg (Finset.subset_univ _)
+          (fun j _ _ => sq_nonneg (SVD.Rectangular.singularValues (A - B) j))
+
+section Frobenius
+
+attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
+
+/-- **Eckart–Young theorem (Frobenius norm, rectangular).** The truncated SVD is a best
+    rank-k approximation in Frobenius norm: for any B with rank(B) ≤ k,
+    ‖A - truncatedSVD_rect A k‖_F ≤ ‖A - B‖_F. -/
+theorem eckart_young_frobenius_rect (A B : Matrix m' n' ℂ) (k : ℕ) (hB : B.rank ≤ k) :
+    ‖A - truncatedSVD_rect A k‖ ≤ ‖A - B‖ := by
+  apply (sq_le_sq₀ (norm_nonneg _) (norm_nonneg _)).mp
+  rw [frobenius_error_truncatedSVD_rect,
+    SVD.Rectangular.frobeniusNorm_sq_eq_sum_singularValues_sq_rect (A - B)]
+  exact sum_sq_tail_le_sum_sq_singularValues_sub A B k hB
+
+end Frobenius
+
+section Spectral
+
+attribute [local instance] Matrix.instL2OpNormedAddCommGroup
+attribute [local instance] Matrix.instL2OpNormedSpace
+attribute [local instance] Matrix.instL2OpNormedRing
+attribute [local instance] Matrix.instL2OpNormedAlgebra
+attribute [local instance] Matrix.instL2OpMetricSpace
+attribute [local instance] Matrix.instCStarRing
+
+/-- **Eckart–Young theorem (spectral norm, rectangular).** The truncated SVD is a best
+    rank-k approximation in spectral norm: for any B with rank(B) ≤ k,
+    ‖A - truncatedSVD_rect A k‖₂ ≤ ‖A - B‖₂. -/
+theorem eckart_young_spectral_rect (A B : Matrix m' n' ℂ) (k : ℕ) (hB : B.rank ≤ k) :
+    ‖A - truncatedSVD_rect A k‖ ≤ ‖A - B‖ := by
+  by_cases hk : k < min (Fintype.card m') (Fintype.card n')
+  · -- The error is σₖ(A) ≤ σ₀(A - B) ≤ ‖A - B‖₂
+    rw [spectral_error_truncatedSVD_rect A k hk]
+    have h0 : 0 < min (Fintype.card m') (Fintype.card n') := by omega
+    have h_norm : ‖A - B‖ = SVD.Rectangular.maxSingularValue h0 (A - B) :=
+      SVD.Rectangular.spectral_norm_eq_max_singularValue_rect h0 (A - B)
+    have h_top : ∀ j, SVD.Rectangular.singularValues (A - B) j ≤ ‖A - B‖ := by
+      intro j
+      rw [h_norm]
+      exact Finset.le_sup' _ (Finset.mem_univ j)
+    have h_interlace :=
+      Matrix.WeylInequality.interlacing_low_rank_subtraction_rect A B k hB ⟨k, hk⟩ le_rfl
+    exact le_trans h_interlace (h_top _)
+  · -- k ≥ min #m' #n': the truncation is A itself
+    rw [truncatedSVD_rect_full A k (not_lt.mp hk), sub_self, norm_zero]
+    exact norm_nonneg _
+
+end Spectral
+
+end EckartYoungRect
+
 /-! ## Part 4: Tight Bound for Kronecker Approximation
 
 The main theorems for best rank-1 Kronecker approximation error bounds.
