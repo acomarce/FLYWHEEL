@@ -186,7 +186,7 @@ theorem weyl_eigenvalue_lower_bound (A B : Matrix n n ℂ)
   -- Therefore: λₖ(A+B) ≥ λₖ(A) + λₙ₋₁(B). QED!
 
   -- Step 1: λₖ(A+B) ≥ rayleighInf(A+B, W)
-  have h_step1 : (hA.add hB).eigenvalues₀ k ≥ CourantFischer.rayleighInf (A + B) (hA.add hB) W := by
+  have h_step1 : (hA.add hB).eigenvalues₀ k ≥ CourantFischer.rayleighInf (A + B) W := by
     -- rayleighInf_le_eigenvalue says rayleighInf ≤ eigenvalue
     -- We need to flip this to eigenvalue ≥ rayleighInf
     have hk_pos : (0 : Fin (Fintype.card n + 1)) < k_succ := by
@@ -198,7 +198,7 @@ theorem weyl_eigenvalue_lower_bound (A B : Matrix n n ℂ)
     convert h.ge using 1
 
   -- Step 2: rayleighInf(A+B, W) ≥ λₖ(A) + λₙ₋₁(B)
-  have h_step2 : CourantFischer.rayleighInf (A + B) (hA.add hB) W ≥
+  have h_step2 : CourantFischer.rayleighInf (A + B) W ≥
       hA.eigenvalues₀ k + hB.eigenvalues₀ minEigenvalueIdx := by
     unfold CourantFischer.rayleighInf CourantFischer.rayleighQuotient
     haveI : Nonempty { x : W // x.val ≠ 0 } := by
@@ -295,7 +295,7 @@ theorem weyl_eigenvalue_upper_bound (A B : Matrix n n ℂ)
   -- Using Courant-Fischer min-max:
   -- λₖ(A+B) = inf_{dim V = n-k} sup_{x ∈ V} R(x) ≤ sup_{x ∈ W} R_{A+B}(x)
 
-  have h_rayleighSup_bound : CourantFischer.rayleighSup (A + B) (hA.add hB) W ≤
+  have h_rayleighSup_bound : CourantFischer.rayleighSup (A + B) W ≤
       hA.eigenvalues₀ k + hB.eigenvalues₀ 0 := by
     unfold CourantFischer.rayleighSup CourantFischer.rayleighQuotient
     have hW_nonempty_local : ∃ x : W, x.val ≠ 0 := by
@@ -341,7 +341,7 @@ theorem weyl_eigenvalue_upper_bound (A B : Matrix n n ℂ)
   -- But wait, we need to verify the dimension formula.
   -- By Courant-Fischer min-max: λₖ(A+B) ≤ rayleighSup(A+B, W) for dim W = n - k
 
-  have h_step1 : (hA.add hB).eigenvalues₀ k ≤ CourantFischer.rayleighSup (A + B) (hA.add hB) W := by
+  have h_step1 : (hA.add hB).eigenvalues₀ k ≤ CourantFischer.rayleighSup (A + B) W := by
     have hW_nonempty : ∃ x : W, x.val ≠ 0 := by
       have h_pos : 0 < Module.finrank ℂ W := by
         rw [h_dim_W]
@@ -581,7 +581,7 @@ theorem weyl_singularValue_upper_aux (A B : Matrix n n ℂ) (k : Fin (Fintype.ca
   have h_CF := CourantFischer.eigenvalue_le_rayleighSup (Aᴴ * A) hAHA k_succ hk_pos W h_dim_adjusted
 
   -- Step 8: Bound rayleighSup(AᴴA, W) by (σₖ(B) + σ₁(A-B))²
-  have h_rayleighSup_bound : CourantFischer.rayleighSup (Aᴴ * A) hAHA W ≤
+  have h_rayleighSup_bound : CourantFischer.rayleighSup (Aᴴ * A) W ≤
       (Matrix.SVD.singularValues₀ B k + Matrix.SVD.singularValues₀ (A - B) 0)^2 := by
     unfold CourantFischer.rayleighSup CourantFischer.rayleighQuotient
     haveI : Nonempty { x : W // x.val ≠ 0 } := by

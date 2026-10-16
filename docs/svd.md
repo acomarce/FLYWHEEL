@@ -135,9 +135,9 @@ These sit outside any namespace:
 
 ## Rectangular truncation lives in TightBounds
 
-`Matrix.TightBounds` defines:
-- `singularValues₀_rect`, an alias of the rectangular `singularValues`;
-- `truncatedSVD_rect A k = constructedU_rectangular A * Sₖ * star (rightUnitary A)`.
+`Matrix.TightBounds` defines
+`truncatedSVD_rect A k = constructedU_rectangular A * Sₖ * star (rightUnitary A)`, where `Sₖ`
+keeps the sorted `Matrix.SVD.Rectangular.singularValues` at positions `< k`.
 
 It proves `truncatedSVD_rect_rank_le`, the spectral and Frobenius error formulas, and
 rectangular Eckart–Young in both norms. See `docs/eckart-young.md`.
