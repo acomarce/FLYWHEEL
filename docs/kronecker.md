@@ -94,16 +94,21 @@ best rank-1 approximation of `R C`.
 - `kroneckerCoherence C := coherenceFactorRect (R C)`.
 - `coherenceFactorRect_eq_coherenceFactor`: the rectangular and square coherence factors agree
   on square matrices.
-- `kronecker_approximation_coherence_characterization` combines `spectral_error_bound_via_R` with
-  the coherence identity `‖E‖₂ = ‖E‖_F / (√rank · μ)`.
+- `spectral_norm_eq_frobenius_div_coherence_rect` (SVD.lean): `‖E‖₂ = ‖E‖_F / (√rank · μ)` for
+  `E ≠ 0`. Applied to `E = R C − M` it describes the R-space error only; R does not preserve
+  `‖·‖₂`, so it says nothing about when `spectral_error_bound_via_R` is tight.
 - Convention: `μ ≈ 1` is *incoherent* (flat spectrum), `μ ≈ 1/√rank` is *coherent*.
   - `nearly_coherent_iff`, `nearly_coherent_bound`, `nearly_coherent_spectral_lower_bound`: for
     `E ≠ 0` and `ε < 1`, `μ(E) ≤ 1/((1 − ε)√rank E) ↔ (1 − ε)‖E‖_F ≤ ‖E‖₂`.
   - `incoherent_improved_bound`: `α ≤ μ(E)` gives `‖E‖₂ ≤ ‖E‖_F / (α √rank E)`.
-- Solution distance, for `A_F = truncatedSVD A 1` and any spectral minimizer
-  `A_* = spectralOptimalRank1 A`:
+- Equality cases (square `E ≠ 0`): `coherenceFactor_eq_one_iff` (μ(E) = 1 iff every nonzero
+  σᵢ equals ‖E‖₂) and `norm_eq_frobeniusNorm'_iff_rank_le_one` (‖E‖₂ = ‖E‖_F iff rank E ≤ 1,
+  for all E). `stableRank_le_effectiveRank`: (‖E‖_F/‖E‖₂)² ≤ effectiveRank E.
+- Solution distance, for `A_F = truncatedSVD A 1` and any `M` with `‖A − M‖₂ ≤ ‖A − A_F‖₂`
+  (every spectral minimizer; `norm_sub_spectralOptimalRank1_le` gives it for the chosen
+  `A_* = spectralOptimalRank1 A`):
   - `spectral_error_truncatedSVD_one_eq_spectralOptimalRank1`: `‖A − A_F‖₂ = ‖A − A_*‖₂`;
-  - `frobenius_spectral_solution_distance`: `‖A_F − A_*‖₂ ≤ 2‖A − A_F‖₂`;
-  - `frobenius_spectral_distance_with_gap`: `‖A_F − A_*‖₂ ≤ 2(‖A‖₂ − spectralGap A)`;
-  - `decision_criterion`: `spectralGap A ≥ (1 − δ/2)‖A‖₂` gives `‖A_F − A_*‖₂ ≤ δ‖A‖₂`.
+  - `frobenius_spectral_solution_distance`: `‖A_F − M‖₂ ≤ 2‖A − A_F‖₂`;
+  - `frobenius_spectral_distance_with_gap`: `‖A_F − M‖₂ ≤ 2(‖A‖₂ − spectralGap A)`;
+  - `decision_criterion`: `spectralGap A ≥ (1 − δ/2)‖A‖₂` gives `‖A_F − M‖₂ ≤ δ‖A‖₂`.
   - Not formalized: Wedin-type bounds on singular *subspaces* in terms of the gap.
