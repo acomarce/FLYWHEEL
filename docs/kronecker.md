@@ -117,4 +117,7 @@ best rank-1 approximation of `R C`.
   - `frobenius_spectral_solution_distance`: `‖A_F − M‖₂ ≤ 2‖A − A_F‖₂`;
   - `frobenius_spectral_distance_with_gap`: `‖A_F − M‖₂ ≤ 2(‖A‖₂ − spectralGap A)`;
   - `decision_criterion`: `spectralGap A ≥ (1 − δ/2)‖A‖₂` gives `‖A_F − M‖₂ ≤ δ‖A‖₂`.
-  - Not formalized: Wedin-type bounds on singular *subspaces* in terms of the gap.
+  - Singular vectors: `Matrix.DavisKahan.top_right_singular_vector_perturbation_of_spectralGap`
+    bounds how far the top right singular vector of a square A moves, by η / (γ − η) with
+    η = ‖Ã − A‖₂ (‖Ã‖₂ + ‖A‖₂) and γ = spectralGap A · ‖A‖₂, through the Gram matrix
+    (`docs/davis-kahan.md`). Wedin's theorem itself is not formalized.
