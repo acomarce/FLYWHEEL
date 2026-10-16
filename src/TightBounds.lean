@@ -1348,12 +1348,12 @@ end VanLoanPitsianis
 
 /-! ## Part 5: Coherence and Spectral-Frobenius Coincidence
 
-A previous draft stated that high coherence of the rearranged error
+A previous draft stated that a large coherence factor of the rearranged error
 `E' = R(C) - truncatedSVD_rect (R C) 1` (`μ(E') ≥ 0.9`) forces
 `‖E‖₂ ≥ 0.9 · ‖E‖_F` for the original-space error `E = R⁻¹(E')`. That statement
 is false and has been removed:
 
-* High coherence bounds the spectral norm from *above* relative to Frobenius
+* A large coherence factor bounds the spectral norm from *above* relative to Frobenius
   (`‖E'‖_F / ‖E'‖₂ = √rank · μ(E')`, see `frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect`).
 * `R` preserves the Frobenius norm but not the spectral norm.
 

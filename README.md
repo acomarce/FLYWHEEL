@@ -21,7 +21,7 @@ FLYWHEEL provides machine-verified proofs of key results in numerical linear alg
 | [SpectralNormGap.lean](src/SpectralNormGap.lean) | Spectral vs. Frobenius bounds for Kronecker approximation |
 | [TightBounds.lean](src/TightBounds.lean) | Rectangular truncated SVD: error formulas, Eckart-Young, Van Loan-Pitsianis |
 | [CoherenceCharacterization.lean](src/CoherenceCharacterization.lean) | Coherence/incoherence characterization |
-| [TruncatedSVDRank1.lean](src/TruncatedSVDRank1.lean) | Truncated SVD for rank-1 matrices |
+| [TruncatedSVDRank1.lean](src/TruncatedSVDRank1.lean) | truncatedSVD A k = A when rank A ≤ k |
 
 ## Main Results
 
@@ -53,12 +53,21 @@ Short names below; full names, files and line numbers for every declaration are 
 - `spectral_error_truncatedSVD(_rect)`: ‖A - Aₖ‖₂ = σₖ (0-indexed)
 - `frobenius_error_truncatedSVD(_rect)`: ‖A - Aₖ‖_F² = Σᵢ≥ₖ σᵢ²
 
+### Spectral vs. Frobenius Norm
+- `norm_eq_frobeniusNorm'_iff_rank_le_one` / `spectral_eq_frobenius_rect_iff_rank_le_one`:
+  ‖A‖₂ = ‖A‖_F iff rank A ≤ 1 (square / rectangular)
+- `coherenceFactor_eq_one_iff`: the coherence factor ‖A‖_F / (√rank A · ‖A‖₂) equals 1 iff all
+  nonzero singular values are equal
+- `stableRank_le_effectiveRank`: (‖A‖_F / ‖A‖₂)² ≤ exp(entropy of σᵢ² / ‖A‖_F²)
+
 ### Kronecker Approximation
 - `R_kronecker`: R(A ⊗ B) = vec(A) vec(B)ᵀ; `R_frobenius_norm_eq`: R is a Frobenius isometry
 - `kroneckerApprox_optimal` (Van Loan-Pitsianis): `kroneckerApprox M`, the image under R⁻¹ of the
   rank-1 truncated SVD of R(M), satisfies ‖M - kroneckerApprox M‖_F ≤ ‖M - A ⊗ B‖_F for all A, B;
   `kroneckerApprox_isKronecker` shows it is itself a Kronecker product
 - `kroneckerApprox_error_sq`: its squared error is Σᵢ≥₁ σᵢ(R(M))²
+- `R_inv_spectral_eq_frobenius_iff_rank_le_one`: ‖R⁻¹X‖₂ ≤ ‖X‖_F is an equality iff
+  rank(R⁻¹X) ≤ 1
 
 Proof-architecture notes are in [docs/](docs/).
 

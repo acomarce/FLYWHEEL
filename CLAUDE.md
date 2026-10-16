@@ -99,6 +99,9 @@ Traps:
   `SpectralNormRectangular` declare fully qualified `Matrix.SVD.Rectangular.*` names (their
   private helpers stay at root). `RectangularCoherenceFactor` is genuinely root:
   `coherenceFactorRect`, `frobeniusNormRect`, ….
+- **"Gap" means two things.** The SpectralNormGap namespaces (`Matrix.Kronecker.SpectralGap*`)
+  are about ‖·‖₂ versus ‖·‖_F (the ratio ‖A‖_F/‖A‖₂ is √(stable rank)).
+  `Matrix.Coherence.spectralGap A` is σ₀ − σ₁.
 - **Nothing opens `Matrix.SVD.Rectangular`.** Downstream files spell names fully, e.g.
   `Matrix.SVD.Rectangular.singularValues` in WeylInequality and TightBounds.
 
@@ -187,5 +190,6 @@ Details are in the `docs/` notes.
   unique optimum. In Frobenius norm the best rank-k approximation is unique only when
   σₖ₋₁ > σₖ (0-indexed); in spectral norm optima are generally not unique.
 - Gap-dependent bounds stop at singular values: CoherenceCharacterization's
-  `frobenius_spectral_distance_with_gap` bounds ‖A_F − A_*‖₂ by 2(‖A‖₂ − spectralGap A). Nothing
+  `frobenius_spectral_distance_with_gap` bounds ‖A_F − M‖₂ by 2(‖A‖₂ − spectralGap A) for every
+  spectral minimizer M. Nothing
   bounds singular *subspaces* (Wedin/Davis–Kahan).
