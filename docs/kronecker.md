@@ -74,7 +74,7 @@ best rank-1 approximation of `R C`.
   `|σₖ(B⊗C) − σₖ(B'⊗C')| ≤ ‖B−B'‖‖C‖ + ‖B'‖‖C−C'‖` (Weyl plus the bound above).
 - `kronecker_perturbation_single_factor_B/C`: equality when one factor is unchanged.
 
-**SpectralNormGap, `Matrix.Kronecker.SpectralGap`.** Note the namespace is `Kronecker`, not
+**SpectralNormGap, `Matrix.Kronecker.SpectralBounds`.** Note the namespace is `Kronecker`, not
 `KroneckerRearrangement`.
 - `R_inv_spectral_le_frobenius : ‖R_inv M‖₂ ≤ ‖M‖_F`.
 - `spectral_error_bound_via_R : ‖C − R_inv M‖₂ ≤ ‖R C − M‖_F`. The main usable bound.
