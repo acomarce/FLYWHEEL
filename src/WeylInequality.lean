@@ -863,6 +863,7 @@ lemma finrank_ker_toEuclideanLin_ge' (C : Matrix n n ℂ) :
     exact (Submodule.equivMapOfInjective e.toLinearMap e.injective _).finrank_eq
   omega
 
+omit [Nonempty n] in
 /-- **Thompson's Singular Value Interlacing Inequality**
 
 For matrices A, B with rank(B) ≤ r:

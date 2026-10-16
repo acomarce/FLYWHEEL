@@ -114,7 +114,7 @@ These sit outside any namespace:
   - `coherenceFactorRect E = ‖E‖_F / (√rank E · ‖E‖₂)`, defined as 1 for `E = 0`;
   - `coherenceFactorRect_le_one` and `coherenceFactorRect_bounds`;
   - `frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect`.
-  
+
   The section docstring cites `coherenceFactorRect_eq_square_case`, which does not exist. The
   nearest lemma is `coherenceFactorRect_eq_formula`, which only unfolds the definition.
 
