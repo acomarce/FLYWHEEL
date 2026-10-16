@@ -23,7 +23,8 @@ The Frobenius error of a Kronecker approximation transfers exactly through R:
   Frobenius norm (`kroneckerApprox_optimal`), with error² = Σᵢ≥₁ σᵢ(R C)²
   (`kroneckerApprox_error_sq`; 0-indexed, so it omits only the largest singular value).
 
-Spectral bounds are upper only since R does NOT preserve ‖·‖₂.
+R preserves the Frobenius norm but not the spectral norm, so spectral-norm statements about
+Kronecker approximation are inequalities; they are in SpectralNormGap.lean.
 
 ## References
 
@@ -32,8 +33,6 @@ Spectral bounds are upper only since R does NOT preserve ‖·‖₂.
 [2] Eckart, C. & Young, G. (1936). The approximation of one matrix by
     another of lower rank. Psychometrika 1(3), 211–218.
 [3] Horn & Johnson (2012). Matrix Analysis, 2nd ed. Cambridge. §7.4.
-
-Counter-example for spectral preservation: anti-diagonal permutation.
 
 ## Implementation Status
 
@@ -52,11 +51,9 @@ variable [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q]
 
 /-! ## Rectangular SVD infrastructure
 
-R : M_(m×n,p×q) → M_(m×p,n×q) produces rectangular matrices.
-
-XXX: This whole section is a bit of a mess. I originally tried to use
-Mathlib's SVD directly but it only handles square matrices. Had to build
-this rectangular version manually. There's probably a cleaner way...
+R : M_(m×n,p×q) → M_(m×p,n×q) produces rectangular matrices, so this file works with the
+rectangular SVD of SVD.lean. `singularValues₀_rect` is an alias of
+`Matrix.SVD.Rectangular.singularValues` (sorted, index 0 largest).
 -/
 
 section RectangularSVD
@@ -69,75 +66,12 @@ noncomputable def singularValues₀_rect {m' n' : Type*} [Fintype m'] [Fintype n
     (A : Matrix m' n' ℂ) : Fin (min (Fintype.card m') (Fintype.card n')) → ℝ :=
   SVD.Rectangular.singularValues A
 
-noncomputable def sigma2 {m' n' : Type*} [Fintype m'] [Fintype n'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) (h : 1 < min (Fintype.card m') (Fintype.card n')) : ℝ :=
-  singularValues₀_rect A ⟨1, h⟩
-
-noncomputable def sigma1 {m' n' : Type*} [Fintype m'] [Fintype n'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) (h : 0 < min (Fintype.card m') (Fintype.card n')) : ℝ :=
-  singularValues₀_rect A ⟨0, h⟩
-
+/-- Rectangular singular values are nonnegative. -/
 lemma singularValues₀_rect_nonneg {m' n' : Type*} [Fintype m'] [Fintype n']
     [DecidableEq m'] [DecidableEq n']
     (A : Matrix m' n' ℂ) (k : Fin (min (Fintype.card m') (Fintype.card n'))) :
     0 ≤ singularValues₀_rect A k :=
   SVD.Rectangular.singularValues_nonneg A k
-
-lemma singularValues₀_rect_antitone {m' n' : Type*} [Fintype m'] [Fintype n']
-    [DecidableEq m'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) : Antitone (singularValues₀_rect A) :=
-  SVD.Rectangular.singularValues_antitone A
-
-/-- The largest singular value equals the maxSingularValue (when nonempty).
-    This follows from singular values being antitone (σ₀ is the maximum). -/
-lemma sigma1_eq_maxSingularValue {m' n' : Type*} [Fintype m'] [Fintype n']
-    [DecidableEq m'] [DecidableEq n']
-    (h : 0 < min (Fintype.card m') (Fintype.card n'))
-    (A : Matrix m' n' ℂ) :
-    sigma1 A h = SVD.Rectangular.maxSingularValue h A := by
-  unfold sigma1 singularValues₀_rect SVD.Rectangular.maxSingularValue
-  apply le_antisymm
-  · -- σ₀ ≤ sup' σ
-    exact Finset.le_sup' _ (Finset.mem_univ _)
-  · -- sup' σ ≤ σ₀ (since σ is antitone, max is at 0)
-    apply Finset.sup'_le
-    intro k _
-    have h0 : (⟨0, h⟩ : Fin (min (Fintype.card m') (Fintype.card n'))) ≤ k :=
-      Fin.mk_le_mk.mpr (Nat.zero_le _)
-    exact SVD.Rectangular.singularValues_antitone A h0
-
-/-- sigma2 ≤ sigma1 (singular values are sorted). -/
-lemma sigma2_le_sigma1 {m' n' : Type*} [Fintype m'] [Fintype n']
-    [DecidableEq m'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) (h1 : 1 < min (Fintype.card m') (Fintype.card n')) :
-    sigma2 A h1 ≤ sigma1 A (Nat.lt_trans Nat.zero_lt_one h1) := by
-  unfold sigma2 sigma1 singularValues₀_rect
-  apply SVD.Rectangular.singularValues_antitone A
-  exact Fin.mk_le_mk.mpr (Nat.zero_le _)
-
-/-- Singular values squared equal the corresponding eigenvalues₀ for rectangular matrices. -/
-lemma singularValues₀_rect_sq {m' n' : Type*} [Fintype m'] [Fintype n']
-    [DecidableEq m'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) (k : Fin (min (Fintype.card m') (Fintype.card n'))) :
-    (singularValues₀_rect A k) ^ 2 =
-    (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀
-      (Fin.castLE (Nat.min_le_right _ _) k) :=
-  SVD.Rectangular.singularValues_sq_rect A k
-
-/-- Sum of squared singular values equals trace for rectangular matrices. -/
-lemma sum_sq_singularValues₀_rect_eq_trace {m' n' : Type*} [Fintype m'] [Fintype n']
-    [DecidableEq m'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) :
-    ∑ k, (singularValues₀_rect A k) ^ 2 = Complex.re (Matrix.trace (Aᴴ * A)) :=
-  SVD.Rectangular.sum_sq_singularValues_rect_eq_trace A
-
-/-- Rank equals number of nonzero singular values for rectangular matrices. -/
-lemma rank_eq_card_nonzero_singularValues₀_rect {m' n' : Type*} [Fintype m'] [Fintype n']
-    [DecidableEq m'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) :
-    A.rank = Fintype.card {k : Fin (min (Fintype.card m') (Fintype.card n')) //
-                           singularValues₀_rect A k ≠ 0} :=
-  SVD.Rectangular.rank_eq_card_nonzero_singularValues_rect A
 
 end RectangularSVD
 
@@ -491,13 +425,6 @@ lemma singularDiagonal_eq_truncated_add_tail (A : Matrix m' n' ℂ) (k : ℕ) :
       intro ⟨heq, hmin, _⟩
       exact h_diag ⟨heq, hmin⟩
     rw [dif_neg h_diag, dif_neg h1, dif_neg h2, add_zero]
-
-/-- A = truncatedSVD_rect A k + truncatedSVD_rect_tail A k.
-    The matrix decomposes into its best rank-k approximation plus a tail. -/
-theorem truncatedSVD_rect_add_tail (A : Matrix m' n' ℂ) (k : ℕ) :
-    A = truncatedSVD_rect A k + truncatedSVD_rect_tail A k := by
-  unfold truncatedSVD_rect_tail
-  simp only [add_sub_cancel]
 
 /-- The tail can be expressed as U * Σ_tail * V*.
     This is the key structural lemma for the spectral error proof. -/
@@ -894,7 +821,7 @@ lemma diagonal_entry_in_spectrum
 /-- For a Hermitian matrix H with zero off-diagonal entries, every eigenvalue is at most any
     upper bound on the real parts of the diagonal entries.
     This is the upper bound helper for `l2_opNorm_truncatedSingularDiagonal_rect_tail`. -/
-lemma eigenvalues_le_max_diagonal_entry_of_diagonal_psd
+lemma eigenvalues_le_of_offDiag_eq_zero_of_re_diag_le
     (H : Matrix n' n' ℂ) (hH_herm : H.IsHermitian)
     (h_diag_zeros : ∀ j j', j ≠ j' → H j j' = 0)
     (bound : ℝ) (h_diag_le : ∀ j, Complex.re (H j j) ≤ bound) :
@@ -948,8 +875,8 @@ lemma sigma_sq_is_DtD_entry (A : Matrix m' n' ℂ) (k : ℕ)
   -- Now need: singularValues A ⟨k, hk⟩ = singularValues₀_rect A ⟨k, hk⟩
   rfl
 
-/-- The spectral norm of a rectangular diagonal matrix equals the maximum entry.
-    For the tail diagonal, this is σₖ (the k-th singular value).
+/-- The spectral norm of the tail singular diagonal is σₖ (0-indexed): for k < min(#m, #n),
+    ‖truncatedSingularDiagonal_rect_tail A k‖₂ = σₖ(A).
 
     **Proof approach:**
     1. Use `l2_opNorm_conjTranspose_mul_self`: ‖D‖² = ‖DᴴD‖
@@ -1034,7 +961,7 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
       · -- Entry is 0
         simp only [Complex.zero_re]
         apply sq_nonneg
-    exact eigenvalues_le_max_diagonal_entry_of_diagonal_psd
+    exact eigenvalues_le_of_offDiag_eq_zero_of_re_diag_le
       (Dᴴ * D) h_herm h_diag_zeros ((singularValues₀_rect A ⟨k, hk⟩) ^ 2) h_diag_le j
 
   -- Lower bound: σₖ(A)² ≤ sup' eigenvalues(DᴴD)
@@ -1080,10 +1007,10 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
 
 /-! ### Main Theorem -/
 
-/-- **Spectral error of rectangular truncated SVD equals the (k+1)-th singular value.**
-    ‖A - Aₖ‖₂ = σₖ₊₁(A) for rectangular matrices.
+/-- **Spectral error of rectangular truncated SVD:** ‖A - Aₖ‖₂ = σₖ(A), 0-indexed, so σₖ is the
+    largest singular value that the truncation drops.
 
-    This generalizes spectral_error_truncatedSVD from square to rectangular matrices. -/
+    The rectangular analogue of `Matrix.SVD.spectral_error_truncatedSVD`. -/
 theorem spectral_error_truncatedSVD_rect
     (A : Matrix m' n' ℂ) (k : ℕ) (hk : k < min (Fintype.card m') (Fintype.card n')) :
     ‖A - truncatedSVD_rect A k‖ = singularValues₀_rect A ⟨k, hk⟩ := by

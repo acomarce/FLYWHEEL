@@ -18,8 +18,14 @@ import KroneckerRearrangement
 /-!
 # Matrix Norm Relations and Eckart-Young
 
-Spectral norm ‖A‖₂ = σ₁(A). The Eckart-Young theorem for optimal
-low-rank approximation in both Frobenius and spectral norms.
+Spectral-norm facts for square complex matrices: ‖A‖₂ = maxᵢ σᵢ(A), ‖A‖₂ ≤ ‖A‖_F, unitary
+invariance, and a global `CStarAlgebra (Matrix n n ℂ)` instance. Built on them:
+- square spectral Eckart–Young, `Matrix.SVD.eckart_young_spectral`, with the error formula
+  ‖A - Aₖ‖₂ = σₖ (`Matrix.SVD.spectral_error_truncatedSVD`); the Frobenius version is in
+  FrobeniusNorm.lean;
+- Kronecker products: ‖A ⊗ B‖₂ = ‖A‖₂ ‖B‖₂ (`l2_opNorm_kronecker`), the Frobenius error of a
+  Kronecker approximation through the rearrangement R (`kronecker_approx_frobenius_error`), and
+  absolute, relative and singular-value perturbation bounds for B' ⊗ C' against B ⊗ C.
 
 ## References
 
@@ -43,21 +49,6 @@ the wrong norm instance. Don't be like me.
 
 open Matrix
 open scoped ComplexOrder BigOperators
-
-namespace Matrix.SVD
-
-variable {n : Type*} [Fintype n] [DecidableEq n]
-
-/-- Truncated singular values are non-negative. -/
-theorem truncatedSingularValues_tail_nonneg (A : Matrix n n ℂ) (k : ℕ) (i : n) :
-    0 ≤ truncatedSingularValues_tail A k i := by
-  unfold truncatedSingularValues_tail
-  simp only
-  split_ifs
-  · exact singularValues₀_nonneg A _
-  · rfl
-
-end Matrix.SVD
 
 /-! ## Spectral Norm Relations -/
 
@@ -167,9 +158,9 @@ lemma Finset.sup'_sq_eq_sq_sup' {m : Type*} {s : Finset m} (hs : s.Nonempty) (f 
 noncomputable def maxSingularValue [Nonempty n] (A : Matrix n n ℂ) : ℝ :=
   Finset.sup' Finset.univ Finset.univ_nonempty (SVD.singularValues A)
 
-/-- **The spectral norm of a matrix equals its largest singular value.**
-
-    For any matrix A, ‖A‖₂ = σ₁(A) = √(λ_max(Aᴴ A)). -/
+/-- **The spectral norm of a square matrix equals its largest singular value:**
+    ‖A‖₂ = maxᵢ σᵢ(A). The rectangular version is
+    `Matrix.SVD.Rectangular.spectral_norm_eq_max_singularValue_rect`. -/
 theorem spectral_norm_eq_max_singularValue [Nonempty n] (A : Matrix n n ℂ) :
     ‖A‖ = maxSingularValue A := by
   have h1 : ‖A‖ * ‖A‖ = ‖Aᴴ * A‖ := (l2_opNorm_conjTranspose_mul_self A).symm
@@ -324,11 +315,6 @@ lemma diagonal_conjTranspose_mul_self (d : n → ℝ) :
     · subst hk
       simp only [Ne.symm h, ↓reduceIte, star_zero, zero_mul]
     · simp only [hk, ↓reduceIte, mul_zero]
-
-/-- The singular values of a diagonal matrix with nonneg real entries are nonnegative. -/
-lemma singularValues_diagonal_nonneg (d : n → ℝ) :
-    ∀ i, 0 ≤ singularValues (diagonal (Complex.ofReal ∘ d)) i := fun i =>
-  singularValues_nonneg _ i
 
 /-! ### Diagonal Eigenvalue Lemmas -/
 
@@ -510,13 +496,8 @@ theorem spectral_error_truncatedSVD [Nonempty n] (A : Matrix n n ℂ) (k : ℕ)
   rw [sup_singularValues_diagonal_eq_sup]
   · -- Now goal is sup truncatedSingularValues_tail = singularValues₀ A k
     exact max_truncatedSingularValues_tail A k hk
-  · -- Show truncatedSingularValues_tail has nonneg entries
-    intro i
-    unfold truncatedSingularValues_tail
-    simp only
-    split_ifs
-    · exact singularValues₀_nonneg A _
-    · exact le_refl 0
+  · -- truncatedSingularValues_tail has nonneg entries
+    exact FrobeniusNorm.truncatedSingularValues_tail_nonneg A k
 
 /-- **Eckart-Young Theorem (Spectral norm):**
     The truncated SVD is also optimal in spectral norm.
@@ -599,105 +580,6 @@ attribute [local instance] Matrix.instL2OpNormedRing
 attribute [local instance] Matrix.instL2OpNormedAlgebra
 attribute [local instance] Matrix.instL2OpMetricSpace
 
--- Suppress linter warnings about unused section variables
-set_option linter.unusedSectionVars false in
-/-- Frobenius norm as explicit function for cross-norm bounds. -/
-noncomputable def frobeniusNorm'' {m' n' : Type*} [Fintype m'] [Fintype n']
-    (A : Matrix m' n' ℂ) : ℝ :=
-  @Norm.norm _ Matrix.frobeniusNormedAddCommGroup.toNorm A
-
-/-! ### Helper lemmas: L2 operator norm ≤ Frobenius norm for rectangular matrices -/
-
-/-- Cauchy-Schwarz for complex sums: |∑ⱼ aⱼ bⱼ| ≤ √(∑ⱼ |aⱼ|²) · √(∑ⱼ |bⱼ|²) -/
-private lemma complex_sum_cauchy_schwarz {ι : Type*} [Fintype ι] (a b : ι → ℂ) :
-    ‖∑ j, a j * b j‖ ≤ Real.sqrt (∑ j, ‖a j‖^2) * Real.sqrt (∑ j, ‖b j‖^2) := by
-  let a' : EuclideanSpace ℂ ι := WithLp.toLp 2 (star a)
-  let b' : EuclideanSpace ℂ ι := WithLp.toLp 2 b
-  have h1 : inner ℂ a' b' = ∑ j, a j * b j := by
-    simp only [EuclideanSpace.inner_eq_star_dotProduct, a', b', dotProduct]
-    simp only [Pi.star_apply, star_star]
-    apply Finset.sum_congr rfl; intro j _; ring
-  have h2 : ‖inner ℂ a' b'‖ ≤ ‖a'‖ * ‖b'‖ := norm_inner_le_norm a' b'
-  rw [h1] at h2
-  calc ‖∑ j, a j * b j‖ ≤ ‖a'‖ * ‖b'‖ := h2
-    _ = Real.sqrt (∑ j, ‖a j‖^2) * Real.sqrt (∑ j, ‖b j‖^2) := by
-        simp only [EuclideanSpace.norm_eq, a', b']
-        congr 1
-        · congr 1; apply Finset.sum_congr rfl; intro j _
-          simp only [Pi.star_apply, Complex.star_def, Complex.norm_conj]
-
-/-- Matrix-vector multiplication bound: ‖A *ᵥ x‖² ≤ ‖A‖_F² · ‖x‖² -/
-private lemma mulVec_eucl_norm_sq_le {m' n' : Type*} [Fintype m'] [Fintype n']
-    (A : Matrix m' n' ℂ) (x : EuclideanSpace ℂ n') :
-    ‖(EuclideanSpace.equiv m' ℂ).symm (A *ᵥ x.ofLp)‖^2 ≤
-      (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖^2 := by
-  rw [EuclideanSpace.norm_sq_eq]
-  have cs := fun i => complex_sum_cauchy_schwarz (A i) x.ofLp
-  have h_nonneg : ∀ i, 0 ≤ Real.sqrt (∑ j, ‖A i j‖^2) * Real.sqrt (∑ j, ‖x.ofLp j‖^2) := by
-    intro i; apply mul_nonneg <;> apply Real.sqrt_nonneg
-  calc ∑ i, ‖∑ j, A i j * x.ofLp j‖ ^ 2
-      ≤ ∑ i, (Real.sqrt (∑ j, ‖A i j‖^2) * Real.sqrt (∑ j, ‖x.ofLp j‖^2))^2 := by
-        apply Finset.sum_le_sum; intro i _
-        apply sq_le_sq'
-        · linarith [h_nonneg i, norm_nonneg (∑ j, A i j * x.ofLp j)]
-        · calc ‖∑ j, A i j * x.ofLp j‖ ≤ _ := cs i
-            _ ≤ _ := abs_of_nonneg (h_nonneg i) ▸ le_refl _
-    _ = ∑ i, (∑ j, ‖A i j‖^2) * (∑ j, ‖x.ofLp j‖^2) := by
-        apply Finset.sum_congr rfl; intro i _
-        rw [mul_pow, Real.sq_sqrt, Real.sq_sqrt] <;>
-        · apply Finset.sum_nonneg; intro j _; exact sq_nonneg _
-    _ = (∑ i, ∑ j, ‖A i j‖^2) * (∑ j, ‖x.ofLp j‖^2) := by rw [Finset.sum_mul]
-    _ = (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖^2 := by rw [EuclideanSpace.norm_sq_eq]
-
-/-- Matrix-vector multiplication bound: ‖A *ᵥ x‖ ≤ √(∑ᵢⱼ |Aᵢⱼ|²) · ‖x‖ -/
-private lemma mulVec_eucl_norm_le {m' n' : Type*} [Fintype m'] [Fintype n']
-    (A : Matrix m' n' ℂ) (x : EuclideanSpace ℂ n') :
-    ‖(EuclideanSpace.equiv m' ℂ).symm (A *ᵥ x.ofLp)‖ ≤
-      Real.sqrt (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖ := by
-  have h_sq := mulVec_eucl_norm_sq_le A x
-  have h_frob_nonneg : 0 ≤ Real.sqrt (∑ i, ∑ j, ‖A i j‖ ^ 2) := Real.sqrt_nonneg _
-  have h_norm_nonneg : 0 ≤ ‖x‖ := norm_nonneg _
-  apply le_of_sq_le_sq _ (mul_nonneg h_frob_nonneg h_norm_nonneg)
-  calc ‖(EuclideanSpace.equiv m' ℂ).symm (A *ᵥ x.ofLp)‖ ^ 2
-      ≤ (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖^2 := h_sq
-    _ = Real.sqrt (∑ i, ∑ j, ‖A i j‖^2)^2 * ‖x‖^2 := by
-        rw [Real.sq_sqrt]
-        apply Finset.sum_nonneg; intro i _
-        apply Finset.sum_nonneg; intro j _
-        exact sq_nonneg _
-    _ = (Real.sqrt (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖)^2 := by ring
-
-/-- Frobenius norm expressed as square root of sum of squared entries. -/
-private lemma frobenius_norm_eq_sqrt {m' n' : Type*} [Fintype m'] [Fintype n']
-    (A : Matrix m' n' ℂ) :
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A =
-      Real.sqrt (∑ i, ∑ j, ‖A i j‖ ^ 2) := by
-  rw [frobenius_norm_def, Real.sqrt_eq_rpow]
-  norm_cast
-
-/-- **L2 operator norm is bounded by Frobenius norm** for rectangular matrices.
-    This is a fundamental inequality: ‖A‖₂ ≤ ‖A‖_F for any matrix A. -/
-private theorem l2_opNorm_le_frobenius_norm_rect {m' n' : Type*}
-    [Fintype m'] [Fintype n'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≤
-      @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A := by
-  rw [l2_opNorm_def, frobenius_norm_eq_sqrt]
-  apply ContinuousLinearMap.opNorm_le_bound
-  · exact Real.sqrt_nonneg _
-  · intro x
-    exact mulVec_eucl_norm_le A x
-
-set_option linter.unusedSectionVars false in
-/-- **Kronecker Approximation Spectral Bound:** ‖C - A ⊗ B‖₂ ≤ frobeniusNorm'' (C - A ⊗ B).
-    Here ‖·‖ is the L2 operator norm. -/
-theorem kronecker_approx_spectral_bound (C : Matrix (m × n) (p × q) ℂ)
-    (A : Matrix m p ℂ) (B : Matrix n q ℂ) :
-    ‖C - kroneckerMap (· * ·) A B‖ ≤ frobeniusNorm'' (C - kroneckerMap (· * ·) A B) := by
-  -- Apply the general inequality: ‖M‖₂ ≤ ‖M‖_F
-  unfold frobeniusNorm''
-  exact l2_opNorm_le_frobenius_norm_rect _
-
 /-! ### L2 Operator Norm of Kronecker Products -/
 
 set_option linter.unusedSectionVars false in
@@ -765,8 +647,8 @@ lemma Finset.sup'_prod_eq_mul_sup' [Nonempty p] [Nonempty q]
 
 /-! #### Eigenvalue Structure of Kronecker Products -/
 
-/-- For Hermitian matrices, the norm equals the supremum of absolute eigenvalues.
-    For PSD matrices, all eigenvalues are nonnegative, so |λ| = λ. -/
+/-- For PSD H, ‖H‖₂ is the largest eigenvalue: the Hermitian formula ‖H‖₂ = maxᵢ |λᵢ| with
+    |λᵢ| = λᵢ. -/
 lemma l2_opNorm_posSemidef_eq_sup_eigenvalues [Nonempty p]
     (H : Matrix p p ℂ) (hH : H.PosSemidef) :
     ‖H‖ = Finset.sup' Finset.univ Finset.univ_nonempty hH.isHermitian.eigenvalues := by
@@ -776,8 +658,9 @@ lemma l2_opNorm_posSemidef_eq_sup_eigenvalues [Nonempty p]
   rw [abs_of_nonneg]
   exact hH.eigenvalues_nonneg i
 
-/-- **Eigenvalue Product Theorem for Kronecker Products of Hermitian Matrices.**
-    The supremum of eigenvalues of H₁ ⊗ H₂ equals the product of the suprema.
+/-- **Eigenvalue Product Theorem for Kronecker Products of PSD Matrices.**
+    The supremum of eigenvalues of H₁ ⊗ H₂ equals the product of the suprema. Positive
+    semidefiniteness is needed: for H₁ = H₂ = diag(1, -2) the left side is 4, the right side 1.
 
     This is a key lemma for proving ‖H₁ ⊗ H₂‖ = ‖H₁‖·‖H₂‖ for PSD matrices.
     The proof uses the spectral theorem and the fact that:
@@ -1119,10 +1002,10 @@ theorem kronecker_sub_spectral_norm_bound' [Nonempty p] [Nonempty q]
 
 end SpectralBounds
 
-/-! ### Part C: Parameter Estimation Perturbation Bounds
+/-! ### Part C: Perturbation of Kronecker Products
 
-These theorems connect the abstract Kronecker norm bounds to statistical estimation,
-as required for analyzing Kronecker-structured regression models.
+Absolute and relative spectral-norm error of B' ⊗ C' as an approximation of B ⊗ C, in terms of
+the factor errors ‖B - B'‖ and ‖C - C'‖.
 -/
 
 section EstimationBounds
@@ -1133,30 +1016,6 @@ attribute [local instance] Matrix.instL2OpNormedSpace
 attribute [local instance] Matrix.instL2OpNormedRing
 attribute [local instance] Matrix.instL2OpNormedAlgebra
 attribute [local instance] Matrix.instL2OpMetricSpace
-
-/-- **Kronecker Estimation Perturbation Bound:**
-    If B̂, Ĉ are estimates of B, C with bounded errors:
-    ‖B - B̂‖ ≤ εB and ‖C - Ĉ‖ ≤ εC
-
-    Then the Kronecker product estimation error is bounded:
-    ‖B ⊗ C - B̂ ⊗ Ĉ‖ ≤ εB · ‖C‖ + ‖B̂‖ · εC
-
-    This is the key result for connecting algebraic bounds to statistical inference.
-
-    **Application:** In Kronecker-factorized regression Y = X(β₁ ⊗ β₂) + E,
-    if we estimate β̂₁, β̂₂ with errors bounded by εB, εC, then the error in
-    the estimated coefficient matrix β̂₁ ⊗ β̂₂ is bounded by this formula. -/
-theorem kronecker_estimation_perturbation_bound [Nonempty p] [Nonempty q]
-    (B B' : Matrix m p ℂ) (C C' : Matrix n q ℂ)
-    {εB εC : ℝ} (hB : ‖B - B'‖ ≤ εB) (hC : ‖C - C'‖ ≤ εC) :
-    ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖ ≤
-    εB * ‖C‖ + ‖B'‖ * εC := by
-  calc ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖
-      ≤ ‖B - B'‖ * ‖C‖ + ‖B'‖ * ‖C - C'‖ := kronecker_sub_spectral_norm_bound B B' C C'
-    _ ≤ εB * ‖C‖ + ‖B'‖ * εC := by
-        apply add_le_add
-        · exact mul_le_mul_of_nonneg_right hB (norm_nonneg _)
-        · exact mul_le_mul_of_nonneg_left hC (norm_nonneg _)
 
 /-- **Kronecker difference bound in terms of the unperturbed factors:**
     ‖B ⊗ C - B' ⊗ C'‖₂ ≤ ‖B - B'‖·‖C‖ + ‖B‖·‖C - C'‖ + ‖B - B'‖·‖C - C'‖. -/

@@ -63,7 +63,6 @@ best rank-1 approximation of `R C`.
 **MatrixNormRelations, `Matrix.KroneckerRearrangement`:**
 - `kronecker_approx_frobenius_error : ‖C - A ⊗ B‖ = ‖R C - outerProduct (vec A) (vec B)‖`
   (Frobenius).
-- `kronecker_approx_spectral_bound` (spectral ≤ Frobenius).
 - `l2_opNorm_kronecker : ‖A ⊗ B‖ = ‖A‖ * ‖B‖` (L2).
 
 **MatrixNormRelations, `Matrix.KroneckerPerturbation`:**
