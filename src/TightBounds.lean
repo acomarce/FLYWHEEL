@@ -52,28 +52,9 @@ variable [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q]
 /-! ## Rectangular SVD infrastructure
 
 R : M_(m×n,p×q) → M_(m×p,n×q) produces rectangular matrices, so this file works with the
-rectangular SVD of SVD.lean. `singularValues₀_rect` is an alias of
-`Matrix.SVD.Rectangular.singularValues` (sorted, index 0 largest).
+rectangular SVD of SVD.lean and its sorted singular values `Matrix.SVD.Rectangular.singularValues`
+(index 0 largest).
 -/
-
-section RectangularSVD
-
--- dbg_trace "entering RectangularSVD section"  -- uncomment for debugging
-
-/-- Sorted σᵢ for rectangular matrices. -/
--- TODO: consider renaming to `singularValuesRect` for consistency?
-noncomputable def singularValues₀_rect {m' n' : Type*} [Fintype m'] [Fintype n'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) : Fin (min (Fintype.card m') (Fintype.card n')) → ℝ :=
-  SVD.Rectangular.singularValues A
-
-/-- Rectangular singular values are nonnegative. -/
-lemma singularValues₀_rect_nonneg {m' n' : Type*} [Fintype m'] [Fintype n']
-    [DecidableEq m'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) (k : Fin (min (Fintype.card m') (Fintype.card n'))) :
-    0 ≤ singularValues₀_rect A k :=
-  SVD.Rectangular.singularValues_nonneg A k
-
-end RectangularSVD
 
 /-! ## Part 2: Truncated SVD for Rectangular Matrices
 
@@ -863,7 +844,7 @@ lemma sigma_sq_is_DtD_entry (A : Matrix m' n' ℂ) (k : ℕ)
     (hk : k < min (Fintype.card m') (Fintype.card n')) :
     let D := truncatedSingularDiagonal_rect_tail A k
     let j := SVD.Rectangular.embedMinToN (m := m') ⟨k, hk⟩
-    (Dᴴ * D) j j = Complex.ofReal ((singularValues₀_rect A ⟨k, hk⟩) ^ 2) := by
+    (Dᴴ * D) j j = Complex.ofReal ((SVD.Rectangular.singularValues A ⟨k, hk⟩) ^ 2) := by
   intro D j
   rw [DtD_diagonal_entry]
   -- Show the condition is satisfied
@@ -871,9 +852,8 @@ lemma sigma_sq_is_DtD_entry (A : Matrix m' n' ℂ) (k : ℕ)
     unfold j
     rw [Matrix.SVD.Rectangular.eigenvaluesBijection_embedMinToN]
     simp only [Fin.coe_castLE]
-  simp only [h_bijection, le_refl, hk, and_self, ↓reduceDIte]
-  -- Now need: singularValues A ⟨k, hk⟩ = singularValues₀_rect A ⟨k, hk⟩
-  rfl
+  -- The two sides differ only in the proof inside ⟨k, _⟩; `simp` may already close the goal
+  simp only [h_bijection, le_refl, hk, and_self, ↓reduceDIte] <;> rfl
 
 /-- The spectral norm of the tail singular diagonal is σₖ (0-indexed): for k < min(#m, #n),
     ‖truncatedSingularDiagonal_rect_tail A k‖₂ = σₖ(A).
@@ -892,12 +872,12 @@ lemma sigma_sq_is_DtD_entry (A : Matrix m' n' ℂ) (k : ℕ)
     - Maximum achieved at standard basis vector eₖ: ‖Deₖ‖ = σₖ -/
 lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : ℕ)
     (hk : k < min (Fintype.card m') (Fintype.card n')) :
-    ‖truncatedSingularDiagonal_rect_tail A k‖ = singularValues₀_rect A ⟨k, hk⟩ := by
+    ‖truncatedSingularDiagonal_rect_tail A k‖ = SVD.Rectangular.singularValues A ⟨k, hk⟩ := by
   set D := truncatedSingularDiagonal_rect_tail A k
   have h_norm_nonneg : 0 ≤ ‖D‖ := norm_nonneg D
-  have h_sv_nonneg : 0 ≤ singularValues₀_rect A ⟨k, hk⟩ := singularValues₀_rect_nonneg A ⟨k, hk⟩
+  have h_sv_nonneg : 0 ≤ SVD.Rectangular.singularValues A ⟨k, hk⟩ := SVD.Rectangular.singularValues_nonneg A ⟨k, hk⟩
   -- Strategy: Show ‖D‖² = σₖ(A)², then conclude ‖D‖ = σₖ(A) by nonnegativity
-  suffices h_sq : ‖D‖ ^ 2 = singularValues₀_rect A ⟨k, hk⟩ ^ 2 by
+  suffices h_sq : ‖D‖ ^ 2 = SVD.Rectangular.singularValues A ⟨k, hk⟩ ^ 2 by
     have := sq_eq_sq₀ h_norm_nonneg h_sv_nonneg
     rwa [this] at h_sq
   -- Use CStarRing identity: ‖D‖² = ‖DᴴD‖
@@ -936,7 +916,7 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
         exact h_ne (h_inj h_vals_eq)
       simp only [h_bijection_ne, false_and, ↓reduceDIte]
     -- Each diagonal entry is either 0 or σᵢ² for i ≥ k, all ≤ σₖ²
-    have h_diag_le : ∀ i, Complex.re ((Dᴴ * D) i i) ≤ (singularValues₀_rect A ⟨k, hk⟩) ^ 2 := by
+    have h_diag_le : ∀ i, Complex.re ((Dᴴ * D) i i) ≤ (SVD.Rectangular.singularValues A ⟨k, hk⟩) ^ 2 := by
       intro i
       rw [DtD_diagonal_entry]
       split_ifs with h_cond
@@ -951,18 +931,16 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
           apply h_antitone
           simp only [Fin.mk_le_mk]
           exact h_le_k
-        -- singularValues = singularValues₀_rect
-        simp only [SVD.Rectangular.singularValues] at h_sv_le ⊢
         -- Square both sides: since both are nonneg, sv_i ≤ sv_k → sv_i² ≤ sv_k²
-        have h_nonneg_i := singularValues₀_rect_nonneg A
+        have h_nonneg_i := SVD.Rectangular.singularValues_nonneg A
             ⟨(SVD.Rectangular.eigenvaluesBijection n' i).val, h_cond.2⟩
-        have h_nonneg_k := singularValues₀_rect_nonneg A ⟨k, hk⟩
+        have h_nonneg_k := SVD.Rectangular.singularValues_nonneg A ⟨k, hk⟩
         exact (sq_le_sq₀ h_nonneg_i h_nonneg_k).mpr h_sv_le
       · -- Entry is 0
         simp only [Complex.zero_re]
         apply sq_nonneg
     exact eigenvalues_le_of_offDiag_eq_zero_of_re_diag_le
-      (Dᴴ * D) h_herm h_diag_zeros ((singularValues₀_rect A ⟨k, hk⟩) ^ 2) h_diag_le j
+      (Dᴴ * D) h_herm h_diag_zeros ((SVD.Rectangular.singularValues A ⟨k, hk⟩) ^ 2) h_diag_le j
 
   -- Lower bound: σₖ(A)² ≤ sup' eigenvalues(DᴴD)
   -- Strategy: σₖ² is a diagonal entry of DᴴD, and for diagonal Hermitian matrices,
@@ -970,7 +948,7 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
   · -- The key index where σₖ² appears on the diagonal
     let j₀ := SVD.Rectangular.embedMinToN (m := m') ⟨k, hk⟩
     -- DᴴD is diagonal with (DᴴD)_j₀j₀ = σₖ²
-    have h_entry : (Dᴴ * D) j₀ j₀ = Complex.ofReal ((singularValues₀_rect A ⟨k, hk⟩) ^ 2) :=
+    have h_entry : (Dᴴ * D) j₀ j₀ = Complex.ofReal ((SVD.Rectangular.singularValues A ⟨k, hk⟩) ^ 2) :=
       sigma_sq_is_DtD_entry A k hk
     -- DᴴD is diagonal-like (off-diagonal entries are 0)
     have h_diag_zeros : ∀ i j', i ≠ j' → (Dᴴ * D) i j' = 0 := by
@@ -986,7 +964,7 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
       simp only [h_bijection_ne, false_and, ↓reduceDIte]
 
     -- Use the helper lemma: diagonal entries are in the spectrum
-    have h_in_spectrum : Complex.ofReal ((singularValues₀_rect A ⟨k, hk⟩) ^ 2) ∈ spectrum ℂ (Dᴴ * D) := by
+    have h_in_spectrum : Complex.ofReal ((SVD.Rectangular.singularValues A ⟨k, hk⟩) ^ 2) ∈ spectrum ℂ (Dᴴ * D) := by
       rw [← h_entry]
       exact diagonal_entry_in_spectrum (Dᴴ * D) h_diag_zeros j₀
 
@@ -996,7 +974,7 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
     obtain ⟨σ_val, ⟨i, h_i⟩, h_eq⟩ := h_in_spectrum
     -- Now h_i : h_herm.eigenvalues i = σ_val
     -- and h_eq : ↑σ_val = ↑(σₖ²)
-    have h_eigenval_eq : h_herm.eigenvalues i = (singularValues₀_rect A ⟨k, hk⟩) ^ 2 := by
+    have h_eigenval_eq : h_herm.eigenvalues i = (SVD.Rectangular.singularValues A ⟨k, hk⟩) ^ 2 := by
       have h_inj := Complex.ofReal_injective h_eq
       rw [h_i]
       exact h_inj
@@ -1013,7 +991,7 @@ lemma l2_opNorm_truncatedSingularDiagonal_rect_tail (A : Matrix m' n' ℂ) (k : 
     The rectangular analogue of `Matrix.SVD.spectral_error_truncatedSVD`. -/
 theorem spectral_error_truncatedSVD_rect
     (A : Matrix m' n' ℂ) (k : ℕ) (hk : k < min (Fintype.card m') (Fintype.card n')) :
-    ‖A - truncatedSVD_rect A k‖ = singularValues₀_rect A ⟨k, hk⟩ := by
+    ‖A - truncatedSVD_rect A k‖ = SVD.Rectangular.singularValues A ⟨k, hk⟩ := by
   -- Step 1: A - Aₖ = tail
   have h_diff : A - truncatedSVD_rect A k = truncatedSVD_rect_tail A k := rfl
   rw [h_diff]

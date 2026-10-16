@@ -22,9 +22,9 @@ For the k-th largest eigenvalue (λₖ₋₁ with 0-indexed `eigenvalues₀`, 1 
 ## Main results
 
 For Hermitian `A` and `1 ≤ k ≤ n`, with eigenvalues sorted so that `λ₀ ≥ λ₁ ≥ ⋯`:
-- `courantFischer_maxMin`: `λₖ₋₁` is the greatest value of `rayleighInf A hA W` over
+- `courantFischer_maxMin`: `λₖ₋₁` is the greatest value of `rayleighInf A W` over
   `k`-dimensional subspaces `W`, attained at `eigenvectorSpanHead hA k`.
-- `courantFischer_minMax`: `λₖ₋₁` is the least value of `rayleighSup A hA W` over
+- `courantFischer_minMax`: `λₖ₋₁` is the least value of `rayleighSup A W` over
   `(n - k + 1)`-dimensional subspaces `W`, attained at the tail eigenvector span.
 - `courantFischer_maxMin_eq_iSup`, `courantFischer_minMax_eq_iInf`: the same as `⨆` / `⨅`.
 
@@ -488,12 +488,12 @@ noncomputable def rayleighQuotient (A : Matrix n n ℂ) (x : EuclideanSpace ℂ 
   (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin A x) x).re / ‖x‖^2
 
 /-- The infimum of Rayleigh quotient over nonzero vectors in a subspace. -/
-noncomputable def rayleighInf (A : Matrix n n ℂ) (_hA : A.IsHermitian)
+noncomputable def rayleighInf (A : Matrix n n ℂ)
     (W : Submodule ℂ (EuclideanSpace ℂ n)) : ℝ :=
   ⨅ x : { x : W // x.val ≠ 0 }, rayleighQuotient A x.val.val
 
 /-- The supremum of Rayleigh quotient over nonzero vectors in a subspace. -/
-noncomputable def rayleighSup (A : Matrix n n ℂ) (_hA : A.IsHermitian)
+noncomputable def rayleighSup (A : Matrix n n ℂ)
     (W : Submodule ℂ (EuclideanSpace ℂ n)) : ℝ :=
   ⨆ x : { x : W // x.val ≠ 0 }, rayleighQuotient A x.val.val
 
@@ -802,7 +802,7 @@ For any k-dimensional subspace W: inf_{x ∈ W, x ≠ 0} R(x) ≤ λₖ₋₁ -/
 theorem rayleighInf_le_eigenvalue (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k)
     (W : Submodule ℂ (EuclideanSpace ℂ n)) (hW : Module.finrank ℂ W = k.val) :
-    rayleighInf A hA W ≤ hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ := by
+    rayleighInf A W ≤ hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ := by
   -- By exists_vector_rayleigh_le_in_subspace, there exists x ∈ W with R(x) ≤ λₖ₋₁
   obtain ⟨x, hx_mem, hx_ne, hx_rayleigh⟩ := exists_vector_rayleigh_le_in_subspace A hA k hk W hW
   -- The infimum is ≤ any element, so rayleighInf ≤ R(x) ≤ λₖ₋₁
@@ -852,7 +852,7 @@ omit [Nonempty n] in
 eigenvectors. `rayleighInf_eigenvectorSpanHead_eq` is the equality. -/
 theorem eigenvalue_le_rayleighInf_eigenvectorSpanHead (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
-    hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ ≤ rayleighInf A hA (eigenvectorSpanHead hA k) := by
+    hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ ≤ rayleighInf A (eigenvectorSpanHead hA k) := by
   -- Lower bound: rayleigh_ge_on_eigenvectorSpanHead shows R(x) ≥ λₖ₋₁ for all x in span
   unfold rayleighInf rayleighQuotient
   -- The span has positive dimension, so it contains nonzero vectors
@@ -893,7 +893,7 @@ theorem eigenvalue_le_rayleighInf_eigenvectorSpanHead (A : Matrix n n ℂ) (hA :
 first k eigenvectors is exactly λₖ₋₁. -/
 theorem rayleighInf_eigenvectorSpanHead_eq (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
-    rayleighInf A hA (eigenvectorSpanHead hA k) = hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ :=
+    rayleighInf A (eigenvectorSpanHead hA k) = hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ :=
   le_antisymm (rayleighInf_le_eigenvalue A hA k hk _ (finrank_eigenvectorSpanHead A hA k))
     (eigenvalue_le_rayleighInf_eigenvectorSpanHead A hA k hk)
 
@@ -903,10 +903,10 @@ combines these into the max-min equality. -/
 theorem courantFischer_maxMin_bounds (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
     -- The eigenspace achieves the bound
-    rayleighInf A hA (eigenvectorSpanHead hA k) ≥ hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ ∧
+    rayleighInf A (eigenvectorSpanHead hA k) ≥ hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ ∧
     -- And this is optimal (any k-dim subspace has inf ≤ λₖ₋₁)
     (∀ W : Submodule ℂ (EuclideanSpace ℂ n), Module.finrank ℂ W = k.val →
-      rayleighInf A hA W ≤ hA.eigenvalues₀ ⟨k.val - 1, by omega⟩) := by
+      rayleighInf A W ≤ hA.eigenvalues₀ ⟨k.val - 1, by omega⟩) := by
   constructor
   · exact eigenvalue_le_rayleighInf_eigenvectorSpanHead A hA k hk
   · intro W hW
@@ -921,7 +921,7 @@ The maximum is attained at `eigenvectorSpanHead hA k`. -/
 theorem courantFischer_maxMin (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
     IsGreatest {r : ℝ | ∃ W : Submodule ℂ (EuclideanSpace ℂ n),
-        Module.finrank ℂ W = k.val ∧ rayleighInf A hA W = r}
+        Module.finrank ℂ W = k.val ∧ rayleighInf A W = r}
       (hA.eigenvalues₀ ⟨k.val - 1, by omega⟩) := by
   have hHead := finrank_eigenvectorSpanHead A hA k
   refine ⟨⟨eigenvectorSpanHead hA k, hHead, ?_⟩, ?_⟩
@@ -938,24 +938,24 @@ theorem courantFischer_maxMin_eq_iSup (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
     hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ =
       ⨆ W : {W : Submodule ℂ (EuclideanSpace ℂ n) // Module.finrank ℂ W = k.val},
-        rayleighInf A hA W.1 := by
+        rayleighInf A W.1 := by
   have hHead := finrank_eigenvectorSpanHead A hA k
   haveI : Nonempty {W : Submodule ℂ (EuclideanSpace ℂ n) // Module.finrank ℂ W = k.val} :=
     ⟨⟨eigenvectorSpanHead hA k, hHead⟩⟩
   -- Every value is at most λₖ₋₁
   have h_le : ∀ W : {W : Submodule ℂ (EuclideanSpace ℂ n) // Module.finrank ℂ W = k.val},
-      rayleighInf A hA W.1 ≤ hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ :=
+      rayleighInf A W.1 ≤ hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ :=
     fun W => rayleighInf_le_eigenvalue A hA k hk W.1 W.2
   have h_bdd : BddAbove (Set.range fun W :
       {W : Submodule ℂ (EuclideanSpace ℂ n) // Module.finrank ℂ W = k.val} =>
-        rayleighInf A hA W.1) := by
+        rayleighInf A W.1) := by
     refine ⟨hA.eigenvalues₀ ⟨k.val - 1, by omega⟩, ?_⟩
     rintro _ ⟨W, rfl⟩
     exact h_le W
   apply le_antisymm
   · -- λₖ₋₁ ≤ rayleighInf on the head span ≤ ⨆
     calc hA.eigenvalues₀ ⟨k.val - 1, by omega⟩
-        ≤ rayleighInf A hA (eigenvectorSpanHead hA k) :=
+        ≤ rayleighInf A (eigenvectorSpanHead hA k) :=
           eigenvalue_le_rayleighInf_eigenvectorSpanHead A hA k hk
       _ ≤ _ := le_ciSup h_bdd ⟨eigenvectorSpanHead hA k, hHead⟩
   · exact ciSup_le h_le
@@ -966,7 +966,7 @@ theorem eigenvalue_le_rayleighSup (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k)
     (W : Submodule ℂ (EuclideanSpace ℂ n))
     (hW : Module.finrank ℂ W = Fintype.card n - k.val + 1) :
-    hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ ≤ rayleighSup A hA W := by
+    hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ ≤ rayleighSup A W := by
   -- Dual argument: W intersects eigenvectorSpanHead k nontrivially
   -- Any vector in the intersection has R(x) ≥ λₖ₋₁
   let Head := eigenvectorSpanHead hA k
@@ -1048,7 +1048,7 @@ the supremum Rayleigh quotient on the tail span starting at index k - 1 is at mo
 theorem rayleighSup_le_eigenvalue_eigenvectorSpanTail (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
     let k_pred : Fin (Fintype.card n) := ⟨k.val - 1, by omega⟩
-    rayleighSup A hA (eigenvectorSpanTail hA k_pred) ≤ hA.eigenvalues₀ k_pred := by
+    rayleighSup A (eigenvectorSpanTail hA k_pred) ≤ hA.eigenvalues₀ k_pred := by
   intro k_pred
   unfold rayleighSup rayleighQuotient
   -- Need Nonempty for ciSup_le
@@ -1093,11 +1093,11 @@ theorem courantFischer_minMax_bounds (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
     -- The tail eigenspace achieves the bound
     let k_pred : Fin (Fintype.card n) := ⟨k.val - 1, by omega⟩
-    rayleighSup A hA (eigenvectorSpanTail hA k_pred) ≤ hA.eigenvalues₀ k_pred ∧
+    rayleighSup A (eigenvectorSpanTail hA k_pred) ≤ hA.eigenvalues₀ k_pred ∧
     -- And this is optimal (any (n-k+1)-dim subspace has sup ≥ λₖ₋₁)
     (∀ W : Submodule ℂ (EuclideanSpace ℂ n),
       Module.finrank ℂ W = Fintype.card n - k.val + 1 →
-      hA.eigenvalues₀ k_pred ≤ rayleighSup A hA W) := by
+      hA.eigenvalues₀ k_pred ≤ rayleighSup A W) := by
   constructor
   · exact rayleighSup_le_eigenvalue_eigenvectorSpanTail A hA k hk
   · intro W hW
@@ -1118,7 +1118,7 @@ theorem finrank_eigenvectorSpanTail_pred (A : Matrix n n ℂ) (hA : A.IsHermitia
 eigenvectors with sorted index ≥ k - 1 is exactly λₖ₋₁. -/
 theorem rayleighSup_eigenvectorSpanTail_eq (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
-    rayleighSup A hA (eigenvectorSpanTail hA ⟨k.val - 1, by omega⟩) =
+    rayleighSup A (eigenvectorSpanTail hA ⟨k.val - 1, by omega⟩) =
       hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ :=
   le_antisymm (rayleighSup_le_eigenvalue_eigenvectorSpanTail A hA k hk)
     (eigenvalue_le_rayleighSup A hA k hk _ (finrank_eigenvectorSpanTail_pred A hA k hk))
@@ -1132,7 +1132,7 @@ The minimum is attained at the span of the eigenvectors with sorted index ≥ k 
 theorem courantFischer_minMax (A : Matrix n n ℂ) (hA : A.IsHermitian)
     (k : Fin (Fintype.card n + 1)) (hk : 0 < k) :
     IsLeast {r : ℝ | ∃ W : Submodule ℂ (EuclideanSpace ℂ n),
-        Module.finrank ℂ W = Fintype.card n - k.val + 1 ∧ rayleighSup A hA W = r}
+        Module.finrank ℂ W = Fintype.card n - k.val + 1 ∧ rayleighSup A W = r}
       (hA.eigenvalues₀ ⟨k.val - 1, by omega⟩) := by
   have hTail := finrank_eigenvectorSpanTail_pred A hA k hk
   refine ⟨⟨eigenvectorSpanTail hA ⟨k.val - 1, by omega⟩, hTail, ?_⟩, ?_⟩
@@ -1150,7 +1150,7 @@ theorem courantFischer_minMax_eq_iInf (A : Matrix n n ℂ) (hA : A.IsHermitian)
     hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ =
       ⨅ W : {W : Submodule ℂ (EuclideanSpace ℂ n) //
           Module.finrank ℂ W = Fintype.card n - k.val + 1},
-        rayleighSup A hA W.1 := by
+        rayleighSup A W.1 := by
   have hTail := finrank_eigenvectorSpanTail_pred A hA k hk
   haveI : Nonempty {W : Submodule ℂ (EuclideanSpace ℂ n) //
       Module.finrank ℂ W = Fintype.card n - k.val + 1} :=
@@ -1158,17 +1158,17 @@ theorem courantFischer_minMax_eq_iInf (A : Matrix n n ℂ) (hA : A.IsHermitian)
   -- Every value is at least λₖ₋₁
   have h_ge : ∀ W : {W : Submodule ℂ (EuclideanSpace ℂ n) //
       Module.finrank ℂ W = Fintype.card n - k.val + 1},
-      hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ ≤ rayleighSup A hA W.1 :=
+      hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ ≤ rayleighSup A W.1 :=
     fun W => eigenvalue_le_rayleighSup A hA k hk W.1 W.2
   have h_bdd : BddBelow (Set.range fun W : {W : Submodule ℂ (EuclideanSpace ℂ n) //
-      Module.finrank ℂ W = Fintype.card n - k.val + 1} => rayleighSup A hA W.1) := by
+      Module.finrank ℂ W = Fintype.card n - k.val + 1} => rayleighSup A W.1) := by
     refine ⟨hA.eigenvalues₀ ⟨k.val - 1, by omega⟩, ?_⟩
     rintro _ ⟨W, rfl⟩
     exact h_ge W
   apply le_antisymm
   · exact le_ciInf h_ge
   · -- ⨅ ≤ rayleighSup on the tail span ≤ λₖ₋₁
-    calc _ ≤ rayleighSup A hA (eigenvectorSpanTail hA ⟨k.val - 1, by omega⟩) :=
+    calc _ ≤ rayleighSup A (eigenvectorSpanTail hA ⟨k.val - 1, by omega⟩) :=
           ciInf_le h_bdd ⟨eigenvectorSpanTail hA ⟨k.val - 1, by omega⟩, hTail⟩
       _ ≤ hA.eigenvalues₀ ⟨k.val - 1, by omega⟩ :=
           rayleighSup_le_eigenvalue_eigenvectorSpanTail A hA k hk

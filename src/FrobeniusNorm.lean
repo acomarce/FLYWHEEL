@@ -52,23 +52,6 @@ variable {n m : Type*} [Fintype n] [Fintype m] [DecidableEq n] [DecidableEq m]
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
--- FIXME: this lemma probably already exists somewhere in Mathlib?
--- I looked but couldn't find it. If someone finds it, replace this.
-/-- ‖z‖² = Re(z̄ z) for complex z. -/
-lemma Complex.norm_sq_eq_star_mul_self (z : ℂ) : ‖z‖^2 = (star z * z).re := by
-  have key : star z * z = z.normSq := by
-    simp only [Complex.star_def]
-    rw [Complex.normSq_eq_conj_mul_self]
-  rw [key]
-  simp only [Complex.ofReal_re]
-  rw [sq, Complex.norm_mul_self_eq_normSq]
-  -- #check Complex.sq_abs -- this exists but uses abs not norm, annoying
-
-/-- ‖z‖^(2 : ℝ) = Re(z̄ z) for complex z (real-exponent form). -/
-lemma Complex.norm_rpow_two_eq_star_mul_self (z : ℂ) : ‖z‖ ^ (2:ℝ) = (star z * z).re := by
-  rw [Real.rpow_two]
-  exact Complex.norm_sq_eq_star_mul_self z
-
 omit [DecidableEq n] [DecidableEq m] in
 /-- ‖A‖_F² = Re tr(Aᴴ A), for rectangular `A`. Standard identity. -/
 theorem frobenius_norm_sq_eq_trace (A : Matrix m n ℂ) :
@@ -83,7 +66,10 @@ theorem frobenius_norm_sq_eq_trace (A : Matrix m n ℂ) :
     conv_rhs => rw [Complex.re_sum]
     apply Finset.sum_congr rfl
     intro i _
-    exact Complex.norm_rpow_two_eq_star_mul_self (A i j)
+    -- ‖z‖² = Re(z̄ z), via `Complex.normSq`
+    rw [Real.rpow_two, ← Complex.normSq_eq_norm_sq, Complex.normSq_apply]
+    simp only [Complex.star_def, Complex.mul_re, Complex.conj_re, Complex.conj_im]
+    ring
   -- Now the goal is to show ‖A‖^2 = ...
   rw [frobenius_norm_def]
   have h_nonneg : 0 ≤ ∑ i : m, ∑ j : n, ‖A i j‖ ^ (2:ℝ) :=
@@ -398,7 +384,9 @@ lemma frobenius_sq_diagonal_minus_matrix (d : n → ℂ) (C : Matrix n n ℂ) :
     rw [Complex.re_sum]
     apply Finset.sum_congr rfl
     intro j _
-    rw [Complex.norm_sq_eq_star_mul_self]
+    rw [← Complex.normSq_eq_norm_sq, Complex.normSq_apply]
+    simp only [Complex.star_def, Complex.mul_re, Complex.conj_re, Complex.conj_im]
+    ring
   rw [h_expand]
   -- Split each inner sum into the diagonal term and off-diagonal terms
   have h_rewrite : ∀ i : n, ∑ j, ‖(diagonal d - C) i j‖^2 =
