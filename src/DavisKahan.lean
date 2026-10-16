@@ -265,16 +265,18 @@ noncomputable def topIndices (k : ℕ) (hk : k < Fintype.card n) : Finset n :=
   (Finset.Iio (⟨k, hk⟩ : Fin (Fintype.card n))).map
     (Fintype.equivOfCardEq (Fintype.card_fin _) : Fin (Fintype.card n) ≃ n).toEmbedding
 
+omit [DecidableEq n] in
 /-- `topIndices k` has k elements. -/
 theorem card_topIndices (k : ℕ) (hk : k < Fintype.card n) : (topIndices k hk).card = k := by
   have h := Fin.card_Iio (⟨k, hk⟩ : Fin (Fintype.card n))
   rw [topIndices, Finset.card_map]
   exact h
 
+omit [DecidableEq n] in
 /-- i ∈ `topIndices k` iff the sorted index of i is less than k. -/
 theorem mem_topIndices {k : ℕ} {hk : k < Fintype.card n} {i : n} :
     i ∈ topIndices k hk ↔ ((Fintype.equivOfCardEq (Fintype.card_fin _)).symm i).val < k := by
-  rw [topIndices, Finset.mem_map_equiv, Finset.mem_Iio, Fin.lt_iff_val_lt_val]
+  rw [topIndices, Finset.mem_map_equiv, Finset.mem_Iio, Fin.lt_def]
 
 /-- An eigenvalue whose index is not in `topIndices k` is at most λₖ. -/
 theorem eigenvalues_le_of_not_mem_topIndices {A : Matrix n n ℂ} (hA : A.IsHermitian) {k : ℕ}

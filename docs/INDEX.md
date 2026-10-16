@@ -517,18 +517,18 @@ rather than reading it whole. Files are listed so each comes after its imports.
 | `Matrix.DavisKahan.davis_kahan_top_of_norm_lt_gap` | theorem | [DavisKahan.lean:222](../src/DavisKahan.lean#L222) | **Davis–Kahan in gap form.** Let A be Hermitian with gap δ = λ₀ - λ₁ > ‖E‖₂, and let v be a unit vector with… |
 | `Matrix.DavisKahan.davis_kahan_top_eigenvector` | theorem | [DavisKahan.lean:247](../src/DavisKahan.lean#L247) | **Davis–Kahan for the top eigenvector of A + E.** For Hermitian A, E with ‖E‖₂ < δ = λ₀(A) - λ₁(A) and a unit… |
 | `Matrix.DavisKahan.topIndices` | def | [DavisKahan.lean:264](../src/DavisKahan.lean#L264) | The indices of the k largest eigenvalues: the images of the sorted indices 0, …, k - 1 under Mathlib's eigenv… |
-| `Matrix.DavisKahan.card_topIndices` | theorem | [DavisKahan.lean:269](../src/DavisKahan.lean#L269) | `topIndices k` has k elements. |
-| `Matrix.DavisKahan.mem_topIndices` | theorem | [DavisKahan.lean:275](../src/DavisKahan.lean#L275) | i ∈ `topIndices k` iff the sorted index of i is less than k. |
-| `Matrix.DavisKahan.eigenvalues_le_of_not_mem_topIndices` | theorem | [DavisKahan.lean:280](../src/DavisKahan.lean#L280) | An eigenvalue whose index is not in `topIndices k` is at most λₖ. |
-| `Matrix.DavisKahan.le_eigenvalues_of_mem_topIndices` | theorem | [DavisKahan.lean:289](../src/DavisKahan.lean#L289) | An eigenvalue whose index is in `topIndices k` is at least λₖ₋₁. |
-| `Matrix.DavisKahan.davis_kahan_topIndices` | theorem | [DavisKahan.lean:302](../src/DavisKahan.lean#L302) | **Davis–Kahan sin θ bound for a top-k eigenspace, one vector at a time.** Let A be Hermitian with eigenvector… |
-| `Matrix.DavisKahan.davis_kahan_topIndices_of_norm_lt_gap` | theorem | [DavisKahan.lean:364](../src/DavisKahan.lean#L364) | **Davis–Kahan for a top-k eigenspace in gap form, one vector at a time.** Let A be Hermitian with gap δ = λₖ₋… |
-| `Matrix.DavisKahan.davis_kahan_sin_theta` | theorem | [DavisKahan.lean:392](../src/DavisKahan.lean#L392) | **Davis–Kahan sin Θ bound for the top-k eigenspace (Frobenius form).** Let A, E be Hermitian, k < n, and ‖E‖₂… |
-| `Matrix.DavisKahan.eigenvalues₀_congr` | theorem | [DavisKahan.lean:424](../src/DavisKahan.lean#L424) | Hermitian matrices that are equal have the same sorted eigenvalues. |
-| `Matrix.DavisKahan.top_right_singular_vector_perturbation` | theorem | [DavisKahan.lean:434](../src/DavisKahan.lean#L434) | **Perturbation of the top right singular vector.** Let A, Ã be square, with Gram matrices G = Aᴴ A and G̃ = Ã… |
-| `Matrix.DavisKahan.spectralGap_mul_norm_le_sq_sub_sq` | theorem | [DavisKahan.lean:466](../src/DavisKahan.lean#L466) | The Gram gap σ₀² - σ₁² is at least `spectralGap A * ‖A‖₂`, since σ₀² - σ₁² = (σ₀ - σ₁)(σ₀ + σ₁) and σ₀ = ‖A‖₂. |
-| `Matrix.DavisKahan.norm_gram_sub_le` | theorem | [DavisKahan.lean:485](../src/DavisKahan.lean#L485) | ‖Ãᴴ Ã - Aᴴ A‖₂ ≤ ‖Ã - A‖₂ (‖Ã‖₂ + ‖A‖₂), from Ãᴴ Ã - Aᴴ A = Ãᴴ (Ã - A) + (Ã - A)ᴴ A. |
-| `Matrix.DavisKahan.top_right_singular_vector_perturbation_of_spectralGap` | theorem | [DavisKahan.lean:501](../src/DavisKahan.lean#L501) | **Perturbation of the top right singular vector, in ‖Ã - A‖₂ and the spectral gap.** Let η = ‖Ã - A‖₂ (‖Ã‖₂ +… |
+| `Matrix.DavisKahan.card_topIndices` | theorem | [DavisKahan.lean:270](../src/DavisKahan.lean#L270) | `topIndices k` has k elements. |
+| `Matrix.DavisKahan.mem_topIndices` | theorem | [DavisKahan.lean:277](../src/DavisKahan.lean#L277) | i ∈ `topIndices k` iff the sorted index of i is less than k. |
+| `Matrix.DavisKahan.eigenvalues_le_of_not_mem_topIndices` | theorem | [DavisKahan.lean:282](../src/DavisKahan.lean#L282) | An eigenvalue whose index is not in `topIndices k` is at most λₖ. |
+| `Matrix.DavisKahan.le_eigenvalues_of_mem_topIndices` | theorem | [DavisKahan.lean:291](../src/DavisKahan.lean#L291) | An eigenvalue whose index is in `topIndices k` is at least λₖ₋₁. |
+| `Matrix.DavisKahan.davis_kahan_topIndices` | theorem | [DavisKahan.lean:304](../src/DavisKahan.lean#L304) | **Davis–Kahan sin θ bound for a top-k eigenspace, one vector at a time.** Let A be Hermitian with eigenvector… |
+| `Matrix.DavisKahan.davis_kahan_topIndices_of_norm_lt_gap` | theorem | [DavisKahan.lean:366](../src/DavisKahan.lean#L366) | **Davis–Kahan for a top-k eigenspace in gap form, one vector at a time.** Let A be Hermitian with gap δ = λₖ₋… |
+| `Matrix.DavisKahan.davis_kahan_sin_theta` | theorem | [DavisKahan.lean:394](../src/DavisKahan.lean#L394) | **Davis–Kahan sin Θ bound for the top-k eigenspace (Frobenius form).** Let A, E be Hermitian, k < n, and ‖E‖₂… |
+| `Matrix.DavisKahan.eigenvalues₀_congr` | theorem | [DavisKahan.lean:426](../src/DavisKahan.lean#L426) | Hermitian matrices that are equal have the same sorted eigenvalues. |
+| `Matrix.DavisKahan.top_right_singular_vector_perturbation` | theorem | [DavisKahan.lean:436](../src/DavisKahan.lean#L436) | **Perturbation of the top right singular vector.** Let A, Ã be square, with Gram matrices G = Aᴴ A and G̃ = Ã… |
+| `Matrix.DavisKahan.spectralGap_mul_norm_le_sq_sub_sq` | theorem | [DavisKahan.lean:468](../src/DavisKahan.lean#L468) | The Gram gap σ₀² - σ₁² is at least `spectralGap A * ‖A‖₂`, since σ₀² - σ₁² = (σ₀ - σ₁)(σ₀ + σ₁) and σ₀ = ‖A‖₂. |
+| `Matrix.DavisKahan.norm_gram_sub_le` | theorem | [DavisKahan.lean:487](../src/DavisKahan.lean#L487) | ‖Ãᴴ Ã - Aᴴ A‖₂ ≤ ‖Ã - A‖₂ (‖Ã‖₂ + ‖A‖₂), from Ãᴴ Ã - Aᴴ A = Ãᴴ (Ã - A) + (Ã - A)ᴴ A. |
+| `Matrix.DavisKahan.top_right_singular_vector_perturbation_of_spectralGap` | theorem | [DavisKahan.lean:503](../src/DavisKahan.lean#L503) | **Perturbation of the top right singular vector, in ‖Ã - A‖₂ and the spectral gap.** Let η = ‖Ã - A‖₂ (‖Ã‖₂ +… |
 
 ## TightBounds.lean
 
