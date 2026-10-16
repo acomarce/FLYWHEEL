@@ -5,7 +5,11 @@ Authors: Aleksandar Markovski
 
 # Tight Bounds for Kronecker Approximation
 
-Frobenius error of rank-1 Kronecker approximation is exact: σ₂(R(C)).
+The Frobenius error of a Kronecker approximation transfers exactly through R:
+‖C - R⁻¹(X)‖_F = ‖R(C) - X‖_F (`frobenius_error_via_R_isometry`). For X the rank-1 truncated
+SVD of R(C), this error is √(σ₂² + σ₃² + ⋯) for the singular values σᵢ of R(C), not σ₂.
+That formula is not formalized here, because the repo has no rectangular Frobenius error
+formula for `truncatedSVD_rect`.
 Spectral bounds are upper only since R does NOT preserve ‖·‖₂.
 
 ## References
@@ -156,8 +160,9 @@ noncomputable def truncatedSingularDiagonal_rect {m' n' : Type*} [Fintype m'] [F
   else
     0
 
-/-- Truncated SVD for rectangular matrices: best rank-k approximation.
-    Returns Aₖ = U * Sₖ * V* where Sₖ has only the top k singular values. -/
+/-- Truncated SVD for rectangular matrices: the rank-k truncation of the SVD.
+    Returns Aₖ = U * Sₖ * V* where Sₖ has only the top k singular values.
+    Its optimality (rectangular Eckart-Young) is not formalized. -/
 noncomputable def truncatedSVD_rect {m' n' : Type*} [Fintype m'] [Fintype n']
     [DecidableEq m'] [DecidableEq n']
     (A : Matrix m' n' ℂ) (k : ℕ) : Matrix m' n' ℂ :=
@@ -1191,6 +1196,8 @@ private theorem l2_opNorm_le_frobenius_inline {m' n' : Type*}
 
     This equals √(σ₂² + σ₃² + ... + σₙ²) where σᵢ are singular values of R(C).
     NOT σ₂ alone! (The spectral error equals σ₂, but Frobenius ≠ spectral.)
+    Only the isometry identity above is proved. The √(σ₂² + ⋯) formula and the optimality
+    of the truncated SVD are not formalized for rectangular matrices.
 
     **Key property:**
     - R is a Frobenius isometry: ‖R(M)‖_F = ‖M‖_F
@@ -1226,7 +1233,10 @@ attribute [local instance] Matrix.instCStarRing
     **Mathematical statement:**
     ‖C - R⁻¹(truncatedSVD(R(C), 1))‖₂ ≤ ‖C - R⁻¹(truncatedSVD(R(C), 1))‖_F
                                         = ‖R(C) - truncatedSVD(R(C), 1)‖_F
-                                        = √(σ₂² + σ₃² + ...) -/
+                                        = √(σ₂² + σ₃² + ...)
+
+    The theorem states only the first inequality. The first equality is
+    `frobenius_error_via_R_isometry`; the last is not formalized. -/
 theorem spectral_error_le_frobenius_error
     (C : Matrix (m × n) (p × q) ℂ) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm

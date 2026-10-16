@@ -26,22 +26,22 @@ rather than reading it whole. Files are listed so each comes after its imports.
 
 | Name | Kind | Location | Summary |
 |---|---|---|---|
-| `Matrix.KroneckerRearrangement.vec` | def | [KroneckerRearrangement.lean:51](../src/KroneckerRearrangement.lean#L51) | The vectorization of a matrix: represents a matrix as a vector indexed by (row, column) pairs. |
-| `Matrix.KroneckerRearrangement.R` | def | [KroneckerRearrangement.lean:65](../src/KroneckerRearrangement.lean#L65) | The Van Loan-Pitsianis rearrangement map R. |
-| `Matrix.KroneckerRearrangement.outerProduct` | def | [KroneckerRearrangement.lean:69](../src/KroneckerRearrangement.lean#L69) | Outer product u vᵀ. |
-| `Matrix.KroneckerRearrangement.R_apply` | theorem | [KroneckerRearrangement.lean:76](../src/KroneckerRearrangement.lean#L76) |  |
-| `Matrix.KroneckerRearrangement.vec_apply` | theorem | [KroneckerRearrangement.lean:84](../src/KroneckerRearrangement.lean#L84) |  |
-| `Matrix.KroneckerRearrangement.outerProduct_apply` | theorem | [KroneckerRearrangement.lean:88](../src/KroneckerRearrangement.lean#L88) |  |
-| `Matrix.KroneckerRearrangement.R_kronecker` | theorem | [KroneckerRearrangement.lean:98](../src/KroneckerRearrangement.lean#L98) | R(A ⊗ B) = vec(A) vec(B)ᵀ. |
-| `Matrix.KroneckerRearrangement.R_add` | theorem | [KroneckerRearrangement.lean:104](../src/KroneckerRearrangement.lean#L104) |  |
-| `Matrix.KroneckerRearrangement.R_smul` | theorem | [KroneckerRearrangement.lean:110](../src/KroneckerRearrangement.lean#L110) |  |
-| `Matrix.KroneckerRearrangement.R_frobenius_norm_eq` | theorem | [KroneckerRearrangement.lean:132](../src/KroneckerRearrangement.lean#L132) | **Isometry Property**: The rearrangement R preserves the Frobenius norm. |
-| `Matrix.KroneckerRearrangement.R_linearMap` | def | [KroneckerRearrangement.lean:154](../src/KroneckerRearrangement.lean#L154) | R is a linear map. |
-| `Matrix.KroneckerRearrangement.R_inv` | def | [KroneckerRearrangement.lean:160](../src/KroneckerRearrangement.lean#L160) | The inverse rearrangement R⁻¹ that undoes R. |
-| `Matrix.KroneckerRearrangement.R_inv_R` | theorem | [KroneckerRearrangement.lean:165](../src/KroneckerRearrangement.lean#L165) | R and R_inv are inverses (R_inv ∘ R = id). |
-| `Matrix.KroneckerRearrangement.R_R_inv` | theorem | [KroneckerRearrangement.lean:171](../src/KroneckerRearrangement.lean#L171) | R and R_inv are inverses (R ∘ R_inv = id). |
-| `Matrix.KroneckerRearrangement.R_bijective` | theorem | [KroneckerRearrangement.lean:177](../src/KroneckerRearrangement.lean#L177) | R is bijective. |
-| `Matrix.KroneckerRearrangement.R_linearIsometryEquiv` | theorem | [KroneckerRearrangement.lean:188](../src/KroneckerRearrangement.lean#L188) | R is a linear isometry equivalence with respect to Frobenius norm. |
+| `Matrix.KroneckerRearrangement.vec` | def | [KroneckerRearrangement.lean:52](../src/KroneckerRearrangement.lean#L52) | The vectorization of a matrix: represents a matrix as a vector indexed by (row, column) pairs. |
+| `Matrix.KroneckerRearrangement.R` | def | [KroneckerRearrangement.lean:66](../src/KroneckerRearrangement.lean#L66) | The Van Loan-Pitsianis rearrangement map R. |
+| `Matrix.KroneckerRearrangement.outerProduct` | def | [KroneckerRearrangement.lean:70](../src/KroneckerRearrangement.lean#L70) | Outer product u vᵀ. |
+| `Matrix.KroneckerRearrangement.R_apply` | theorem | [KroneckerRearrangement.lean:77](../src/KroneckerRearrangement.lean#L77) |  |
+| `Matrix.KroneckerRearrangement.vec_apply` | theorem | [KroneckerRearrangement.lean:85](../src/KroneckerRearrangement.lean#L85) |  |
+| `Matrix.KroneckerRearrangement.outerProduct_apply` | theorem | [KroneckerRearrangement.lean:89](../src/KroneckerRearrangement.lean#L89) |  |
+| `Matrix.KroneckerRearrangement.R_kronecker` | theorem | [KroneckerRearrangement.lean:99](../src/KroneckerRearrangement.lean#L99) | R(A ⊗ B) = vec(A) vec(B)ᵀ. |
+| `Matrix.KroneckerRearrangement.R_add` | theorem | [KroneckerRearrangement.lean:105](../src/KroneckerRearrangement.lean#L105) |  |
+| `Matrix.KroneckerRearrangement.R_smul` | theorem | [KroneckerRearrangement.lean:111](../src/KroneckerRearrangement.lean#L111) |  |
+| `Matrix.KroneckerRearrangement.R_frobenius_norm_eq` | theorem | [KroneckerRearrangement.lean:133](../src/KroneckerRearrangement.lean#L133) | **Isometry Property**: The rearrangement R preserves the Frobenius norm. |
+| `Matrix.KroneckerRearrangement.R_linearMap` | def | [KroneckerRearrangement.lean:155](../src/KroneckerRearrangement.lean#L155) | R is a linear map. |
+| `Matrix.KroneckerRearrangement.R_inv` | def | [KroneckerRearrangement.lean:161](../src/KroneckerRearrangement.lean#L161) | The inverse rearrangement R⁻¹ that undoes R. |
+| `Matrix.KroneckerRearrangement.R_inv_R` | theorem | [KroneckerRearrangement.lean:166](../src/KroneckerRearrangement.lean#L166) | R and R_inv are inverses (R_inv ∘ R = id). |
+| `Matrix.KroneckerRearrangement.R_R_inv` | theorem | [KroneckerRearrangement.lean:172](../src/KroneckerRearrangement.lean#L172) | R and R_inv are inverses (R ∘ R_inv = id). |
+| `Matrix.KroneckerRearrangement.R_bijective` | theorem | [KroneckerRearrangement.lean:178](../src/KroneckerRearrangement.lean#L178) | R is bijective. |
+| `Matrix.KroneckerRearrangement.R_linearIsometryEquiv` | theorem | [KroneckerRearrangement.lean:189](../src/KroneckerRearrangement.lean#L189) | R is a linear isometry equivalence with respect to Frobenius norm. |
 
 ## SVD.lean
 
@@ -241,17 +241,17 @@ rather than reading it whole. Files are listed so each comes after its imports.
 | `Matrix.SVD.Rectangular.AV_column_zero_of_eigenvalue_zero_rectangular` | lemma | [SVD.lean:3366](../src/SVD.lean#L3366) | Column j of A*V is zero when the corresponding eigenvalue (and hence singular value) is zero. |
 | `Matrix.SVD.Rectangular.AV_eq_US_rectangular` | theorem | [SVD.lean:3414](../src/SVD.lean#L3414) | **Core equation for rectangular SVD**: A * V = U * S |
 | `Matrix.SVD.Rectangular.svd_decomposition_rectangular` | theorem | [SVD.lean:3567](../src/SVD.lean#L3567) | **Rectangular SVD Decomposition (Existence Form)**: Any m × n complex matrix A can be decomposed as A = U * r… |
-| `frobeniusNormRect` | def | [SVD.lean:3631](../src/SVD.lean#L3631) | Frobenius norm for rectangular matrices as an explicit function. |
-| `frobeniusNormRect_nonneg` | theorem | [SVD.lean:3636](../src/SVD.lean#L3636) | Frobenius norm is non-negative. |
-| `frobeniusNormRect_sq` | theorem | [SVD.lean:3642](../src/SVD.lean#L3642) | The squared Frobenius norm equals the sum of squared entry norms. |
-| `frobeniusNormRect_zero` | theorem | [SVD.lean:3656](../src/SVD.lean#L3656) | For zero matrix, Frobenius norm is 0. |
-| `frobeniusNormRect_pos_of_ne_zero` | theorem | [SVD.lean:3663](../src/SVD.lean#L3663) | For nonzero matrix, Frobenius norm is positive. |
-| `rank_pos_of_ne_zero_rect` | theorem | [SVD.lean:3680](../src/SVD.lean#L3680) | A nonzero matrix has positive rank. |
-| `coherenceFactorRect` | def | [SVD.lean:3713](../src/SVD.lean#L3713) | **Coherence factor for rectangular matrices.** |
-| `coherenceFactorRect_zero` | theorem | [SVD.lean:3721](../src/SVD.lean#L3721) | For the zero matrix, coherence factor is 1 by definition. |
-| `coherenceFactorRect_pos_of_ne_zero` | theorem | [SVD.lean:3727](../src/SVD.lean#L3727) | For nonzero matrices, the coherence factor is positive. |
-| `coherenceFactorRect_nonneg` | theorem | [SVD.lean:3742](../src/SVD.lean#L3742) | The coherence factor is non-negative. |
-| `coherenceFactorRect_eq_formula` | theorem | [SVD.lean:3756](../src/SVD.lean#L3756) | For square matrices, `coherenceFactorRect` is compatible with the definition pattern used in `CoherenceCharac… |
+| `frobeniusNormRect` | def | [SVD.lean:3632](../src/SVD.lean#L3632) | Frobenius norm for rectangular matrices as an explicit function. |
+| `frobeniusNormRect_nonneg` | theorem | [SVD.lean:3637](../src/SVD.lean#L3637) | Frobenius norm is non-negative. |
+| `frobeniusNormRect_sq` | theorem | [SVD.lean:3643](../src/SVD.lean#L3643) | The squared Frobenius norm equals the sum of squared entry norms. |
+| `frobeniusNormRect_zero` | theorem | [SVD.lean:3657](../src/SVD.lean#L3657) | For zero matrix, Frobenius norm is 0. |
+| `frobeniusNormRect_pos_of_ne_zero` | theorem | [SVD.lean:3664](../src/SVD.lean#L3664) | For nonzero matrix, Frobenius norm is positive. |
+| `rank_pos_of_ne_zero_rect` | theorem | [SVD.lean:3681](../src/SVD.lean#L3681) | A nonzero matrix has positive rank. |
+| `coherenceFactorRect` | def | [SVD.lean:3714](../src/SVD.lean#L3714) | **Coherence factor for rectangular matrices.** |
+| `coherenceFactorRect_zero` | theorem | [SVD.lean:3722](../src/SVD.lean#L3722) | For the zero matrix, coherence factor is 1 by definition. |
+| `coherenceFactorRect_pos_of_ne_zero` | theorem | [SVD.lean:3728](../src/SVD.lean#L3728) | For nonzero matrices, the coherence factor is positive. |
+| `coherenceFactorRect_nonneg` | theorem | [SVD.lean:3743](../src/SVD.lean#L3743) | The coherence factor is non-negative. |
+| `coherenceFactorRect_eq_formula` | theorem | [SVD.lean:3756](../src/SVD.lean#L3756) | For nonzero square `E`, `coherenceFactorRect E` unfolds to μ(E) = ‖E‖_F / (√rank(E) · ‖E‖₂), the formula that… |
 | `sum_singularValues_sq_le_rank_mul_max_sq_rect` | theorem | [SVD.lean:3775](../src/SVD.lean#L3775) | The sum of squared singular values is bounded by rank(A) times the max squared. |
 | `coherenceFactorRect_le_one` | theorem | [SVD.lean:3836](../src/SVD.lean#L3836) | **The coherence factor is at most 1.** |
 | `max_singularValue_sq_le_sum_rect` | theorem | [SVD.lean:3906](../src/SVD.lean#L3906) | The maximum singular value squared is at most the sum of all squared singular values. |
@@ -384,7 +384,7 @@ rather than reading it whole. Files are listed so each comes after its imports.
 | `Matrix.FrobeniusNorm.frobenius_error_in_svd_basis` | lemma | [FrobeniusNorm.lean:316](../src/FrobeniusNorm.lean#L316) | The error ‖A - B‖_F equals ‖Sig - U* B V‖_F in the SVD basis. |
 | `Matrix.FrobeniusNorm.frobenius_sq_diagonal_minus_matrix` | lemma | [FrobeniusNorm.lean:373](../src/FrobeniusNorm.lean#L373) | The Frobenius norm squared of the difference between a diagonal and an arbitrary matrix can be decomposed int… |
 | `Matrix.FrobeniusNorm.frobenius_sq_truncated_diagonal` | lemma | [FrobeniusNorm.lean:429](../src/FrobeniusNorm.lean#L429) | Key insight: For the truncated singular value diagonal matrix, the Frobenius squared error is the sum of squa… |
-| `Matrix.FrobeniusNorm.eckart_young_frobenius` | theorem | [FrobeniusNorm.lean:515](../src/FrobeniusNorm.lean#L515) | The Eckart-Young theorem (Frobenius norm): The truncated SVD is the optimal rank-k approximation in Frobenius… |
+| `Matrix.FrobeniusNorm.eckart_young_frobenius` | theorem | [FrobeniusNorm.lean:516](../src/FrobeniusNorm.lean#L516) | **Eckart-Young Theorem (Frobenius norm):** The truncated SVD is an optimal rank-k approximation in Frobenius… |
 
 ## MatrixNormRelations.lean
 
@@ -451,45 +451,45 @@ rather than reading it whole. Files are listed so each comes after its imports.
 
 | Name | Kind | Location | Summary |
 |---|---|---|---|
-| `Matrix.Kronecker.SpectralGap.sum_norm_sq_eq_norm_sq_euclidean` | lemma | [SpectralNormGap.lean:46](../src/SpectralNormGap.lean#L46) | Helper: sum of squared norms equals inner product with self for EuclideanSpace. |
-| `Matrix.Kronecker.SpectralGap.outerProduct_frobenius_norm_sq'` | lemma | [SpectralNormGap.lean:55](../src/SpectralNormGap.lean#L55) | The Frobenius norm squared of an outer product of EuclideanSpace vectors. |
-| `Matrix.Kronecker.SpectralGap.outerProduct_frobenius_norm'` | lemma | [SpectralNormGap.lean:75](../src/SpectralNormGap.lean#L75) | The Frobenius norm of an outer product equals the product of Euclidean vector norms. |
-| `Matrix.Kronecker.SpectralGap.R_inv_frobenius_norm_eq` | lemma | [SpectralNormGap.lean:98](../src/SpectralNormGap.lean#L98) | R_inv is a Frobenius isometry: ‖R_inv M‖_F = ‖M‖_F |
-| `Matrix.Kronecker.SpectralGap.complex_sum_cauchy_schwarz` | private lemma | [SpectralNormGap.lean:130](../src/SpectralNormGap.lean#L130) | Cauchy-Schwarz for complex sums: \|∑ⱼ aⱼ bⱼ\| ≤ √(∑ⱼ \|aⱼ\|²) · √(∑ⱼ \|bⱼ\|²) |
-| `Matrix.Kronecker.SpectralGap.mulVec_eucl_norm_sq_le` | private lemma | [SpectralNormGap.lean:148](../src/SpectralNormGap.lean#L148) | Matrix-vector multiplication bound: ‖A *ᵥ x‖² ≤ ‖A‖_F² · ‖x‖² |
-| `Matrix.Kronecker.SpectralGap.mulVec_eucl_norm_le` | private lemma | [SpectralNormGap.lean:171](../src/SpectralNormGap.lean#L171) | Matrix-vector multiplication bound: ‖A *ᵥ x‖ ≤ √(∑ᵢⱼ \|Aᵢⱼ\|²) · ‖x‖ |
-| `Matrix.Kronecker.SpectralGap.frobenius_norm_eq_sqrt` | private lemma | [SpectralNormGap.lean:189](../src/SpectralNormGap.lean#L189) | Frobenius norm expressed as square root of sum of squared entries. |
-| `Matrix.Kronecker.SpectralGap.l2_opNorm_le_frobenius` | private theorem | [SpectralNormGap.lean:198](../src/SpectralNormGap.lean#L198) | **L2 operator norm is bounded by Frobenius norm** for any matrix. |
-| `Matrix.Kronecker.SpectralGap.R_inv_spectral_le_frobenius` | theorem | [SpectralNormGap.lean:218](../src/SpectralNormGap.lean#L218) | **Main theorem**: spectral norm of R⁻¹ on matrices is bounded by Frobenius norm. |
-| `Matrix.Kronecker.SpectralGap.R_inv_outerProduct_spectral_bound` | theorem | [SpectralNormGap.lean:239](../src/SpectralNormGap.lean#L239) | **Main theorem for outer products**: spectral norm of R⁻¹(uv*) is bounded by ‖u‖·‖v‖. |
-| `Matrix.Kronecker.SpectralGap.R_inv_outerProduct_spectral_bound_unit` | theorem | [SpectralNormGap.lean:257](../src/SpectralNormGap.lean#L257) | Corollary: For unit vectors in EuclideanSpace, ‖R⁻¹(uv*)‖₂ ≤ 1 |
-| `Matrix.Kronecker.SpectralGap.R_sub` | lemma | [SpectralNormGap.lean:280](../src/SpectralNormGap.lean#L280) | R distributes over subtraction. |
-| `Matrix.Kronecker.SpectralGap.R_inv_sub` | lemma | [SpectralNormGap.lean:288](../src/SpectralNormGap.lean#L288) | R_inv distributes over subtraction. |
-| `Matrix.Kronecker.SpectralGap.spectral_norm_R_inv_le_frobenius` | theorem | [SpectralNormGap.lean:301](../src/SpectralNormGap.lean#L301) | **Key spectral bound via R⁻¹ Frobenius isometry:** For any matrix M, the spectral norm of R⁻¹(M) is bounded b… |
-| `Matrix.Kronecker.SpectralGap.spectral_error_bound_via_R` | theorem | [SpectralNormGap.lean:323](../src/SpectralNormGap.lean#L323) | **Main Upper Bound Theorem (Main):** For a matrix C and any matrix M in the rearranged space, the spectral no… |
-| `Matrix.Kronecker.SpectralGap.kronecker_spectral_error_le_frobenius_error` | theorem | [SpectralNormGap.lean:369](../src/SpectralNormGap.lean#L369) | **General Kronecker Spectral Error Bound:** For any target approximation M in the rearranged space, the spect… |
-| `Matrix.Kronecker.SpectralGap.kronecker_spectral_error_truncatedSVD` | theorem | [SpectralNormGap.lean:402](../src/SpectralNormGap.lean#L402) | **Kronecker Spectral Error with Explicit Singular Value Bound (Square Case):** For a square rearranged matrix… |
-| `Matrix.Kronecker.SpectralGap.frobenius_error_truncatedSVD_sq` | theorem | [SpectralNormGap.lean:411](../src/SpectralNormGap.lean#L411) | **The Frobenius error of truncated SVD equals sum of squared tail singular values.** Re-exported from Frobeni… |
-| `Matrix.Kronecker.SpectralGap.spectral_error_le_sqrt_sum_tail_sq` | theorem | [SpectralNormGap.lean:422](../src/SpectralNormGap.lean#L422) | **Combined Spectral-Frobenius Bound:** The spectral norm of the truncated SVD error is bounded by the square… |
-| `Matrix.Kronecker.SpectralGap.spectral_error_rank1_bound` | theorem | [SpectralNormGap.lean:444](../src/SpectralNormGap.lean#L444) | **Rank-1 Approximation Bound:** For k = 1 (rank-1 approximation), the spectral error is bounded by √(σ₂² + σ₃… |
-| `Matrix.Kronecker.SpectralGap.outerProduct_zero_left` | lemma | [SpectralNormGap.lean:491](../src/SpectralNormGap.lean#L491) | Helper: outerProduct of zero vector is zero matrix. |
-| `Matrix.Kronecker.SpectralGap.outerProduct_zero_right` | lemma | [SpectralNormGap.lean:497](../src/SpectralNormGap.lean#L497) | Helper: outerProduct with zero vector on right is zero matrix. |
-| `Matrix.Kronecker.SpectralGap.outerProduct_spectral_norm_le` | theorem | [SpectralNormGap.lean:504](../src/SpectralNormGap.lean#L504) | The spectral norm of an outer product is bounded above by the product of vector norms. |
-| `Matrix.Kronecker.SpectralGap.outerProduct_spectral_le_frobenius` | theorem | [SpectralNormGap.lean:515](../src/SpectralNormGap.lean#L515) | Tightness bound: spectral ≤ Frobenius for outer products, with equality in Frobenius case. |
-| `Matrix.Kronecker.SpectralGap.R_inv_bound_achievable_rank1` | theorem | [SpectralNormGap.lean:532](../src/SpectralNormGap.lean#L532) | The R⁻¹ bound for outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖₂. |
-| `Matrix.Kronecker.SpectralGap.R_inv_outerProduct_le_outerProduct_frobenius` | theorem | [SpectralNormGap.lean:548](../src/SpectralNormGap.lean#L548) | The R⁻¹ bound compared to outer product spectral norm. |
-| `Matrix.Kronecker.SpectralGap.frobenius_spectral_ratio_ge_one` | theorem | [SpectralNormGap.lean:578](../src/SpectralNormGap.lean#L578) | The ratio ‖A‖_F / ‖A‖₂ is always at least 1 (for nonzero A). |
-| `Matrix.Kronecker.SpectralGap.coherence_ratio_outerProduct_frobenius` | theorem | [SpectralNormGap.lean:594](../src/SpectralNormGap.lean#L594) | For rank-1 matrices (outer products), the coherence ratio equals 1 when computed using the Frobenius norm ide… |
-| `Matrix.Kronecker.SpectralGap.kronecker_error_gap_bound` | theorem | [SpectralNormGap.lean:602](../src/SpectralNormGap.lean#L602) | The spectral-to-Frobenius gap for the Kronecker approximation error. |
-| `Matrix.Kronecker.SpectralGap.bound_tight_rank1` | theorem | [SpectralNormGap.lean:617](../src/SpectralNormGap.lean#L617) | **Key tightness result**: The bound ‖R⁻¹(M)‖₂ ≤ ‖M‖_F is achieved when M is a rank-1 outer product, since bot… |
-| `Matrix.Kronecker.SpectralGapCharacterization.rank_outerProduct_le_one` | lemma | [SpectralNormGap.lean:690](../src/SpectralNormGap.lean#L690) | Rank of an outer product is ≤ 1. |
-| `Matrix.Kronecker.SpectralGapCharacterization.rank_R_kronecker_le_one` | theorem | [SpectralNormGap.lean:704](../src/SpectralNormGap.lean#L704) | The rank of R(A ⊗ B) is at most 1. |
-| `Matrix.Kronecker.SpectralGapCharacterization.frobenius_norm_sq_eq_sum_singularValues_sq` | theorem | [SpectralNormGap.lean:723](../src/SpectralNormGap.lean#L723) | The Frobenius norm squared equals the sum of squared singular values. |
-| `Matrix.Kronecker.SpectralGapCharacterization.spectral_le_frobenius_with_gap` | theorem | [SpectralNormGap.lean:769](../src/SpectralNormGap.lean#L769) | **Frobenius-to-Spectral Gap Bound:** The spectral norm of a matrix is at most its Frobenius norm, with the ga… |
-| `Matrix.Kronecker.SpectralGapCharacterization.coherence_ratio_ge_one` | theorem | [SpectralNormGap.lean:780](../src/SpectralNormGap.lean#L780) | **Coherence Ratio Bound:** For any nonzero matrix, the ratio of Frobenius to spectral norm is at least 1, wit… |
-| `Matrix.Kronecker.SpectralGapCharacterization.kronecker_approx_spectral_le_frobenius` | theorem | [SpectralNormGap.lean:811](../src/SpectralNormGap.lean#L811) | **Main Gap Bound for Kronecker Approximation:** For a matrix C and its Frobenius-optimal rank-1 Kronecker app… |
-| `Matrix.Kronecker.SpectralGapCharacterization.spectral_frobenius_error_ratio_le_one` | theorem | [SpectralNormGap.lean:827](../src/SpectralNormGap.lean#L827) | **Explicit Gap Bound via Effective Rank:** The ratio of spectral to Frobenius error for Kronecker approximati… |
-| `Matrix.Kronecker.SpectralGapCharacterization.rank1_kronecker_spectral_bound` | theorem | [SpectralNormGap.lean:850](../src/SpectralNormGap.lean#L850) | For rank-1 approximations, the Frobenius-optimal choice via SVD of R(C) gives: - Frobenius error = √(σ₂² + σ₃… |
+| `Matrix.Kronecker.SpectralGap.sum_norm_sq_eq_norm_sq_euclidean` | lemma | [SpectralNormGap.lean:48](../src/SpectralNormGap.lean#L48) | Helper: sum of squared norms equals inner product with self for EuclideanSpace. |
+| `Matrix.Kronecker.SpectralGap.outerProduct_frobenius_norm_sq'` | lemma | [SpectralNormGap.lean:57](../src/SpectralNormGap.lean#L57) | The Frobenius norm squared of an outer product of EuclideanSpace vectors. |
+| `Matrix.Kronecker.SpectralGap.outerProduct_frobenius_norm'` | lemma | [SpectralNormGap.lean:77](../src/SpectralNormGap.lean#L77) | The Frobenius norm of an outer product equals the product of Euclidean vector norms. |
+| `Matrix.Kronecker.SpectralGap.R_inv_frobenius_norm_eq` | lemma | [SpectralNormGap.lean:100](../src/SpectralNormGap.lean#L100) | R_inv is a Frobenius isometry: ‖R_inv M‖_F = ‖M‖_F |
+| `Matrix.Kronecker.SpectralGap.complex_sum_cauchy_schwarz` | private lemma | [SpectralNormGap.lean:133](../src/SpectralNormGap.lean#L133) | Cauchy-Schwarz for complex sums: \|∑ⱼ aⱼ bⱼ\| ≤ √(∑ⱼ \|aⱼ\|²) · √(∑ⱼ \|bⱼ\|²) |
+| `Matrix.Kronecker.SpectralGap.mulVec_eucl_norm_sq_le` | private lemma | [SpectralNormGap.lean:151](../src/SpectralNormGap.lean#L151) | Matrix-vector multiplication bound: ‖A *ᵥ x‖² ≤ ‖A‖_F² · ‖x‖² |
+| `Matrix.Kronecker.SpectralGap.mulVec_eucl_norm_le` | private lemma | [SpectralNormGap.lean:174](../src/SpectralNormGap.lean#L174) | Matrix-vector multiplication bound: ‖A *ᵥ x‖ ≤ √(∑ᵢⱼ \|Aᵢⱼ\|²) · ‖x‖ |
+| `Matrix.Kronecker.SpectralGap.frobenius_norm_eq_sqrt` | private lemma | [SpectralNormGap.lean:192](../src/SpectralNormGap.lean#L192) | Frobenius norm expressed as square root of sum of squared entries. |
+| `Matrix.Kronecker.SpectralGap.l2_opNorm_le_frobenius` | private theorem | [SpectralNormGap.lean:201](../src/SpectralNormGap.lean#L201) | **L2 operator norm is bounded by Frobenius norm** for any matrix. |
+| `Matrix.Kronecker.SpectralGap.R_inv_spectral_le_frobenius` | theorem | [SpectralNormGap.lean:221](../src/SpectralNormGap.lean#L221) | **Main theorem**: spectral norm of R⁻¹ on matrices is bounded by Frobenius norm. |
+| `Matrix.Kronecker.SpectralGap.R_inv_outerProduct_spectral_bound` | theorem | [SpectralNormGap.lean:242](../src/SpectralNormGap.lean#L242) | **Main theorem for outer products**: spectral norm of R⁻¹(uv*) is bounded by ‖u‖·‖v‖. |
+| `Matrix.Kronecker.SpectralGap.R_inv_outerProduct_spectral_bound_unit` | theorem | [SpectralNormGap.lean:260](../src/SpectralNormGap.lean#L260) | Corollary: For unit vectors in EuclideanSpace, ‖R⁻¹(uv*)‖₂ ≤ 1 |
+| `Matrix.Kronecker.SpectralGap.R_sub` | lemma | [SpectralNormGap.lean:283](../src/SpectralNormGap.lean#L283) | R distributes over subtraction. |
+| `Matrix.Kronecker.SpectralGap.R_inv_sub` | lemma | [SpectralNormGap.lean:291](../src/SpectralNormGap.lean#L291) | R_inv distributes over subtraction. |
+| `Matrix.Kronecker.SpectralGap.spectral_norm_R_inv_le_frobenius` | theorem | [SpectralNormGap.lean:304](../src/SpectralNormGap.lean#L304) | **Key spectral bound via R⁻¹ Frobenius isometry:** For any matrix M, the spectral norm of R⁻¹(M) is bounded b… |
+| `Matrix.Kronecker.SpectralGap.spectral_error_bound_via_R` | theorem | [SpectralNormGap.lean:326](../src/SpectralNormGap.lean#L326) | **Main Upper Bound Theorem (Main):** For a matrix C and any matrix M in the rearranged space, the spectral no… |
+| `Matrix.Kronecker.SpectralGap.kronecker_spectral_error_le_frobenius_error` | theorem | [SpectralNormGap.lean:372](../src/SpectralNormGap.lean#L372) | **General Kronecker Spectral Error Bound:** For any target approximation M in the rearranged space, the spect… |
+| `Matrix.Kronecker.SpectralGap.kronecker_spectral_error_truncatedSVD` | theorem | [SpectralNormGap.lean:405](../src/SpectralNormGap.lean#L405) | **Kronecker Spectral Error with Explicit Singular Value Bound (Square Case):** For a square rearranged matrix… |
+| `Matrix.Kronecker.SpectralGap.frobenius_error_truncatedSVD_sq` | theorem | [SpectralNormGap.lean:414](../src/SpectralNormGap.lean#L414) | **The Frobenius error of truncated SVD equals sum of squared tail singular values.** Re-exported from Frobeni… |
+| `Matrix.Kronecker.SpectralGap.spectral_error_le_sqrt_sum_tail_sq` | theorem | [SpectralNormGap.lean:425](../src/SpectralNormGap.lean#L425) | **Combined Spectral-Frobenius Bound:** The spectral norm of the truncated SVD error is bounded by the square… |
+| `Matrix.Kronecker.SpectralGap.spectral_error_rank1_bound` | theorem | [SpectralNormGap.lean:447](../src/SpectralNormGap.lean#L447) | **Rank-1 Approximation Bound:** For k = 1 (rank-1 approximation), the spectral error is bounded by √(σ₂² + σ₃… |
+| `Matrix.Kronecker.SpectralGap.outerProduct_zero_left` | lemma | [SpectralNormGap.lean:503](../src/SpectralNormGap.lean#L503) | Helper: outerProduct of zero vector is zero matrix. |
+| `Matrix.Kronecker.SpectralGap.outerProduct_zero_right` | lemma | [SpectralNormGap.lean:509](../src/SpectralNormGap.lean#L509) | Helper: outerProduct with zero vector on right is zero matrix. |
+| `Matrix.Kronecker.SpectralGap.outerProduct_spectral_norm_le` | theorem | [SpectralNormGap.lean:516](../src/SpectralNormGap.lean#L516) | The spectral norm of an outer product is bounded above by the product of vector norms. |
+| `Matrix.Kronecker.SpectralGap.outerProduct_spectral_le_frobenius` | theorem | [SpectralNormGap.lean:527](../src/SpectralNormGap.lean#L527) | Spectral ≤ Frobenius for outer products: ‖uv*‖₂ ≤ ‖uv*‖_F. |
+| `Matrix.Kronecker.SpectralGap.R_inv_bound_achievable_rank1` | theorem | [SpectralNormGap.lean:546](../src/SpectralNormGap.lean#L546) | The R⁻¹ bound for outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖u‖·‖v‖. |
+| `Matrix.Kronecker.SpectralGap.R_inv_outerProduct_le_outerProduct_frobenius` | theorem | [SpectralNormGap.lean:562](../src/SpectralNormGap.lean#L562) | The R⁻¹ bound against the Frobenius norm of the outer product: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F. |
+| `Matrix.Kronecker.SpectralGap.frobenius_spectral_ratio_ge_one` | theorem | [SpectralNormGap.lean:596](../src/SpectralNormGap.lean#L596) | The ratio ‖A‖_F / ‖A‖₂ is always at least 1 (for nonzero A). |
+| `Matrix.Kronecker.SpectralGap.coherence_ratio_outerProduct_frobenius` | theorem | [SpectralNormGap.lean:612](../src/SpectralNormGap.lean#L612) | The Frobenius norm of an outer product: ‖uv*‖_F = ‖u‖·‖v‖. |
+| `Matrix.Kronecker.SpectralGap.kronecker_error_gap_bound` | theorem | [SpectralNormGap.lean:620](../src/SpectralNormGap.lean#L620) | Spectral ≤ Frobenius for an approximation error: ‖C - M‖₂ ≤ ‖C - M‖_F. |
+| `Matrix.Kronecker.SpectralGap.bound_tight_rank1` | theorem | [SpectralNormGap.lean:631](../src/SpectralNormGap.lean#L631) | The R⁻¹ bound for rank-1 outer products: ‖R⁻¹(uv*)‖₂ ≤ ‖uv*‖_F. |
+| `Matrix.Kronecker.SpectralGapCharacterization.rank_outerProduct_le_one` | lemma | [SpectralNormGap.lean:702](../src/SpectralNormGap.lean#L702) | Rank of an outer product is ≤ 1. |
+| `Matrix.Kronecker.SpectralGapCharacterization.rank_R_kronecker_le_one` | theorem | [SpectralNormGap.lean:716](../src/SpectralNormGap.lean#L716) | The rank of R(A ⊗ B) is at most 1. |
+| `Matrix.Kronecker.SpectralGapCharacterization.frobenius_norm_sq_eq_sum_singularValues_sq` | theorem | [SpectralNormGap.lean:735](../src/SpectralNormGap.lean#L735) | The Frobenius norm squared equals the sum of squared singular values. |
+| `Matrix.Kronecker.SpectralGapCharacterization.spectral_le_frobenius_with_gap` | theorem | [SpectralNormGap.lean:782](../src/SpectralNormGap.lean#L782) | **Frobenius-to-Spectral Gap Bound:** The spectral norm of a matrix is at most its Frobenius norm, with the ga… |
+| `Matrix.Kronecker.SpectralGapCharacterization.coherence_ratio_ge_one` | theorem | [SpectralNormGap.lean:794](../src/SpectralNormGap.lean#L794) | **Coherence Ratio Bound:** For any nonzero matrix, the ratio of Frobenius to spectral norm is at least 1. |
+| `Matrix.Kronecker.SpectralGapCharacterization.kronecker_approx_spectral_le_frobenius` | theorem | [SpectralNormGap.lean:825](../src/SpectralNormGap.lean#L825) | **Main Gap Bound for Kronecker Approximation:** For a matrix C and its Frobenius-optimal rank-1 Kronecker app… |
+| `Matrix.Kronecker.SpectralGapCharacterization.spectral_frobenius_error_ratio_le_one` | theorem | [SpectralNormGap.lean:841](../src/SpectralNormGap.lean#L841) | **Explicit Gap Bound via Effective Rank:** The ratio of spectral to Frobenius error for Kronecker approximati… |
+| `Matrix.Kronecker.SpectralGapCharacterization.rank1_kronecker_spectral_bound` | theorem | [SpectralNormGap.lean:864](../src/SpectralNormGap.lean#L864) | For rank-1 approximations, the Frobenius-optimal choice via SVD of R(C) gives: - Frobenius error = √(σ₂² + σ₃… |
 
 ## CoherenceCharacterization.lean
 
@@ -565,55 +565,55 @@ rather than reading it whole. Files are listed so each comes after its imports.
 
 | Name | Kind | Location | Summary |
 |---|---|---|---|
-| `Matrix.TightBounds.singularValues₀_rect` | def | [TightBounds.lean:54](../src/TightBounds.lean#L54) | Sorted σᵢ for rectangular matrices. |
-| `Matrix.TightBounds.sigma2` | def | [TightBounds.lean:58](../src/TightBounds.lean#L58) |  |
-| `Matrix.TightBounds.sigma1` | def | [TightBounds.lean:62](../src/TightBounds.lean#L62) |  |
-| `Matrix.TightBounds.singularValues₀_rect_nonneg` | lemma | [TightBounds.lean:66](../src/TightBounds.lean#L66) |  |
-| `Matrix.TightBounds.singularValues₀_rect_antitone` | lemma | [TightBounds.lean:72](../src/TightBounds.lean#L72) |  |
-| `Matrix.TightBounds.sigma1_eq_maxSingularValue` | lemma | [TightBounds.lean:79](../src/TightBounds.lean#L79) | The largest singular value equals the maxSingularValue (when nonempty). |
-| `Matrix.TightBounds.sigma2_le_sigma1` | lemma | [TightBounds.lean:96](../src/TightBounds.lean#L96) | sigma2 ≤ sigma1 (singular values are sorted). |
-| `Matrix.TightBounds.singularValues₀_rect_sq` | lemma | [TightBounds.lean:105](../src/TightBounds.lean#L105) | Singular values squared equal the corresponding eigenvalues₀ for rectangular matrices. |
-| `Matrix.TightBounds.sum_sq_singularValues₀_rect_eq_trace` | lemma | [TightBounds.lean:114](../src/TightBounds.lean#L114) | Sum of squared singular values equals trace for rectangular matrices. |
-| `Matrix.TightBounds.rank_eq_card_nonzero_singularValues₀_rect` | lemma | [TightBounds.lean:121](../src/TightBounds.lean#L121) | Rank equals number of nonzero singular values for rectangular matrices. |
-| `Matrix.TightBounds.truncatedSingularValues_rect` | def | [TightBounds.lean:142](../src/TightBounds.lean#L142) | Truncated singular values for rectangular matrices: keeps top k, zeros the rest. |
-| `Matrix.TightBounds.truncatedSingularDiagonal_rect` | def | [TightBounds.lean:149](../src/TightBounds.lean#L149) | Truncated singular diagonal for rectangular matrices: like singularDiagonal but zeros beyond k. |
-| `Matrix.TightBounds.truncatedSVD_rect` | def | [TightBounds.lean:161](../src/TightBounds.lean#L161) | Truncated SVD for rectangular matrices: best rank-k approximation. |
-| `Matrix.TightBounds.truncatedSingularValues_rect_nonneg` | lemma | [TightBounds.lean:172](../src/TightBounds.lean#L172) | Truncated singular values are non-negative. |
-| `Matrix.TightBounds.truncatedSingularValues_rect_eq_of_lt` | lemma | [TightBounds.lean:182](../src/TightBounds.lean#L182) | Truncated singular values equal original values for indices < k. |
-| `Matrix.TightBounds.truncatedSingularValues_rect_eq_zero_of_ge` | lemma | [TightBounds.lean:191](../src/TightBounds.lean#L191) | Truncated singular values are zero for indices ≥ k. |
-| `Matrix.TightBounds.card_truncatedSingularValues_rect_nonzero_le` | lemma | [TightBounds.lean:200](../src/TightBounds.lean#L200) | The number of nonzero truncated singular values is at most k. |
-| `Matrix.TightBounds.truncatedSingularDiagonal_rect_full` | lemma | [TightBounds.lean:225](../src/TightBounds.lean#L225) | Truncated singular diagonal equals full diagonal when k is large enough. |
-| `Matrix.TightBounds.truncatedSingularDiagonal_rect_zero` | lemma | [TightBounds.lean:246](../src/TightBounds.lean#L246) | Truncated singular diagonal with k=0 is the zero matrix. |
-| `Matrix.TightBounds.truncatedSVD_rect_zero` | theorem | [TightBounds.lean:257](../src/TightBounds.lean#L257) | The truncated SVD with k = 0 is the zero matrix. |
-| `Matrix.TightBounds.truncatedSVD_rect_full` | theorem | [TightBounds.lean:266](../src/TightBounds.lean#L266) | The truncated SVD with k ≥ min(#m, #n) equals the original matrix A. |
-| `Matrix.TightBounds.truncatedSVD_rect_rank_le` | theorem | [TightBounds.lean:289](../src/TightBounds.lean#L289) | The rank of the truncated rectangular SVD is at most k. |
-| `Matrix.TightBounds.truncatedSingularValues_rect_tail` | def | [TightBounds.lean:396](../src/TightBounds.lean#L396) | Tail singular values: zeros the first k entries, keeps σₖ, σₖ₊₁, ..., σᵣ₋₁. |
-| `Matrix.TightBounds.truncatedSingularValues_rect_tail_nonneg` | lemma | [TightBounds.lean:401](../src/TightBounds.lean#L401) | Tail singular values are non-negative. |
-| `Matrix.TightBounds.truncatedSingularValues_rect_tail_eq_zero_of_lt` | lemma | [TightBounds.lean:411](../src/TightBounds.lean#L411) | Tail singular values are zero for indices < k. |
-| `Matrix.TightBounds.truncatedSingularValues_rect_tail_eq_of_ge` | lemma | [TightBounds.lean:419](../src/TightBounds.lean#L419) | Tail singular values equal original values for indices ≥ k. |
-| `Matrix.TightBounds.truncatedSingularDiagonal_rect_tail` | def | [TightBounds.lean:426](../src/TightBounds.lean#L426) | Tail singular diagonal: keeps entries at positions ≥ k, zeros the first k. |
-| `Matrix.TightBounds.truncatedSVD_rect_tail` | def | [TightBounds.lean:437](../src/TightBounds.lean#L437) | The tail of the truncated SVD: A - truncatedSVD_rect A k. |
-| `Matrix.TightBounds.singularDiagonal_eq_truncated_add_tail` | lemma | [TightBounds.lean:443](../src/TightBounds.lean#L443) | The full singular diagonal equals truncated + tail diagonals. |
-| `Matrix.TightBounds.truncatedSVD_rect_add_tail` | theorem | [TightBounds.lean:481](../src/TightBounds.lean#L481) | A = truncatedSVD_rect A k + truncatedSVD_rect_tail A k. |
-| `Matrix.TightBounds.truncatedSVD_rect_tail_eq_USV` | theorem | [TightBounds.lean:488](../src/TightBounds.lean#L488) | The tail can be expressed as U * Σ_tail * V*. |
-| `Matrix.TightBounds.l2_opNorm_unitary_mul_rect` | lemma | [TightBounds.lean:528](../src/TightBounds.lean#L528) | Left multiplication by unitary preserves spectral norm (square target). |
-| `Matrix.TightBounds.l2_opNorm_mul_unitary_star_rect` | lemma | [TightBounds.lean:555](../src/TightBounds.lean#L555) | Right multiplication by unitary star preserves spectral norm. |
-| `Matrix.TightBounds.l2_opNorm_unitary_conj_rect` | theorem | [TightBounds.lean:589](../src/TightBounds.lean#L589) | Spectral norm is invariant under conjugation by unitary matrices (rectangular middle). |
-| `Matrix.TightBounds.l2_opNorm_truncatedSVD_rect_tail` | theorem | [TightBounds.lean:598](../src/TightBounds.lean#L598) | The spectral norm of the tail equals the spectral norm of the tail diagonal. |
-| `Matrix.TightBounds.conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply` | lemma | [TightBounds.lean:618](../src/TightBounds.lean#L618) | Explicit computation of (DᴴD)(j, j') for D = truncatedSingularDiagonal_rect_tail A k. |
-| `Matrix.TightBounds.DtD_diagonal_entry` | lemma | [TightBounds.lean:747](../src/TightBounds.lean#L747) | DᴴD diagonal entry at j equals σ²_{bijection(j)} when k ≤ bijection(j) < min, else 0. |
-| `Matrix.TightBounds.inner_diagonal_matrix_eq_sum` | lemma | [TightBounds.lean:761](../src/TightBounds.lean#L761) | For a diagonal Hermitian matrix H, the inner product ⟨Hx, x⟩ equals Σⱼ H_jj \|xⱼ\|². |
-| `Matrix.TightBounds.hermitian_diagonal_real` | lemma | [TightBounds.lean:789](../src/TightBounds.lean#L789) | For a Hermitian matrix, diagonal entries are real. |
-| `Matrix.TightBounds.rayleigh_diagonal_le_bound` | lemma | [TightBounds.lean:804](../src/TightBounds.lean#L804) | For a unit vector and diagonal Hermitian matrix with diagonal entries ≤ bound, the Rayleigh quotient is ≤ bou… |
-| `Matrix.TightBounds.diagonal_entry_in_spectrum` | lemma | [TightBounds.lean:841](../src/TightBounds.lean#L841) | For a diagonal-like matrix, diagonal entries are in the spectrum. |
-| `Matrix.TightBounds.eigenvalues_le_max_diagonal_entry_of_diagonal_psd` | lemma | [TightBounds.lean:881](../src/TightBounds.lean#L881) | For a Hermitian matrix H with zero off-diagonal entries, every eigenvalue is at most any upper bound on the r… |
-| `Matrix.TightBounds.sigma_sq_is_DtD_entry` | lemma | [TightBounds.lean:919](../src/TightBounds.lean#L919) | The k-th singular value squared is achieved as a diagonal entry. |
-| `Matrix.TightBounds.l2_opNorm_truncatedSingularDiagonal_rect_tail` | lemma | [TightBounds.lean:950](../src/TightBounds.lean#L950) | The spectral norm of a rectangular diagonal matrix equals the maximum entry. |
-| `Matrix.TightBounds.spectral_error_truncatedSVD_rect` | theorem | [TightBounds.lean:1071](../src/TightBounds.lean#L1071) | **Spectral error of rectangular truncated SVD equals the (k+1)-th singular value.** ‖A - Aₖ‖₂ = σₖ₊₁(A) for r… |
-| `Matrix.TightBounds.complex_sum_cauchy_schwarz_inline` | private lemma | [TightBounds.lean:1104](../src/TightBounds.lean#L1104) | Cauchy-Schwarz for complex sums: \|∑ⱼ aⱼ bⱼ\| ≤ √(∑ⱼ \|aⱼ\|²) · √(∑ⱼ \|bⱼ\|²) |
-| `Matrix.TightBounds.mulVec_eucl_norm_sq_le_inline` | private lemma | [TightBounds.lean:1122](../src/TightBounds.lean#L1122) | Matrix-vector multiplication bound: ‖A *ᵥ x‖² ≤ ‖A‖_F² · ‖x‖² |
-| `Matrix.TightBounds.mulVec_eucl_norm_le_inline` | private lemma | [TightBounds.lean:1145](../src/TightBounds.lean#L1145) | Matrix-vector multiplication bound: ‖A *ᵥ x‖ ≤ √(∑ᵢⱼ \|Aᵢⱼ\|²) · ‖x‖ |
-| `Matrix.TightBounds.frobenius_norm_eq_sqrt_inline` | private lemma | [TightBounds.lean:1163](../src/TightBounds.lean#L1163) | Frobenius norm expressed as square root of sum of squared entries. |
-| `Matrix.TightBounds.l2_opNorm_le_frobenius_inline` | private theorem | [TightBounds.lean:1173](../src/TightBounds.lean#L1173) | **L2 operator norm is bounded by Frobenius norm** (rectangular matrices). |
-| `Matrix.TightBounds.frobenius_error_via_R_isometry` | theorem | [TightBounds.lean:1199](../src/TightBounds.lean#L1199) | **Frobenius error of Kronecker approximation via R isometry** |
-| `Matrix.TightBounds.spectral_error_le_frobenius_error` | theorem | [TightBounds.lean:1230](../src/TightBounds.lean#L1230) | **Spectral error bounded by Frobenius error** |
+| `Matrix.TightBounds.singularValues₀_rect` | def | [TightBounds.lean:58](../src/TightBounds.lean#L58) | Sorted σᵢ for rectangular matrices. |
+| `Matrix.TightBounds.sigma2` | def | [TightBounds.lean:62](../src/TightBounds.lean#L62) |  |
+| `Matrix.TightBounds.sigma1` | def | [TightBounds.lean:66](../src/TightBounds.lean#L66) |  |
+| `Matrix.TightBounds.singularValues₀_rect_nonneg` | lemma | [TightBounds.lean:70](../src/TightBounds.lean#L70) |  |
+| `Matrix.TightBounds.singularValues₀_rect_antitone` | lemma | [TightBounds.lean:76](../src/TightBounds.lean#L76) |  |
+| `Matrix.TightBounds.sigma1_eq_maxSingularValue` | lemma | [TightBounds.lean:83](../src/TightBounds.lean#L83) | The largest singular value equals the maxSingularValue (when nonempty). |
+| `Matrix.TightBounds.sigma2_le_sigma1` | lemma | [TightBounds.lean:100](../src/TightBounds.lean#L100) | sigma2 ≤ sigma1 (singular values are sorted). |
+| `Matrix.TightBounds.singularValues₀_rect_sq` | lemma | [TightBounds.lean:109](../src/TightBounds.lean#L109) | Singular values squared equal the corresponding eigenvalues₀ for rectangular matrices. |
+| `Matrix.TightBounds.sum_sq_singularValues₀_rect_eq_trace` | lemma | [TightBounds.lean:118](../src/TightBounds.lean#L118) | Sum of squared singular values equals trace for rectangular matrices. |
+| `Matrix.TightBounds.rank_eq_card_nonzero_singularValues₀_rect` | lemma | [TightBounds.lean:125](../src/TightBounds.lean#L125) | Rank equals number of nonzero singular values for rectangular matrices. |
+| `Matrix.TightBounds.truncatedSingularValues_rect` | def | [TightBounds.lean:146](../src/TightBounds.lean#L146) | Truncated singular values for rectangular matrices: keeps top k, zeros the rest. |
+| `Matrix.TightBounds.truncatedSingularDiagonal_rect` | def | [TightBounds.lean:153](../src/TightBounds.lean#L153) | Truncated singular diagonal for rectangular matrices: like singularDiagonal but zeros beyond k. |
+| `Matrix.TightBounds.truncatedSVD_rect` | def | [TightBounds.lean:166](../src/TightBounds.lean#L166) | Truncated SVD for rectangular matrices: the rank-k truncation of the SVD. |
+| `Matrix.TightBounds.truncatedSingularValues_rect_nonneg` | lemma | [TightBounds.lean:177](../src/TightBounds.lean#L177) | Truncated singular values are non-negative. |
+| `Matrix.TightBounds.truncatedSingularValues_rect_eq_of_lt` | lemma | [TightBounds.lean:187](../src/TightBounds.lean#L187) | Truncated singular values equal original values for indices < k. |
+| `Matrix.TightBounds.truncatedSingularValues_rect_eq_zero_of_ge` | lemma | [TightBounds.lean:196](../src/TightBounds.lean#L196) | Truncated singular values are zero for indices ≥ k. |
+| `Matrix.TightBounds.card_truncatedSingularValues_rect_nonzero_le` | lemma | [TightBounds.lean:205](../src/TightBounds.lean#L205) | The number of nonzero truncated singular values is at most k. |
+| `Matrix.TightBounds.truncatedSingularDiagonal_rect_full` | lemma | [TightBounds.lean:230](../src/TightBounds.lean#L230) | Truncated singular diagonal equals full diagonal when k is large enough. |
+| `Matrix.TightBounds.truncatedSingularDiagonal_rect_zero` | lemma | [TightBounds.lean:251](../src/TightBounds.lean#L251) | Truncated singular diagonal with k=0 is the zero matrix. |
+| `Matrix.TightBounds.truncatedSVD_rect_zero` | theorem | [TightBounds.lean:262](../src/TightBounds.lean#L262) | The truncated SVD with k = 0 is the zero matrix. |
+| `Matrix.TightBounds.truncatedSVD_rect_full` | theorem | [TightBounds.lean:271](../src/TightBounds.lean#L271) | The truncated SVD with k ≥ min(#m, #n) equals the original matrix A. |
+| `Matrix.TightBounds.truncatedSVD_rect_rank_le` | theorem | [TightBounds.lean:294](../src/TightBounds.lean#L294) | The rank of the truncated rectangular SVD is at most k. |
+| `Matrix.TightBounds.truncatedSingularValues_rect_tail` | def | [TightBounds.lean:401](../src/TightBounds.lean#L401) | Tail singular values: zeros the first k entries, keeps σₖ, σₖ₊₁, ..., σᵣ₋₁. |
+| `Matrix.TightBounds.truncatedSingularValues_rect_tail_nonneg` | lemma | [TightBounds.lean:406](../src/TightBounds.lean#L406) | Tail singular values are non-negative. |
+| `Matrix.TightBounds.truncatedSingularValues_rect_tail_eq_zero_of_lt` | lemma | [TightBounds.lean:416](../src/TightBounds.lean#L416) | Tail singular values are zero for indices < k. |
+| `Matrix.TightBounds.truncatedSingularValues_rect_tail_eq_of_ge` | lemma | [TightBounds.lean:424](../src/TightBounds.lean#L424) | Tail singular values equal original values for indices ≥ k. |
+| `Matrix.TightBounds.truncatedSingularDiagonal_rect_tail` | def | [TightBounds.lean:431](../src/TightBounds.lean#L431) | Tail singular diagonal: keeps entries at positions ≥ k, zeros the first k. |
+| `Matrix.TightBounds.truncatedSVD_rect_tail` | def | [TightBounds.lean:442](../src/TightBounds.lean#L442) | The tail of the truncated SVD: A - truncatedSVD_rect A k. |
+| `Matrix.TightBounds.singularDiagonal_eq_truncated_add_tail` | lemma | [TightBounds.lean:448](../src/TightBounds.lean#L448) | The full singular diagonal equals truncated + tail diagonals. |
+| `Matrix.TightBounds.truncatedSVD_rect_add_tail` | theorem | [TightBounds.lean:486](../src/TightBounds.lean#L486) | A = truncatedSVD_rect A k + truncatedSVD_rect_tail A k. |
+| `Matrix.TightBounds.truncatedSVD_rect_tail_eq_USV` | theorem | [TightBounds.lean:493](../src/TightBounds.lean#L493) | The tail can be expressed as U * Σ_tail * V*. |
+| `Matrix.TightBounds.l2_opNorm_unitary_mul_rect` | lemma | [TightBounds.lean:533](../src/TightBounds.lean#L533) | Left multiplication by unitary preserves spectral norm (square target). |
+| `Matrix.TightBounds.l2_opNorm_mul_unitary_star_rect` | lemma | [TightBounds.lean:560](../src/TightBounds.lean#L560) | Right multiplication by unitary star preserves spectral norm. |
+| `Matrix.TightBounds.l2_opNorm_unitary_conj_rect` | theorem | [TightBounds.lean:594](../src/TightBounds.lean#L594) | Spectral norm is invariant under conjugation by unitary matrices (rectangular middle). |
+| `Matrix.TightBounds.l2_opNorm_truncatedSVD_rect_tail` | theorem | [TightBounds.lean:603](../src/TightBounds.lean#L603) | The spectral norm of the tail equals the spectral norm of the tail diagonal. |
+| `Matrix.TightBounds.conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply` | lemma | [TightBounds.lean:623](../src/TightBounds.lean#L623) | Explicit computation of (DᴴD)(j, j') for D = truncatedSingularDiagonal_rect_tail A k. |
+| `Matrix.TightBounds.DtD_diagonal_entry` | lemma | [TightBounds.lean:752](../src/TightBounds.lean#L752) | DᴴD diagonal entry at j equals σ²_{bijection(j)} when k ≤ bijection(j) < min, else 0. |
+| `Matrix.TightBounds.inner_diagonal_matrix_eq_sum` | lemma | [TightBounds.lean:766](../src/TightBounds.lean#L766) | For a diagonal Hermitian matrix H, the inner product ⟨Hx, x⟩ equals Σⱼ H_jj \|xⱼ\|². |
+| `Matrix.TightBounds.hermitian_diagonal_real` | lemma | [TightBounds.lean:794](../src/TightBounds.lean#L794) | For a Hermitian matrix, diagonal entries are real. |
+| `Matrix.TightBounds.rayleigh_diagonal_le_bound` | lemma | [TightBounds.lean:809](../src/TightBounds.lean#L809) | For a unit vector and diagonal Hermitian matrix with diagonal entries ≤ bound, the Rayleigh quotient is ≤ bou… |
+| `Matrix.TightBounds.diagonal_entry_in_spectrum` | lemma | [TightBounds.lean:846](../src/TightBounds.lean#L846) | For a diagonal-like matrix, diagonal entries are in the spectrum. |
+| `Matrix.TightBounds.eigenvalues_le_max_diagonal_entry_of_diagonal_psd` | lemma | [TightBounds.lean:886](../src/TightBounds.lean#L886) | For a Hermitian matrix H with zero off-diagonal entries, every eigenvalue is at most any upper bound on the r… |
+| `Matrix.TightBounds.sigma_sq_is_DtD_entry` | lemma | [TightBounds.lean:924](../src/TightBounds.lean#L924) | The k-th singular value squared is achieved as a diagonal entry. |
+| `Matrix.TightBounds.l2_opNorm_truncatedSingularDiagonal_rect_tail` | lemma | [TightBounds.lean:955](../src/TightBounds.lean#L955) | The spectral norm of a rectangular diagonal matrix equals the maximum entry. |
+| `Matrix.TightBounds.spectral_error_truncatedSVD_rect` | theorem | [TightBounds.lean:1076](../src/TightBounds.lean#L1076) | **Spectral error of rectangular truncated SVD equals the (k+1)-th singular value.** ‖A - Aₖ‖₂ = σₖ₊₁(A) for r… |
+| `Matrix.TightBounds.complex_sum_cauchy_schwarz_inline` | private lemma | [TightBounds.lean:1109](../src/TightBounds.lean#L1109) | Cauchy-Schwarz for complex sums: \|∑ⱼ aⱼ bⱼ\| ≤ √(∑ⱼ \|aⱼ\|²) · √(∑ⱼ \|bⱼ\|²) |
+| `Matrix.TightBounds.mulVec_eucl_norm_sq_le_inline` | private lemma | [TightBounds.lean:1127](../src/TightBounds.lean#L1127) | Matrix-vector multiplication bound: ‖A *ᵥ x‖² ≤ ‖A‖_F² · ‖x‖² |
+| `Matrix.TightBounds.mulVec_eucl_norm_le_inline` | private lemma | [TightBounds.lean:1150](../src/TightBounds.lean#L1150) | Matrix-vector multiplication bound: ‖A *ᵥ x‖ ≤ √(∑ᵢⱼ \|Aᵢⱼ\|²) · ‖x‖ |
+| `Matrix.TightBounds.frobenius_norm_eq_sqrt_inline` | private lemma | [TightBounds.lean:1168](../src/TightBounds.lean#L1168) | Frobenius norm expressed as square root of sum of squared entries. |
+| `Matrix.TightBounds.l2_opNorm_le_frobenius_inline` | private theorem | [TightBounds.lean:1178](../src/TightBounds.lean#L1178) | **L2 operator norm is bounded by Frobenius norm** (rectangular matrices). |
+| `Matrix.TightBounds.frobenius_error_via_R_isometry` | theorem | [TightBounds.lean:1206](../src/TightBounds.lean#L1206) | **Frobenius error of Kronecker approximation via R isometry** |
+| `Matrix.TightBounds.spectral_error_le_frobenius_error` | theorem | [TightBounds.lean:1240](../src/TightBounds.lean#L1240) | **Spectral error bounded by Frobenius error** |

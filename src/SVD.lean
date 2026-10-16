@@ -3607,7 +3607,8 @@ after the rearrangement operator $\mathcal{R}$ produces non-square matrices.
 
 * `coherenceFactorRect_zero`: μ(0) = 1
 * `coherenceFactorRect_pos_of_ne_zero`: E ≠ 0 → μ(E) > 0
-* `coherenceFactorRect_eq_square_case`: For n×n matrices, matches `coherenceFactor`
+* `coherenceFactorRect_eq_formula`: for nonzero square E, unfolds μ(E) to the formula above.
+  No lemma relates `coherenceFactorRect` to the square `coherenceFactor`.
 -/
 
 section RectangularCoherenceFactor
@@ -3744,15 +3745,14 @@ theorem coherenceFactorRect_nonneg (E : Matrix m n ℂ) : 0 ≤ coherenceFactorR
   · rw [hE, coherenceFactorRect_zero]; exact zero_le_one
   · exact le_of_lt (coherenceFactorRect_pos_of_ne_zero E hE)
 
-/-! ### Square Case Equivalence -/
+/-! ### Square Case Formula -/
 
-/-- For square matrices, `coherenceFactorRect` is compatible with the definition pattern
-    used in `CoherenceCharacterization.lean`. Both use the same formula:
-    μ(E) = ‖E‖_F / (√rank(E) · ‖E‖₂)
+/-- For nonzero square `E`, `coherenceFactorRect E` unfolds to
+    μ(E) = ‖E‖_F / (√rank(E) · ‖E‖₂), the formula that `coherenceFactor` in
+    CoherenceCharacterization.lean also uses.
 
-    Note: This theorem establishes structural equivalence. The actual numeric equality
-    with `coherenceFactor` from CoherenceCharacterization.lean requires that both files
-    use the same norm instances, which they do (L2 operator norm for ‖·‖ and Frobenius for ‖·‖_F). -/
+    This only unfolds the definition. It does not prove that `coherenceFactorRect E`
+    equals `Matrix.Coherence.coherenceFactor E`. -/
 theorem coherenceFactorRect_eq_formula (E : Matrix n n ℂ) (hE : E ≠ 0) :
     coherenceFactorRect E = frobeniusNormRect E / (Real.sqrt E.rank * ‖E‖₂) := by
   unfold coherenceFactorRect

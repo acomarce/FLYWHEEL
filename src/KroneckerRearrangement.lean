@@ -44,10 +44,11 @@ section Basic
 variable {α : Type*} [Semiring α]
 
 /-- The vectorization of a matrix: represents a matrix as a vector indexed by (row, column) pairs.
-    For M : Matrix m n α, `vec M` is an element of `(m × n) → α`.
+    For M : Matrix m n α, `vec M` is an element of `(m × n) → α`, with `vec M ⟨i, j⟩ = M i j`.
 
-    This is the standard column-major vectorization `vec(M)` from numerical linear algebra,
-    though here we use row-major indexing for consistency with Lean conventions. -/
+    The entries are indexed by the pair `(i, j)` and are not flattened into a single index,
+    so neither column-major nor row-major order is chosen. The column-major `vec(M)` of
+    numerical linear algebra is this vector up to a reindexing of `m × n`. -/
 def vec (M : Matrix m n α) : (m × n) → α :=
   fun ⟨i, j⟩ => M i j
 
