@@ -1635,21 +1635,6 @@ theorem kronecker_loose_when_maximally_incoherent {n' : Type*} [Fintype n'] [Dec
 The main theorem quantifying the spectral-Frobenius gap using coherence.
 -/
 
-/-- **Spectral Norm Bound Theorem**: Spectral norm ≤ Frobenius bound with coherence factor.
-
-For any matrix error E = A - truncatedSVD(A, k), we have the trivial bound:
-  ‖E‖₂ ≤ ‖E‖_F
-
-The coherence factor tells us how much better the spectral norm is:
-  ‖E‖₂ = ‖E‖_F / (√rank · μ)
-
-So a high coherence μ means ‖E‖₂ is much smaller than ‖E‖_F.
-This theorem simply states the spectral ≤ Frobenius bound, which is always valid. -/
-theorem kronecker_spectral_le_frobenius {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (A : Matrix n' n' ℂ) (k : ℕ) :
-    ‖A - truncatedSVD A k‖₂ ≤ frobeniusNormRect (A - truncatedSVD A k) :=
-  spectral_le_frobenius_rect _
-
 /-- **Coherence-Based Improvement Factor:**
 
 The factor by which the spectral bound is tighter than the Frobenius bound is:

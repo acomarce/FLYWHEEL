@@ -1301,123 +1301,24 @@ end Spectral
 
 end EckartYoungRect
 
-/-! ## Part 4: Tight Bound for Kronecker Approximation
+/-! ## Part 4: Kronecker Approximation Error via the Rearrangement
 
-The main theorems for best rank-1 Kronecker approximation error bounds.
-
-**Critical note on norms:**
-- The rearrangement R is a Frobenius isometry: ‖R(M)‖_F = ‖M‖_F
-- The rearrangement R does NOT preserve spectral norm: ‖R(M)‖₂ ≠ ‖M‖₂ in general
-- Counterexample: Anti-diagonal permutation matrix has ‖M‖₂ = 1 but ‖R(M)‖₂ = 2
-
-Therefore:
-- Frobenius bounds are EXACT (equality)
-- Spectral bounds are only UPPER bounds (inequality)
+The rearrangement R is a Frobenius isometry, so the Frobenius error of R⁻¹(X) as an
+approximation of C equals ‖R(C) - X‖_F (`frobenius_error_via_R_isometry`). R does not preserve
+the spectral norm: with J the 2 × 2 swap matrix, M = J ⊗ J (the 4 × 4 anti-diagonal
+permutation) has ‖M‖₂ = 1, while R(M) = vec J vec Jᵀ has ‖R(M)‖₂ = ‖vec J‖² = 2.
+Spectral-norm statements about Kronecker approximation are therefore inequalities; see
+SpectralNormGap.lean.
 -/
 
 section TightKroneckerBound
 
--- Enable Frobenius norm instance for this section
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
-/-- Cauchy-Schwarz for complex sums: |∑ⱼ aⱼ bⱼ| ≤ √(∑ⱼ |aⱼ|²) · √(∑ⱼ |bⱼ|²) -/
-private lemma complex_sum_cauchy_schwarz_inline {ι : Type*} [Fintype ι] (a b : ι → ℂ) :
-    ‖∑ j, a j * b j‖ ≤ Real.sqrt (∑ j, ‖a j‖^2) * Real.sqrt (∑ j, ‖b j‖^2) := by
-  let a' : EuclideanSpace ℂ ι := WithLp.toLp 2 (star a)
-  let b' : EuclideanSpace ℂ ι := WithLp.toLp 2 b
-  have h1 : inner ℂ a' b' = ∑ j, a j * b j := by
-    simp only [EuclideanSpace.inner_eq_star_dotProduct, a', b', dotProduct]
-    simp only [Pi.star_apply, star_star]
-    apply Finset.sum_congr rfl; intro j _; ring
-  have h2 : ‖inner ℂ a' b'‖ ≤ ‖a'‖ * ‖b'‖ := norm_inner_le_norm a' b'
-  rw [h1] at h2
-  calc ‖∑ j, a j * b j‖ ≤ ‖a'‖ * ‖b'‖ := h2
-    _ = Real.sqrt (∑ j, ‖a j‖^2) * Real.sqrt (∑ j, ‖b j‖^2) := by
-        simp only [EuclideanSpace.norm_eq, a', b']
-        congr 1
-        · congr 1; apply Finset.sum_congr rfl; intro j _
-          simp only [Pi.star_apply, Complex.star_def, Complex.norm_conj]
+/-- **Frobenius error through the rearrangement:** ‖C - R⁻¹(X)‖_F = ‖R(C) - X‖_F for every X.
 
-/-- Matrix-vector multiplication bound: ‖A *ᵥ x‖² ≤ ‖A‖_F² · ‖x‖² -/
-private lemma mulVec_eucl_norm_sq_le_inline {m' n' : Type*} [Fintype m'] [Fintype n']
-    (A : Matrix m' n' ℂ) (x : EuclideanSpace ℂ n') :
-    ‖(EuclideanSpace.equiv m' ℂ).symm (A *ᵥ x.ofLp)‖^2 ≤
-      (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖^2 := by
-  rw [EuclideanSpace.norm_sq_eq]
-  have cs := fun i => complex_sum_cauchy_schwarz_inline (A i) x.ofLp
-  have h_nonneg : ∀ i, 0 ≤ Real.sqrt (∑ j, ‖A i j‖^2) * Real.sqrt (∑ j, ‖x.ofLp j‖^2) := by
-    intro i; apply mul_nonneg <;> apply Real.sqrt_nonneg
-  calc ∑ i, ‖∑ j, A i j * x.ofLp j‖ ^ 2
-      ≤ ∑ i, (Real.sqrt (∑ j, ‖A i j‖^2) * Real.sqrt (∑ j, ‖x.ofLp j‖^2))^2 := by
-        apply Finset.sum_le_sum; intro i _
-        apply sq_le_sq'
-        · linarith [h_nonneg i, norm_nonneg (∑ j, A i j * x.ofLp j)]
-        · calc ‖∑ j, A i j * x.ofLp j‖ ≤ _ := cs i
-            _ ≤ _ := abs_of_nonneg (h_nonneg i) ▸ le_refl _
-    _ = ∑ i, (∑ j, ‖A i j‖^2) * (∑ j, ‖x.ofLp j‖^2) := by
-        apply Finset.sum_congr rfl; intro i _
-        rw [mul_pow, Real.sq_sqrt, Real.sq_sqrt] <;>
-        · apply Finset.sum_nonneg; intro j _; exact sq_nonneg _
-    _ = (∑ i, ∑ j, ‖A i j‖^2) * (∑ j, ‖x.ofLp j‖^2) := by rw [Finset.sum_mul]
-    _ = (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖^2 := by rw [EuclideanSpace.norm_sq_eq]
-
-/-- Matrix-vector multiplication bound: ‖A *ᵥ x‖ ≤ √(∑ᵢⱼ |Aᵢⱼ|²) · ‖x‖ -/
-private lemma mulVec_eucl_norm_le_inline {m' n' : Type*} [Fintype m'] [Fintype n']
-    (A : Matrix m' n' ℂ) (x : EuclideanSpace ℂ n') :
-    ‖(EuclideanSpace.equiv m' ℂ).symm (A *ᵥ x.ofLp)‖ ≤
-      Real.sqrt (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖ := by
-  have h_sq := mulVec_eucl_norm_sq_le_inline A x
-  have h_frob_nonneg : 0 ≤ Real.sqrt (∑ i, ∑ j, ‖A i j‖ ^ 2) := Real.sqrt_nonneg _
-  have h_norm_nonneg : 0 ≤ ‖x‖ := norm_nonneg _
-  apply le_of_sq_le_sq _ (mul_nonneg h_frob_nonneg h_norm_nonneg)
-  calc ‖(EuclideanSpace.equiv m' ℂ).symm (A *ᵥ x.ofLp)‖ ^ 2
-      ≤ (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖^2 := h_sq
-    _ = Real.sqrt (∑ i, ∑ j, ‖A i j‖^2)^2 * ‖x‖^2 := by
-        rw [Real.sq_sqrt]
-        apply Finset.sum_nonneg; intro i _
-        apply Finset.sum_nonneg; intro j _
-        exact sq_nonneg _
-    _ = (Real.sqrt (∑ i, ∑ j, ‖A i j‖^2) * ‖x‖)^2 := by ring
-
-/-- Frobenius norm expressed as square root of sum of squared entries. -/
-private lemma frobenius_norm_eq_sqrt_inline {m' n' : Type*} [Fintype m'] [Fintype n']
-    (A : Matrix m' n' ℂ) :
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A =
-      Real.sqrt (∑ i, ∑ j, ‖A i j‖ ^ 2) := by
-  rw [Matrix.frobenius_norm_def, Real.sqrt_eq_rpow]
-  norm_cast
-
-/-- **L2 operator norm is bounded by Frobenius norm** (rectangular matrices).
-    This is the fundamental inequality: ‖A‖₂ ≤ ‖A‖_F
-    Proof: Using mulVec norm bound via Cauchy-Schwarz. -/
-private theorem l2_opNorm_le_frobenius_inline {m' n' : Type*}
-    [Fintype m'] [Fintype n'] [DecidableEq n']
-    (A : Matrix m' n' ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A ≤
-      @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm A := by
-  rw [Matrix.l2_opNorm_def, frobenius_norm_eq_sqrt_inline]
-  apply ContinuousLinearMap.opNorm_le_bound
-  · exact Real.sqrt_nonneg _
-  · intro x
-    exact mulVec_eucl_norm_le_inline A x
-
-/-- **Frobenius error of Kronecker approximation via R isometry**
-
-    For any matrix C, we can compute the Frobenius error of the best rank-1 Kronecker
-    approximation by transferring to R-space where R is a Frobenius isometry.
-
-    **Mathematical statement:**
-    ‖C - R⁻¹(truncatedSVD(R(C), 1))‖_F = ‖R(C) - truncatedSVD(R(C), 1)‖_F
-
-    This equals √(σ₂² + σ₃² + ... + σₙ²) where σᵢ are singular values of R(C)
-    (1-indexed here; `kroneckerApprox_error_sq` states it). NOT σ₂ alone! (The spectral
-    error of R(C) - truncatedSVD_rect (R C) 1 is σ₂, but Frobenius ≠ spectral.) Optimality
-    among Kronecker products is `kroneckerApprox_optimal`.
-
-    **Key property:**
-    - R is a Frobenius isometry: ‖R(M)‖_F = ‖M‖_F
-    - R_inv is also a Frobenius isometry (since R∘R_inv = id)
-    - Therefore ‖C - R⁻¹(X)‖_F = ‖R(C - R⁻¹(X))‖_F = ‖R(C) - X‖_F -/
+    R and R⁻¹ are inverse Frobenius isometries. With X = truncatedSVD_rect (R C) 1 this gives the
+    error of `kroneckerApprox` (`kroneckerApprox_error_sq`). -/
 theorem frobenius_error_via_R_isometry
     (C : Matrix (m × n) (p × q) ℂ) (X : Matrix (m × p) (n × q) ℂ) :
     ‖C - KroneckerRearrangement.R_inv X‖ =
@@ -1431,34 +1332,6 @@ theorem frobenius_error_via_R_isometry
             KroneckerRearrangement.R C - X := by
     rw [Kronecker.SpectralGap.R_sub, KroneckerRearrangement.R_R_inv]
   rw [h1, h2]
-
--- Enable L2 operator norm instances for spectral norm theorems
-attribute [local instance] Matrix.instL2OpNormedAddCommGroup
-attribute [local instance] Matrix.instL2OpNormedSpace
-attribute [local instance] Matrix.instL2OpNormedRing
-attribute [local instance] Matrix.instL2OpNormedAlgebra
-attribute [local instance] Matrix.instL2OpMetricSpace
-attribute [local instance] Matrix.instCStarRing
-
-/-- **Spectral error bounded by Frobenius error**
-
-    The spectral error is bounded above by the Frobenius error.
-    This bound is universal (‖·‖₂ ≤ ‖·‖_F for any matrix).
-
-    **Mathematical statement:**
-    ‖C - R⁻¹(truncatedSVD(R(C), 1))‖₂ ≤ ‖C - R⁻¹(truncatedSVD(R(C), 1))‖_F
-                                        = ‖R(C) - truncatedSVD(R(C), 1)‖_F
-                                        = √(σ₂² + σ₃² + ...)
-
-    The theorem states only the first inequality. The equalities are
-    `frobenius_error_via_R_isometry` and `kroneckerApprox_error_sq`. -/
-theorem spectral_error_le_frobenius_error
-    (C : Matrix (m × n) (p × q) ℂ) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (C - KroneckerRearrangement.R_inv (truncatedSVD_rect (KroneckerRearrangement.R C) 1)) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (C - KroneckerRearrangement.R_inv (truncatedSVD_rect (KroneckerRearrangement.R C) 1)) :=
-  l2_opNorm_le_frobenius_inline _
 
 end TightKroneckerBound
 
