@@ -82,7 +82,9 @@ best rank-1 approximation of `R C`.
 - `R_inv_spectral_lt_frobenius_R_one`: the bound is strict for `M = R 1` when
   `#m · #n ≥ 2` (`‖1‖₂ = 1 < √(#m · #n) = ‖R 1‖_F`).
 - `Matrix.Coherence.R_inv_spectral_eq_frobenius_R_outerProduct`: the bound is an equality for
-  `M = R (u vᵀ)`, so its constant cannot be improved.
+  `M = R (u vᵀ)`, so its constant cannot be improved;
+  `Matrix.Coherence.R_inv_spectral_eq_frobenius_iff_rank_le_one`: equality holds exactly when
+  `rank (R⁻¹ M) ≤ 1`.
 
 **TightBounds, `Matrix.TightBounds`:**
 - `frobenius_error_via_R_isometry : ‖C − R_inv X‖ = ‖R C − X‖` (Frobenius).
