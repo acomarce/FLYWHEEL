@@ -242,40 +242,13 @@ end L2OpNormTheorems
 
 end Matrix.SpectralNorm
 
-/-! ## Eckart-Young Theorem -/
+/-! ## Eckart-Young Theorem (spectral norm, square matrices)
 
-namespace Matrix.SVD.Rectangular
+The Frobenius version is `Matrix.FrobeniusNorm.eckart_young_frobenius`; the rectangular versions
+are `Matrix.TightBounds.eckart_young_frobenius_rect` and `eckart_young_spectral_rect`.
+-/
 
-section EckartYoung
-
-variable {n : Type*} [Fintype n] [DecidableEq n]
-
--- For Eckart-Young Frobenius theorems, use Frobenius norm instance
--- Give it high priority (1001) to override C*-algebra instance from SVD import
-attribute [local instance 1001] Matrix.frobeniusSeminormedAddCommGroup
-
-/-- The truncated SVD of rank k. Uses the inline definition from Matrix.SVD. -/
-noncomputable abbrev truncatedSVD [Nonempty n] (A : Matrix n n ℂ) (k : ℕ) : Matrix n n ℂ :=
-  _root_.Matrix.SVD.truncatedSVD A k
-
-/-- **Eckart-Young Theorem (Frobenius norm):**
-    The truncated SVD Aₖ is the best rank-k approximation in Frobenius norm.
-    Here ‖·‖ is the Frobenius norm via frobeniusSeminormedAddCommGroup.
-    Re-exported from FrobeniusNorm.lean. -/
-theorem eckart_young_frobenius [Nonempty n] (A : Matrix n n ℂ) (k : ℕ)
-    (B : Matrix n n ℂ) (hB : B.rank ≤ k) :
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (A - truncatedSVD A k) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (A - B) :=
-  FrobeniusNorm.eckart_young_frobenius A k B hB
-
-/-- The Frobenius error of truncated SVD equals sum of squared tail singular values.
-    Re-exported from FrobeniusNorm.lean. -/
-theorem frobenius_error_truncatedSVD [Nonempty n] (A : Matrix n n ℂ) (k : ℕ) :
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm (A - truncatedSVD A k) ^ 2 =
-    ∑ i : n, (_root_.Matrix.SVD.truncatedSingularValues_tail A k i) ^ 2 :=
-  FrobeniusNorm.frobenius_error_truncatedSVD A k
-
-end EckartYoung
+namespace Matrix.SVD
 
 section EckartYoungSpectral
 
@@ -577,7 +550,7 @@ theorem eckart_young_spectral [Nonempty n] (A : Matrix n n ℂ) (k : ℕ)
 
 end EckartYoungSpectral
 
-end Matrix.SVD.Rectangular
+end Matrix.SVD
 
 /-! ## Kronecker Approximation Error Bounds -/
 
@@ -951,7 +924,7 @@ lemma sup_eigenvalues_kronecker_eq_mul [Nonempty p] [Nonempty q]
   -- Conclude with sup equality
   have hSupEq : Finset.sup' Finset.univ Finset.univ_nonempty eig12 =
                 Finset.sup' Finset.univ Finset.univ_nonempty (fun ij : p × q => eig1 ij.1 * eig2 ij.2) :=
-    Matrix.SVD.Rectangular.sup'_eq_of_range_eq hRangeEq
+    Matrix.SVD.sup'_eq_of_range_eq hRangeEq
 
   have hSupProd : Finset.sup' Finset.univ Finset.univ_nonempty (fun ij : p × q => eig1 ij.1 * eig2 ij.2) =
                   Finset.sup' Finset.univ Finset.univ_nonempty eig1 *
@@ -1299,7 +1272,7 @@ theorem kronecker_singularValue_perturbation {r s : Type*} [Fintype r] [Fintype 
       ≤ SVD.singularValues₀ (kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C') 0 :=
         WeylInequality.weyl_singularValue_perturbation _ _ k
     _ = ‖kroneckerMap (· * ·) B C - kroneckerMap (· * ·) B' C'‖ :=
-        (SVD.Rectangular.spectral_norm_eq_singularValues₀_zero _).symm
+        (SVD.spectral_norm_eq_singularValues₀_zero _).symm
     _ ≤ ‖B - B'‖ * ‖C‖ + ‖B'‖ * ‖C - C'‖ := kronecker_sub_spectral_norm_bound B B' C C'
 
 end WeylConnection
