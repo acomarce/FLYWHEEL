@@ -107,7 +107,7 @@ Traps:
 - Mathlib has no default norm on `Matrix`. Files switch one on per section with
   `attribute [local instance] …`:
   - **Frobenius**: `Matrix.frobeniusSeminormedAddCommGroup`. The explicit-function variants
-    (`frobeniusNorm'`, `frobeniusNorm''`, `frobeniusNormRect`) use
+    (`frobeniusNorm'`, `frobeniusNormRect`) use
     `Matrix.frobeniusNormedAddCommGroup`.
   - **L2 operator (spectral)**: `Matrix.instL2OpNormedAddCommGroup`, plus `instL2OpNormedSpace`,
     `instL2OpNormedRing`, `instL2OpNormedAlgebra`, `instL2OpMetricSpace`, and often
