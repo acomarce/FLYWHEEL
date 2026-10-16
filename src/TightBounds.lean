@@ -852,8 +852,8 @@ lemma sigma_sq_is_DtD_entry (A : Matrix m' n' ℂ) (k : ℕ)
     unfold j
     rw [Matrix.SVD.Rectangular.eigenvaluesBijection_embedMinToN]
     simp only [Fin.coe_castLE]
-  -- The two sides differ only in the proof inside ⟨k, _⟩; `simp` may already close the goal
-  simp only [h_bijection, le_refl, hk, and_self, ↓reduceDIte] <;> rfl
+  -- The two sides then differ only in the proof inside ⟨k, _⟩, which `simp` closes
+  simp only [h_bijection, le_refl, hk, and_self, ↓reduceDIte]
 
 /-- The spectral norm of the tail singular diagonal is σₖ (0-indexed): for k < min(#m, #n),
     ‖truncatedSingularDiagonal_rect_tail A k‖₂ = σₖ(A).
