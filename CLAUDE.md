@@ -7,14 +7,13 @@ There are no `sorry`/`axiom`/`admit`, and it must stay that way.
 ## Layout
 
 - Lake project at the repo root:
-  - `lakefile.toml` sets `srcDir = "src"` and `allowNonModules = true` (Mathlib uses the module
-    system and these files do not; without it Lake warns on every Mathlib import).
+  - `lakefile.toml` sets `srcDir = "src"`.
   - `lean-toolchain` pins `leanprover/lean4:v4.35.0`.
   - `lake-manifest.json` pins Mathlib at `ccbef15e…`.
 - All Lean sources are flat in `src/`. Each file is its own `lean_lib` of the same name (module
-  `SVD` = `src/SVD.lean`).
-- To add a file: add a `[[lean_lib]]` and put it in `defaultTargets`. The index check fails
-  otherwise.
+  `SVD` = `src/SVD.lean`). Every file is a Lean module (see "Module system" below).
+- To add a file: give it the module header (see Conventions), add a `[[lean_lib]]` and put it in
+  `defaultTargets`. The index check fails otherwise.
 - `docs/INDEX.md`: every top-level declaration with full name, kind, `file:line` and a doc
   summary. It is generated, so **grep it** to find a lemma instead of reading the sources.
 - `docs/svd.md`, `docs/eckart-young.md`, `docs/kronecker.md`, `docs/davis-kahan.md`: proof
@@ -49,7 +48,7 @@ python3 -I scripts/gen_index.py   # regenerate docs/INDEX.md after editing any .
   hours. **Don't.** Instead:
   - Grep `.lake/packages/mathlib/Mathlib` for Mathlib API names.
   - Run `python3 -I scripts/gen_index.py --check` (fast; catches lakefile and comment/scope
-    damage).
+    damage and a missing `module` header).
   - Push and read the CI job log (GitHub MCP `get_job_logs`). A run takes about 4 minutes.
     Pushes to a branch without a PR do not start CI; start it with the GitHub MCP
     `actions_run_trigger` (`run_workflow`, workflow `lean.yml`, `ref` = the branch).
@@ -75,8 +74,28 @@ FrobeniusUniqueness           ← TightBounds
 DavisKahan                    ← CoherenceCharacterization
 ```
 
-`CourantFischer` and `WeylInequality` do `import Mathlib`; the other files import specific
-modules.
+`CourantFischer` and `WeylInequality` do `public import Mathlib`, so every file downstream of
+them sees all of Mathlib. SVD, KroneckerRearrangement and TruncatedSVDRank1 import specific
+modules and see less (next section).
+
+## Module system
+
+Every file starts with `module` and uses `public import` for all its imports. Lean then applies
+visibility rules that non-module files never had:
+
+- **Import closure.** A module loads only the *public*-import closure of its imports. When a
+  Mathlib file does a plain `import X`, X is not loaded for us. So a lemma, tactic, instance or
+  simp lemma can be missing in SVD, KroneckerRearrangement or TruncatedSVDRank1 even though their
+  imports reached it before the conversion. Import its module directly.
+- **Exposure.** Downstream proofs can unfold a definition (`unfold`, `simp [f]`, `rfl`, defeq in
+  `exact`) only if its body is exposed. Files that define something open `@[expose] public
+  section`, so all project definitions are exposed. A Mathlib `def` is exposed if it is an
+  `abbrev`, carries `@[expose]`, or sits in an `@[expose] public section`. Otherwise it is opaque
+  here: use its API lemmas.
+- **Private declarations** cannot appear in a public statement (including a `let` in the
+  statement) or in an exposed definition body. They are fine inside proofs. This is why
+  `Matrix.SVD.Real.transpose_mul_self_isHermitian'` is public.
+- Theorem proofs are always private, so a proof may use `private` lemmas.
 
 ## Namespace map
 
@@ -170,9 +189,10 @@ Traps:
 
 ## Conventions
 
-- **File shape:** a `/- Copyright … Authors: … -/` header, then the imports, then a `/-! #
-  Title … -/` module doc. Sections are introduced with `/-! ## … -/` and are named
-  (`section Foo … end Foo`).
+- **File shape:** a `/- Copyright … Authors: … -/` header, `module`, the `public import`s, a
+  `/-! # Title … -/` module doc, then `@[expose] public section`. Use plain `public section` if
+  the file defines nothing. This file-level section stays open at end of file, as in Mathlib.
+  Inner sections are introduced with `/-! ## … -/` and are named (`section Foo … end Foo`).
 - **Doc comments:** give every new public declaration a `/-- … -/`. Headline results start with a
   bold title (`/-- **Eckart-Young Theorem (Spectral norm):** …`). The index uses the first
   sentence, so make it say what the result is.
