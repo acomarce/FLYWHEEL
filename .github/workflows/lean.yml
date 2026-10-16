@@ -20,26 +20,28 @@ jobs:
       - name: Install Lean and fetch Mathlib cache
         uses: leanprover/lean-action@v1
         with:
-          lake-package-directory: src
           build: false
           test: false
           lint: false
           use-mathlib-cache: true
 
+      # defaultTargets in lakefile.toml lists every library, so a bare
+      # `lake build` checks the whole project.
       - name: Build all libraries
-        working-directory: src
         run: |
           set -o pipefail
-          lake build SVD KroneckerRearrangement MatrixNormRelations FrobeniusNorm \
-            CourantFischer WeylInequality SpectralNormGap CoherenceCharacterization \
-            TightBounds TruncatedSVDRank1 2>&1 | tee build.log
+          lake build 2>&1 | tee build.log
 
       - name: Check for sorry and axioms
-        working-directory: src
         run: |
           if grep -n "declaration uses 'sorry'" build.log; then
             echo "::error::Build contains sorry"; exit 1
           fi
-          if grep -nE "^\s*(axiom|sorry\b)|\bsorry\b|\badmit\b" --include=*.lean -r . --exclude-dir=.lake; then
+          if grep -nE "^\s*(axiom|sorry\b)|\bsorry\b|\badmit\b" --include=*.lean -r src; then
             echo "::error::Source contains axiom/sorry/admit"; exit 1
           fi
+
+      # Runs even when the build fails, so one CI run reports both.
+      - name: Check docs/INDEX.md and lakefile targets are in sync
+        if: ${{ !cancelled() }}
+        run: python3 -I scripts/gen_index.py --check
