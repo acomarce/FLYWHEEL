@@ -530,11 +530,10 @@ theorem outerProduct_spectral_norm_eq [Nonempty m] [Nonempty n]
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
-/-- For unit vectors, the spectral and Frobenius norms of their outer product are equal.
-    ‖uv*‖₂ = ‖uv*‖_F = 1 when ‖u‖ = ‖v‖ = 1 -/
+/-- The spectral and Frobenius norms of an outer product are equal: ‖uv*‖₂ = ‖uv*‖_F.
+    Same statement as `rank_one_spectral_eq_frobenius`; no unit-norm assumption is needed. -/
 theorem rank_one_spectral_eq_frobenius_unit [Nonempty m] [Nonempty n]
-    (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n)
-    (hu : ‖u‖ = 1) (hv : ‖v‖ = 1) :
+    (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (KroneckerRearrangement.outerProduct u v) =
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
@@ -556,12 +555,13 @@ theorem rank_one_spectral_eq_frobenius [Nonempty m] [Nonempty n]
 
 variable {n : Type*} [Fintype n] [DecidableEq n] [Nonempty n]
 
-/-- For nearly coherent matrices (μ ≥ 1 - ε), we get a strong Frobenius-to-spectral bound.
-    If μ(E) ≥ 1 - ε, then ‖E‖_F ≤ √rank(E) · ‖E‖₂ / (1 - ε)
+/-- Frobenius-to-spectral bound with slack 1/(1 - ε): for E ≠ 0 and 0 < ε < 1,
+    ‖E‖_F ≤ √rank(E) · ‖E‖₂ / (1 - ε).
 
-    This quantifies how close a matrix is to being rank-1 in terms of its norm ratio. -/
+    This follows from μ(E) ≤ 1 (`coherenceFactor_le_one`) alone, and the slack only weakens
+    ‖E‖_F ≤ √rank(E) · ‖E‖₂. No near-coherence assumption μ(E) ≥ 1 - ε is used. -/
 theorem nearly_coherent_bound (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0)
-    (hε_pos : 0 < ε) (hε_lt_one : ε < 1) (h_coh : 1 - ε ≤ coherenceFactor E) :
+    (hε_pos : 0 < ε) (hε_lt_one : ε < 1) :
     frobeniusNorm' E ≤ Real.sqrt E.rank * ‖E‖ / (1 - ε) := by
   have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
   have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero E hE
@@ -585,19 +585,18 @@ theorem nearly_coherent_bound (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0)
             ≤ Real.sqrt E.rank * ‖E‖ * 1 := by nlinarith
           _ = Real.sqrt E.rank * ‖E‖ := by ring
 
-/-- Alternative formulation: μ ≥ 1 - ε implies spectral norm lower bound.
-    If μ(E) ≥ 1 - ε, then ‖E‖₂ ≥ (1 - ε) · ‖E‖_F / √rank(E) -/
+/-- Spectral lower bound: for E ≠ 0 and 0 < ε < 1, (1 - ε) · ‖E‖_F / √rank(E) ≤ ‖E‖₂.
+
+    Like `nearly_coherent_bound`, this follows from μ(E) ≤ 1 alone; no near-coherence
+    assumption is used. -/
 theorem nearly_coherent_spectral_lower_bound (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0)
-    (hε_pos : 0 < ε) (hε_lt_one : ε < 1) (h_coh : 1 - ε ≤ coherenceFactor E) :
+    (hε_pos : 0 < ε) (hε_lt_one : ε < 1) :
     (1 - ε) * frobeniusNorm' E / Real.sqrt E.rank ≤ ‖E‖ := by
   have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
   have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero E hE
   have h_sqrt_rank_pos : 0 < Real.sqrt E.rank := Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
   have h_one_minus_eps_pos : 0 < 1 - ε := by linarith
   have h_denom_pos : 0 < Real.sqrt E.rank * ‖E‖ := mul_pos h_sqrt_rank_pos h_spectral_pos
-  unfold coherenceFactor at h_coh
-  simp only [hE, ↓reduceIte] at h_coh
-  -- h_coh: (1 - ε) ≤ frobeniusNorm' E / (√rank · ‖E‖)
   -- μ ≤ 1 means frob ≤ √rank·‖E‖, so frob/√rank ≤ ‖E‖
   -- Therefore: (1-ε)·frob/√rank ≤ frob/√rank ≤ ‖E‖
   have h_frob_over_sqrt_le : frobeniusNorm' E / Real.sqrt E.rank ≤ ‖E‖ := by
@@ -1838,20 +1837,18 @@ theorem frobenius_spectral_solution_distance (A : Matrix n n ℂ) :
     _ = 2 * ‖A - A_F‖ := by ring
     _ ≤ 2 * frobeniusNorm' (A - A_F) := by linarith [h_spec_frob]
 
-/-- **Refined Bound with Spectral Gap**
+/-- **Solution distance together with the Frobenius tail formula.**
 
-When the spectral gap γ = σ₁ - σ₂ is large relative to the error,
-the Frobenius solution is even closer to the spectral solution.
+Pairs `frobenius_spectral_solution_distance` (‖A_F - A_*‖₂ ≤ 2 · ‖A - A_F‖_F) with the identity
+‖A - A_F‖_F² = Σᵢ≥₁ σᵢ² (0-indexed, so σ₀ is the largest).
 
-Key insight: A large gap means the rank-1 structure is well-separated,
-so both optimization criteria point to similar solutions. -/
-theorem frobenius_spectral_distance_with_gap (A : Matrix n n ℂ)
-    (h_card : 1 < Fintype.card n)
-    (h_gap_pos : 0 < spectralGap A) :
+No spectral-gap assumption is used. A refinement that depends on `spectralGap A` is not
+formalized. -/
+theorem frobenius_spectral_distance_with_gap (A : Matrix n n ℂ) :
     -- The Frobenius error provides an upper bound
     ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖ ≤
       2 * frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) ∧
-    -- With gap, the Frobenius error tail is bounded by σ₂
+    -- The squared Frobenius error is the sum of the squared tail singular values
     frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) ^ 2 =
       ∑ i : Fin (Fintype.card n), if i.val = 0 then 0 else (SVD.singularValues₀ A i) ^ 2 := by
   constructor
@@ -1959,16 +1956,12 @@ theorem frobenius_spectral_distance_coherence_aware (A : Matrix n n ℂ)
     _ ≤ frobeniusNorm' E + frobeniusNorm' E / (Real.sqrt r * μ) := by linarith [h_coh_applied]
     _ = frobeniusNorm' E * (1 + 1 / (Real.sqrt r * μ)) := by field_simp
 
-/-- **Practical Decision Criterion**
+/-- **Decision criterion (gap-free form).** ‖A_F - A_*‖₂ ≤ 2 · ‖A - A_F‖_F, restating
+`frobenius_spectral_solution_distance`.
 
-This theorem provides a computable criterion for when to use additional
-spectral optimization vs. accepting the Frobenius solution.
-
-If spectralGap(R(A)) > ε · ‖A‖_F, then ‖A_F - A_*‖ < δ · ‖A‖
-for specific ε, δ depending on desired accuracy. -/
-theorem decision_criterion (A : Matrix n n ℂ) (ε : ℝ) (hε : 0 < ε)
-    (h_gap : spectralGap A > ε * frobeniusNorm' A) :
-    -- Large gap implies Frobenius solution is good
+The intended criterion, that spectralGap A > ε · ‖A‖_F gives ‖A_F - A_*‖ < δ · ‖A‖, is not
+formalized: no gap assumption is used. -/
+theorem decision_criterion (A : Matrix n n ℂ) :
     ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖ ≤
       2 * frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) :=
   frobenius_spectral_solution_distance A
