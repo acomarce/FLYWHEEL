@@ -2,6 +2,7 @@
 
 The truncated SVD is a best rank-k approximation in both Frobenius and spectral norm, for square
 and for rectangular complex matrices. All four optimality theorems rest on Thompson interlacing.
+In the Frobenius norm it is the only one when σₖ₋₁ > σₖ; in the spectral norm it need not be.
 
 | Result | Name | Norm |
 |---|---|---|
@@ -13,6 +14,9 @@ and for rectangular complex matrices. All four optimality theorems rest on Thomp
 | Frobenius EY (rectangular) | `Matrix.TightBounds.eckart_young_frobenius_rect` | Frobenius |
 | Spectral EY (rectangular) | `Matrix.TightBounds.eckart_young_spectral_rect` | L2 |
 | Rank bound (rectangular) | `Matrix.TightBounds.truncatedSVD_rect_rank_le` | — |
+| Uniqueness under a gap (square) | `Matrix.FrobeniusUniqueness.eckart_young_frobenius_unique` | Frobenius |
+| Uniqueness under a gap (rectangular) | `Matrix.FrobeniusUniqueness.eckart_young_frobenius_rect_unique` | Frobenius |
+| Non-uniqueness (one counterexample) | `Matrix.SVD.spectral_best_rank_one_not_unique` | L2 |
 
 The square spectral results live in `Matrix.SVD` (MatrixNormRelations.lean), next to the square
 `Matrix.SVD.truncatedSVD`.
@@ -106,3 +110,37 @@ Downstream use: `Matrix.Coherence.exists_spectral_minimizer_rank1` and
   (`le_l2_opNorm_diagonal_sub_of_det_eq_zero`, for any diagonal `A` with entries of modulus ≥ c).
 - `diag_two_one_spectral_optimal_family`: `‖A - diag(t, 0)‖₂ = max(|2 - t|, 1) ≤ 1` for every real
   `t ∈ [1, 3]` (`l2_opNorm_diagonal_le`), so the whole family is optimal.
+
+## Uniqueness in the Frobenius norm (`src/FrobeniusUniqueness.lean`, `Matrix.FrobeniusUniqueness`)
+
+With a gap σₖ₋₁ > σₖ (0-indexed), the truncated SVD is the only best rank-k approximation in the
+Frobenius norm. The hypothesis on B is `‖A - B‖_F ≤ ‖A - Aₖ‖_F`, which by Eckart–Young is the
+same as equality.
+
+| Result | Name |
+|---|---|
+| Square: B = `Matrix.SVD.truncatedSVD A k` | `eckart_young_frobenius_unique` |
+| Rectangular: B = `Matrix.TightBounds.truncatedSVD_rect A k` | `eckart_young_frobenius_rect_unique` |
+| Van Loan–Pitsianis: A ⊗ B = `kroneckerApprox C` when σ₀(R C) > σ₁(R C) | `kroneckerApprox_unique` |
+
+The proof does not use interlacing. In the SVD basis A = U S Vᴴ (SᴴS = diag(d), dⱼ = σⱼ²):
+1. `exists_rowSpace_projection`: C = Uᴴ B V has a Hermitian idempotent Q with C Q = C and
+   tr Q = rank C (from the spectral decomposition of Cᴴ C).
+2. Pythagoras: ‖S - C‖² = ‖S (1 - Q)‖² + ‖S Q - C‖², because (S Q - C)(S (1 - Q))ᴴ = 0.
+3. `frobenius_sq_mul_one_sub_proj`: ‖S (1 - Q)‖² = Σⱼ dⱼ - Σⱼ dⱼ wⱼ with wⱼ = Re Qⱼⱼ.
+   Qⱼⱼ = Σᵢ |Qᵢⱼ|², so 0 ≤ wⱼ ≤ 1, and Σⱼ wⱼ = rank C ≤ k.
+4. `sum_mul_le_sum_of_threshold`: Σⱼ dⱼ wⱼ ≤ Σ_{j ∈ T} dⱼ for the top-k index set T, with
+   equality only for w = 1_T, given a threshold τ ≥ 0 strictly between the d-values on and off T.
+5. `eq_mul_indicator_of_frobenius_sq_le`: an error ≤ Σ_{j ∉ T} dⱼ forces w = 1_T, hence
+   Q = diag(1_T) (columns of a Hermitian idempotent with Qⱼⱼ ∈ {0, 1} are 0 or eⱼ), and S Q = C.
+6. `eq_of_frobenius_le_of_svd` states this for any A = U S Vᴴ; the square, rectangular and
+   Kronecker theorems instantiate it, and identify S diag(1_T) with the truncated diagonal.
+
+The steps also give a second proof of Frobenius Eckart–Young (‖S - C‖² ≥ Σ_{j ∉ T} dⱼ), but the
+file does not restate it.
+
+Edge cases of the gap hypothesis `σ_k < σ_{k-1}` (ℕ subtraction in the index):
+- k = 0 makes it σ₀ < σ₀, so the theorems say nothing there (rank B ≤ 0 already forces B = 0).
+- σₖ₋₁ = σₖ = 0 means rank A < k; then B = A is forced, but the hypothesis excludes this case.
+- σₖ₋₁ = σₖ > 0: the optimum is genuinely not unique (rotate within the tied pair). No
+  counterexample for this is formalized.
