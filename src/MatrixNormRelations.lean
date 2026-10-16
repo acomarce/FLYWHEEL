@@ -50,6 +50,51 @@ the wrong norm instance. Don't be like me.
 open Matrix
 open scoped ComplexOrder BigOperators
 
+/-! ## Order helper -/
+
+section FinsetSupProduct
+
+/-- For nonnegative functions f : p → ℝ and g : q → ℝ on nonempty finite types,
+    sup_{(i,j)} (f i * g j) = (sup_i f i) * (sup_j g j).
+
+    This is the key ingredient for showing that the largest eigenvalue of H₁ ⊗ H₂
+    equals the product of the largest eigenvalues of H₁ and H₂. -/
+theorem Finset.sup'_prod_eq_mul_sup' {p q : Type*} [Fintype p] [Fintype q] [Nonempty p]
+    [Nonempty q] (f : p → ℝ) (g : q → ℝ) (hf : ∀ i, 0 ≤ f i) (hg : ∀ j, 0 ≤ g j) :
+    Finset.sup' (Finset.univ : Finset (p × q)) Finset.univ_nonempty (fun ij => f ij.1 * g ij.2) =
+    Finset.sup' Finset.univ Finset.univ_nonempty f * Finset.sup' Finset.univ Finset.univ_nonempty g := by
+  -- The proof requires showing that for nonnegative f, g:
+  -- sup_{(i,j)} (f i * g j) = (sup_i f i) * (sup_j g j)
+  --
+  -- This follows from two directions:
+  -- (≤): For all (i,j), f i * g j ≤ sup f * sup g, so sup ≤ sup f * sup g
+  -- (≥): There exist i*, j* achieving the suprema, so f i* * g j* = sup f * sup g
+  --
+  -- We proceed by showing both inequalities:
+  have h_le : Finset.sup' Finset.univ Finset.univ_nonempty (fun ij : p × q => f ij.1 * g ij.2) ≤
+              Finset.sup' Finset.univ Finset.univ_nonempty f *
+              Finset.sup' Finset.univ Finset.univ_nonempty g := by
+    apply Finset.sup'_le
+    intro ij _
+    apply mul_le_mul
+    · exact Finset.le_sup' f (Finset.mem_univ ij.1)
+    · exact Finset.le_sup' g (Finset.mem_univ ij.2)
+    · exact hg ij.2
+    · exact le_trans (hf ij.1) (Finset.le_sup' f (Finset.mem_univ ij.1))
+  have h_ge : Finset.sup' Finset.univ Finset.univ_nonempty f *
+              Finset.sup' Finset.univ Finset.univ_nonempty g ≤
+              Finset.sup' Finset.univ Finset.univ_nonempty (fun ij : p × q => f ij.1 * g ij.2) := by
+    -- There exist elements achieving the suprema
+    obtain ⟨i_max, _, hi_max⟩ := Finset.exists_mem_eq_sup' Finset.univ_nonempty f
+    obtain ⟨j_max, _, hj_max⟩ := Finset.exists_mem_eq_sup' Finset.univ_nonempty g
+    calc Finset.sup' Finset.univ Finset.univ_nonempty f * Finset.sup' Finset.univ Finset.univ_nonempty g
+        = f i_max * g j_max := by rw [hi_max, hj_max]
+      _ ≤ Finset.sup' Finset.univ Finset.univ_nonempty (fun ij : p × q => f ij.1 * g ij.2) :=
+          Finset.le_sup' (fun ij : p × q => f ij.1 * g ij.2) (Finset.mem_univ (i_max, j_max))
+  exact le_antisymm h_le h_ge
+
+end FinsetSupProduct
+
 /-! ## Spectral Norm Relations -/
 
 namespace Matrix.SpectralNorm
@@ -100,59 +145,11 @@ theorem frobeniusNorm'_sq (A : Matrix n n ℂ) :
   intro j _
   rw [← Complex.normSq_eq_norm_sq]
 
-/-! ### Key Lemma: L2 norm of Hermitian matrix equals spectral radius -/
-
-/-- For a Hermitian matrix H, the L2 operator norm equals the spectral radius. -/
-theorem l2_opNorm_hermitian_eq_spectralRadius
-    (H : Matrix n n ℂ) (hH : Matrix.IsHermitian H) :
-    ‖H‖ = (spectralRadius ℝ H).toReal := by
-  have h_sa : IsSelfAdjoint H := hH.isSelfAdjoint
-  exact (IsSelfAdjoint.toReal_spectralRadius_eq_norm h_sa).symm
-
-/-- The spectral radius of a Hermitian matrix equals the supremum of absolute eigenvalues. -/
-theorem hermitian_spectralRadius_eq_sup_abs_eigenvalues [Nonempty n]
-    (H : Matrix n n ℂ) (hH : Matrix.IsHermitian H) :
-    (spectralRadius ℝ H).toReal = Finset.sup' Finset.univ Finset.univ_nonempty (|hH.eigenvalues ·|) := by
-  have h_spec := hH.spectrum_real_eq_range_eigenvalues
-  simp only [spectralRadius, h_spec]
-  rw [iSup_range]
-  have h_ne_top : ∀ i, ((‖hH.eigenvalues i‖₊ : NNReal) : ENNReal) ≠ ⊤ := fun i => ENNReal.coe_ne_top
-  rw [ENNReal.toReal_iSup h_ne_top]
-  -- Convert: (↑‖x‖₊ : ENNReal).toReal to |x| for reals
-  have h_eq : ∀ i, (↑(‖hH.eigenvalues i‖₊) : ENNReal).toReal = |hH.eigenvalues i| := fun i => by
-    simp only [ENNReal.toReal, ENNReal.toNNReal_coe]
-    -- Now goal is: ↑‖hH.eigenvalues i‖₊ = |hH.eigenvalues i| (NNReal → ℝ coercion)
-    simp only [nnnorm, Real.norm_eq_abs]
-    rfl
-  simp_rw [h_eq]
-  -- For finite nonempty type: iSup over Fintype = Finset.sup' over univ
-  symm
-  rw [Finset.sup'_eq_csSup_image]
-  -- ↑Finset.univ = Set.univ for Fintype, f '' Set.univ = Set.range f, sSup (range f) = iSup f
-  simp only [Finset.coe_univ, Set.image_univ, sSup_range]
-
-/-- For a Hermitian matrix, ‖H‖ = max |λᵢ| where λᵢ are eigenvalues. -/
-theorem l2_opNorm_hermitian_eq_sup_abs_eigenvalues [Nonempty n]
-    (H : Matrix n n ℂ) (hH : Matrix.IsHermitian H) :
-    ‖H‖ = Finset.sup' Finset.univ Finset.univ_nonempty (|hH.eigenvalues ·|) := by
-  rw [l2_opNorm_hermitian_eq_spectralRadius H hH]
-  exact hermitian_spectralRadius_eq_sup_abs_eigenvalues H hH
+/-! The Hermitian facts ‖H‖₂ = maxᵢ |λᵢ(H)| (`l2_opNorm_hermitian_eq_sup_abs_eigenvalues`) and
+the spectral-radius formula are declared in SVD.lean under this namespace, and the order lemma
+`Finset.sup'_sq_eq_sq_sup'` at root there. -/
 
 /-! ### Main Theorem: Spectral norm equals max singular value -/
-
-/-- For nonneg values, sup(f²) = (sup f)². Helper lemma for spectral norm theorem. -/
-lemma Finset.sup'_sq_eq_sq_sup' {m : Type*} {s : Finset m} (hs : s.Nonempty) (f : m → ℝ) (hf : ∀ i ∈ s, 0 ≤ f i) :
-    s.sup' hs (fun i => (f i) ^ 2) = (s.sup' hs f) ^ 2 := by
-  obtain ⟨j, hjs, hj⟩ := s.exists_mem_eq_sup' hs f
-  rw [hj]
-  apply le_antisymm
-  · apply Finset.sup'_le
-    intro i hi
-    have : f i ≤ f j := by
-      calc f i ≤ s.sup' hs f := Finset.le_sup' f hi
-        _ = f j := hj
-    exact sq_le_sq' (by linarith [hf i hi]) this
-  · exact Finset.le_sup' (fun i => (f i) ^ 2) hjs
 
 /-- The largest singular value of a matrix. -/
 noncomputable def maxSingularValue [Nonempty n] (A : Matrix n n ℂ) : ℝ :=
@@ -255,22 +252,17 @@ attribute [local instance] Matrix.instCStarRing
 
 /-! ### Unitary Invariance of Spectral Norm -/
 
-/-- Spectral norm is invariant under left multiplication by unitary matrix. -/
-lemma l2_opNorm_unitary_mul (U : unitaryGroup n ℂ) (A : Matrix n n ℂ) :
-    ‖(U : Matrix n n ℂ) * A‖ = ‖A‖ :=
-  CStarRing.norm_coe_unitary_mul ⟨U.val, U.prop⟩ A
-
-/-- Spectral norm is invariant under right multiplication by unitary matrix. -/
-lemma l2_opNorm_mul_unitary (A : Matrix n n ℂ) (U : unitaryGroup n ℂ) :
-    ‖A * (U : Matrix n n ℂ)‖ = ‖A‖ :=
-  CStarRing.norm_mul_coe_unitary A ⟨U.val, U.prop⟩
-
-/-- Spectral norm is invariant under conjugation by unitary matrices: ‖U * A * V*‖ = ‖A‖. -/
+/-- Spectral norm is invariant under conjugation by unitary matrices: ‖U * A * V*‖ = ‖A‖
+    (`CStarRing.norm_mem_unitary_mul` and `CStarRing.norm_mul_mem_unitary`). -/
 lemma l2_opNorm_unitary_conj (U V : unitaryGroup n ℂ) (A : Matrix n n ℂ) :
     ‖(U : Matrix n n ℂ) * A * star (V : Matrix n n ℂ)‖ = ‖A‖ := by
-  rw [mul_assoc, l2_opNorm_unitary_mul U (A * star (V : Matrix n n ℂ))]
+  have hU : (U : Matrix n n ℂ) ∈ unitary (Matrix n n ℂ) := U.prop
   have hVstar : star (V : Matrix n n ℂ) ∈ unitary (Matrix n n ℂ) := Unitary.star_mem V.prop
-  exact CStarRing.norm_mul_mem_unitary A hVstar
+  calc ‖(U : Matrix n n ℂ) * A * star (V : Matrix n n ℂ)‖
+      = ‖A * star (V : Matrix n n ℂ)‖ := by
+        rw [mul_assoc]
+        exact CStarRing.norm_mem_unitary_mul _ hU
+    _ = ‖A‖ := CStarRing.norm_mul_mem_unitary A hVstar
 
 /-! ### Spectral Norm of truncatedSVD_tail -/
 
@@ -603,48 +595,6 @@ theorem isHermitian_kronecker
   unfold Matrix.IsHermitian
   rw [conjTranspose_kronecker, hH₁, hH₂]
 
-/-! #### Supremum of Products -/
-
-set_option linter.unusedSectionVars false in
-/-- For nonnegative functions f : p → ℝ and g : q → ℝ on nonempty finite types,
-    sup_{(i,j)} (f i * g j) = (sup_i f i) * (sup_j g j).
-
-    This is the key ingredient for showing that the largest eigenvalue of H₁ ⊗ H₂
-    equals the product of the largest eigenvalues of H₁ and H₂. -/
-lemma Finset.sup'_prod_eq_mul_sup' [Nonempty p] [Nonempty q]
-    (f : p → ℝ) (g : q → ℝ) (hf : ∀ i, 0 ≤ f i) (hg : ∀ j, 0 ≤ g j) :
-    Finset.sup' (Finset.univ : Finset (p × q)) Finset.univ_nonempty (fun ij => f ij.1 * g ij.2) =
-    Finset.sup' Finset.univ Finset.univ_nonempty f * Finset.sup' Finset.univ Finset.univ_nonempty g := by
-  -- The proof requires showing that for nonnegative f, g:
-  -- sup_{(i,j)} (f i * g j) = (sup_i f i) * (sup_j g j)
-  --
-  -- This follows from two directions:
-  -- (≤): For all (i,j), f i * g j ≤ sup f * sup g, so sup ≤ sup f * sup g
-  -- (≥): There exist i*, j* achieving the suprema, so f i* * g j* = sup f * sup g
-  --
-  -- We proceed by showing both inequalities:
-  have h_le : Finset.sup' Finset.univ Finset.univ_nonempty (fun ij : p × q => f ij.1 * g ij.2) ≤
-              Finset.sup' Finset.univ Finset.univ_nonempty f *
-              Finset.sup' Finset.univ Finset.univ_nonempty g := by
-    apply Finset.sup'_le
-    intro ij _
-    apply mul_le_mul
-    · exact Finset.le_sup' f (Finset.mem_univ ij.1)
-    · exact Finset.le_sup' g (Finset.mem_univ ij.2)
-    · exact hg ij.2
-    · exact le_trans (hf ij.1) (Finset.le_sup' f (Finset.mem_univ ij.1))
-  have h_ge : Finset.sup' Finset.univ Finset.univ_nonempty f *
-              Finset.sup' Finset.univ Finset.univ_nonempty g ≤
-              Finset.sup' Finset.univ Finset.univ_nonempty (fun ij : p × q => f ij.1 * g ij.2) := by
-    -- There exist elements achieving the suprema
-    obtain ⟨i_max, _, hi_max⟩ := Finset.exists_mem_eq_sup' Finset.univ_nonempty f
-    obtain ⟨j_max, _, hj_max⟩ := Finset.exists_mem_eq_sup' Finset.univ_nonempty g
-    calc Finset.sup' Finset.univ Finset.univ_nonempty f * Finset.sup' Finset.univ Finset.univ_nonempty g
-        = f i_max * g j_max := by rw [hi_max, hj_max]
-      _ ≤ Finset.sup' Finset.univ Finset.univ_nonempty (fun ij : p × q => f ij.1 * g ij.2) :=
-          Finset.le_sup' (fun ij : p × q => f ij.1 * g ij.2) (Finset.mem_univ (i_max, j_max))
-  exact le_antisymm h_le h_ge
-
 /-! #### Eigenvalue Structure of Kronecker Products -/
 
 /-- For PSD H, ‖H‖₂ is the largest eigenvalue: the Hermitian formula ‖H‖₂ = maxᵢ |λᵢ| with
@@ -652,11 +602,11 @@ lemma Finset.sup'_prod_eq_mul_sup' [Nonempty p] [Nonempty q]
 lemma l2_opNorm_posSemidef_eq_sup_eigenvalues [Nonempty p]
     (H : Matrix p p ℂ) (hH : H.PosSemidef) :
     ‖H‖ = Finset.sup' Finset.univ Finset.univ_nonempty hH.isHermitian.eigenvalues := by
-  rw [SpectralNorm.l2_opNorm_hermitian_eq_sup_abs_eigenvalues H hH.isHermitian]
-  congr 1
-  ext i
-  rw [abs_of_nonneg]
-  exact hH.eigenvalues_nonneg i
+  have h := SpectralNorm.l2_opNorm_hermitian_eq_sup_abs_eigenvalues H hH.isHermitian
+  have h_abs : (fun i => |hH.isHermitian.eigenvalues i|) = hH.isHermitian.eigenvalues :=
+    funext fun i => abs_of_nonneg (hH.eigenvalues_nonneg i)
+  rw [h_abs] at h
+  exact h
 
 /-- **Eigenvalue Product Theorem for Kronecker Products of PSD Matrices.**
     The supremum of eigenvalues of H₁ ⊗ H₂ equals the product of the suprema. Positive

@@ -2602,6 +2602,30 @@ theorem Matrix.SVD.Rectangular.frobeniusNorm_eq_sqrt_sum_singularValues_sq_rect 
 
 end FrobeniusNormRectangular
 
+/-! ## Order helper
+
+A general fact about `Finset.sup'` on ℝ, used here and in MatrixNormRelations. -/
+
+section FinsetSupHelpers
+
+/-- For nonnegative values, the supremum of the squares is the square of the supremum:
+    sup(f²) = (sup f)². -/
+theorem Finset.sup'_sq_eq_sq_sup' {α : Type*} {s : Finset α} (hs : s.Nonempty) (f : α → ℝ)
+    (hf : ∀ i ∈ s, 0 ≤ f i) :
+    s.sup' hs (fun i => (f i) ^ 2) = (s.sup' hs f) ^ 2 := by
+  obtain ⟨j, hjs, hj⟩ := s.exists_mem_eq_sup' hs f
+  rw [hj]
+  apply le_antisymm
+  · apply Finset.sup'_le
+    intro i hi
+    have : f i ≤ f j := by
+      calc f i ≤ s.sup' hs f := Finset.le_sup' f hi
+        _ = f j := hj
+    exact sq_le_sq' (by linarith [hf i hi]) this
+  · exact Finset.le_sup' (fun i => (f i) ^ 2) hjs
+
+end FinsetSupHelpers
+
 /-! ## Spectral Norm for Rectangular Matrices
 
 This section establishes that for rectangular matrices `A : Matrix m n ℂ`:
@@ -2638,21 +2662,14 @@ private noncomputable def instCStarAlgebraMatrixLocal : CStarAlgebra (Matrix n n
 /-- Notation for L2 operator norm of rectangular matrices. -/
 local notation "‖" A "‖₂" => @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm A
 
-/-! ### Helper Lemmas for Spectral Norm -/
+/-! ### Hermitian matrices: L2 norm and eigenvalues
 
-/-- For a Hermitian matrix H, the L2 operator norm equals the spectral radius. -/
-private theorem l2_opNorm_hermitian_eq_spectralRadius
-    (H : Matrix n n ℂ) (hH : Matrix.IsHermitian H) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm H = (spectralRadius ℝ H).toReal := by
-  -- Use the CStarAlgebra instance for matrices with L2 norm
-  have h_sa : IsSelfAdjoint H := hH.isSelfAdjoint
-  -- The L2 norm of matrices forms a C*-algebra, so we can use the spectral radius formula
-  have := @IsSelfAdjoint.toReal_spectralRadius_eq_norm (Matrix n n ℂ)
-    instCStarAlgebraMatrixLocal H h_sa
-  exact this.symm
+These are the project's only copies; MatrixNormRelations uses them for its square results. They
+are stated with the explicit `Matrix.instL2OpNormedAddCommGroup` norm, so they apply whichever
+L2 instance path a caller's `‖·‖` takes, by `exact` (term-mode unification). -/
 
 /-- The spectral radius of a Hermitian matrix equals the supremum of absolute eigenvalues. -/
-private theorem hermitian_spectralRadius_eq_sup_abs_eigenvalues [Nonempty n]
+theorem Matrix.SpectralNorm.hermitian_spectralRadius_eq_sup_abs_eigenvalues [Nonempty n]
     (H : Matrix n n ℂ) (hH : Matrix.IsHermitian H) :
     (spectralRadius ℝ H).toReal = Finset.sup' Finset.univ Finset.univ_nonempty (|hH.eigenvalues ·|) := by
   have h_spec := hH.spectrum_real_eq_range_eigenvalues
@@ -2669,28 +2686,16 @@ private theorem hermitian_spectralRadius_eq_sup_abs_eigenvalues [Nonempty n]
   rw [Finset.sup'_eq_csSup_image]
   simp only [Finset.coe_univ, Set.image_univ, sSup_range]
 
-/-- For a Hermitian matrix, ‖H‖ = max |λᵢ| where λᵢ are eigenvalues. -/
-private theorem l2_opNorm_hermitian_eq_sup_abs_eigenvalues [Nonempty n]
+/-- For a Hermitian matrix, ‖H‖₂ = max |λᵢ| where λᵢ are eigenvalues. The L2 norm of a
+    self-adjoint element of a C⋆-algebra is its spectral radius
+    (`IsSelfAdjoint.toReal_spectralRadius_eq_norm`). -/
+theorem Matrix.SpectralNorm.l2_opNorm_hermitian_eq_sup_abs_eigenvalues [Nonempty n]
     (H : Matrix n n ℂ) (hH : Matrix.IsHermitian H) :
     @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm H =
       Finset.sup' Finset.univ Finset.univ_nonempty (|hH.eigenvalues ·|) := by
-  rw [l2_opNorm_hermitian_eq_spectralRadius H hH]
-  exact hermitian_spectralRadius_eq_sup_abs_eigenvalues H hH
-
-/-- For nonneg values, sup(f²) = (sup f)². Helper lemma for spectral norm theorem. -/
-private lemma sup'_sq_eq_sq_sup' {α : Type*} {s : Finset α} (hs : s.Nonempty) (f : α → ℝ)
-    (hf : ∀ i ∈ s, 0 ≤ f i) :
-    s.sup' hs (fun i => (f i) ^ 2) = (s.sup' hs f) ^ 2 := by
-  obtain ⟨j, hjs, hj⟩ := s.exists_mem_eq_sup' hs f
-  rw [hj]
-  apply le_antisymm
-  · apply Finset.sup'_le
-    intro i hi
-    have : f i ≤ f j := by
-      calc f i ≤ s.sup' hs f := Finset.le_sup' f hi
-        _ = f j := hj
-    exact sq_le_sq' (by linarith [hf i hi]) this
-  · exact Finset.le_sup' (fun i => (f i) ^ 2) hjs
+  rw [← Matrix.SpectralNorm.hermitian_spectralRadius_eq_sup_abs_eigenvalues H hH]
+  exact (@IsSelfAdjoint.toReal_spectralRadius_eq_norm (Matrix n n ℂ)
+    instCStarAlgebraMatrixLocal H hH.isSelfAdjoint).symm
 
 /-! ### Main Theorems -/
 
@@ -2724,7 +2729,7 @@ theorem Matrix.SVD.Rectangular.spectral_norm_sq_eq_max_eigenvalue_rect
   -- ‖Aᴴ*A‖ = sup |eigenvalues|
   have h2 : @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm (Aᴴ * A) =
       Finset.sup' Finset.univ Finset.univ_nonempty (|h_herm.eigenvalues ·|) :=
-    l2_opNorm_hermitian_eq_sup_abs_eigenvalues (Aᴴ * A) h_herm
+    Matrix.SpectralNorm.l2_opNorm_hermitian_eq_sup_abs_eigenvalues (Aᴴ * A) h_herm
   -- For PSD, eigenvalues ≥ 0 so |λ| = λ
   have h3 : ∀ i, |h_herm.eigenvalues i| = h_herm.eigenvalues i := fun i =>
     abs_of_nonneg (h_psd.eigenvalues_nonneg i)
@@ -2816,8 +2821,8 @@ theorem Matrix.SVD.Rectangular.spectral_norm_eq_max_singularValue_rect
   have h_sq_eq : ‖A‖₂ ^ 2 = (Finset.sup' Finset.univ h_ne (singularValues A)) ^ 2 := by
     rw [spectral_norm_sq_eq_max_singularValue_sq_rect h A]
     -- Goal: sup' (fun k => (σₖ)²) = (sup' σₖ)²
-    -- Apply sup'_sq_eq_sq_sup' which gives: sup' (fun i => (f i)²) = (sup' f)²
-    rw [sup'_sq_eq_sq_sup' h_ne (singularValues A) (fun i _ => singularValues_nonneg A i)]
+    -- Apply Finset.sup'_sq_eq_sq_sup' which gives: sup' (fun i => (f i)²) = (sup' f)²
+    rw [Finset.sup'_sq_eq_sq_sup' h_ne (singularValues A) (fun i _ => singularValues_nonneg A i)]
   -- From x² = y² and x,y ≥ 0, conclude x = y
   have h_abs_eq : |‖A‖₂| = |Finset.sup' Finset.univ h_ne (singularValues A)| :=
     (sq_eq_sq_iff_abs_eq_abs ‖A‖₂ _).mp h_sq_eq

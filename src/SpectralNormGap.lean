@@ -28,7 +28,7 @@ m = n = Fin 2 this is R⁻¹(vec I₂ (vec I₂)ᵀ) = I₄.
 open scoped ComplexOrder Matrix
 open Matrix
 
-namespace Matrix.Kronecker.SpectralGap
+namespace Matrix.Kronecker.SpectralBounds
 
 variable {m n p q : Type*}
 variable [Fintype m] [Fintype n] [Fintype p] [Fintype q]
@@ -411,8 +411,6 @@ theorem frobenius_spectral_ratio_ge_one {n' : Type*} [Fintype n'] [DecidableEq n
 
 end OuterProductBounds
 
-end Matrix.Kronecker.SpectralGap
-
 /-! ## Rank and Frobenius Identities
 
 `R(A ⊗ B)` has rank at most 1 (`rank_R_kronecker_le_one`), and the Frobenius norm squared is
@@ -424,12 +422,6 @@ norm. In the rearranged space there is no such gap: the rank-1 truncated SVD of 
 optimal in both norms (`Matrix.TightBounds.eckart_young_frobenius_rect`,
 `Matrix.TightBounds.eckart_young_spectral_rect`).
 -/
-
-namespace Matrix.Kronecker.SpectralGapCharacterization
-
-variable {m n p q : Type*}
-variable [Fintype m] [Fintype n] [Fintype p] [Fintype q]
-variable [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q]
 
 section RankBounds
 
@@ -457,7 +449,7 @@ end RankBounds
 
 /-! ### Part B: Frobenius Norm and Singular Values -/
 
-section GapCharacterization
+section FrobeniusSingularValues
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
@@ -501,6 +493,6 @@ theorem frobenius_norm_sq_eq_sum_singularValues_sq {n' : Type*} [Fintype n'] [De
   simp only [Complex.star_def, Complex.mul_re, Complex.conj_re, Complex.conj_im]
   ring
 
-end GapCharacterization
+end FrobeniusSingularValues
 
-end Matrix.Kronecker.SpectralGapCharacterization
+end Matrix.Kronecker.SpectralBounds

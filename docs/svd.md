@@ -106,10 +106,17 @@ explains why: it stays consistent with `rightUnitary`, and it avoids the `equivF
 
 These sit outside any namespace:
 
+- **`FinsetSupHelpers`**: the order lemma `Finset.sup'_sq_eq_sq_sup'` (sup f² = (sup f)² for
+  f ≥ 0), also used by MatrixNormRelations.
 - **`FrobeniusNormRectangular`** (Frobenius local instance). Declares fully qualified
   `Matrix.SVD.Rectangular.frobeniusNorm_sq_eq_sum_singularValues_sq_rect`, …
 - **`SpectralNormRectangular`** (L2 instances plus `instCStarRing`, local notation `‖A‖₂`, a
   private root-level `instCStarAlgebraMatrixLocal`).
+  - Declares the project's only copies of the Hermitian norm facts, as
+    `Matrix.SpectralNorm.hermitian_spectralRadius_eq_sup_abs_eigenvalues` and
+    `Matrix.SpectralNorm.l2_opNorm_hermitian_eq_sup_abs_eigenvalues` (‖H‖₂ = maxᵢ |λᵢ|, stated
+    with the explicit `instL2OpNormedAddCommGroup` norm). MatrixNormRelations uses them by
+    `exact`, which bridges its own L2 instance path.
   - Declares `Matrix.SVD.Rectangular.maxSingularValue`, `spectral_norm_eq_max_singularValue_rect`
     and `spectral_norm_sq_le_sum_singularValues_sq_rect`. The rectangular ‖A‖₂ ≤ ‖A‖_F is the
     root `spectral_le_frobenius_rect` in `RectangularCoherenceFactor`.

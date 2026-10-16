@@ -441,7 +441,7 @@ theorem outerProduct_spectral_norm_eq [Nonempty m] [Nonempty n]
       simp only [h_zero, @norm_zero _ Matrix.instL2OpNormedAddCommGroup.toSeminormedAddCommGroup.toSeminormedAddGroup, norm_zero, zero_mul]
     · -- Both nonzero: combine upper and lower bounds
       apply le_antisymm
-      · exact Matrix.Kronecker.SpectralGap.outerProduct_spectral_norm_le u v  -- Upper: ≤ ‖u‖·‖v‖
+      · exact Matrix.Kronecker.SpectralBounds.outerProduct_spectral_norm_le u v  -- Upper: ≤ ‖u‖·‖v‖
       · exact outerProduct_spectral_norm_ge u v hv  -- Lower: ≥ ‖u‖·‖v‖
 
 /-! ### Rank-1 Spectral = Frobenius -/
@@ -457,7 +457,7 @@ theorem rank_one_spectral_eq_frobenius [Nonempty m] [Nonempty n]
       (KroneckerRearrangement.outerProduct u v) =
     @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
       (KroneckerRearrangement.outerProduct u v) := by
-  rw [outerProduct_spectral_norm_eq, Matrix.Kronecker.SpectralGap.outerProduct_frobenius_norm']
+  rw [outerProduct_spectral_norm_eq, Matrix.Kronecker.SpectralBounds.outerProduct_frobenius_norm']
 
 /-! ### Nearly Coherent Bound
 
@@ -1529,8 +1529,8 @@ theorem kroneckerCoherence_bounds
   ⟨kroneckerCoherence_ge_inv_sqrt_rank C hC, kroneckerCoherence_le_one C⟩
 
 /-- **The R⁻¹ bound is attained when R⁻¹ X has rank one:** for X = R(u vᵀ), ‖R⁻¹ X‖₂ = ‖X‖_F.
-    So the constant in `Matrix.Kronecker.SpectralGap.R_inv_spectral_le_frobenius`
-    (‖R⁻¹ X‖₂ ≤ ‖X‖_F) cannot be improved; `Matrix.Kronecker.SpectralGap.R_inv_spectral_lt_frobenius_R_one` shows the bound
+    So the constant in `Matrix.Kronecker.SpectralBounds.R_inv_spectral_le_frobenius`
+    (‖R⁻¹ X‖₂ ≤ ‖X‖_F) cannot be improved; `Matrix.Kronecker.SpectralBounds.R_inv_spectral_lt_frobenius_R_one` shows the bound
     is strict for X = R(1). -/
 theorem R_inv_spectral_eq_frobenius_R_outerProduct [Nonempty (m × n)] [Nonempty (p × q)]
     (u : EuclideanSpace ℂ (m × n)) (v : EuclideanSpace ℂ (p × q)) :
@@ -1772,6 +1772,7 @@ theorem frobenius_spectral_distance_with_gap (A M : Matrix n n ℂ)
       have h1 : 1 ≤ j.val := Nat.one_le_iff_ne_zero.mpr hj
       simp only [h1, ↓reduceIte, hj]
 
+omit [Nonempty n] in
 /-- **Coherence form of the distance bound**
 
   ‖A_F - M‖₂ ≤ 2 · ‖E‖_F / (√r · μ)

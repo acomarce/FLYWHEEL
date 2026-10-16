@@ -1257,7 +1257,7 @@ theorem frobenius_error_via_R_isometry
   -- Step 2: R(C - R_inv(X)) = R(C) - R(R_inv(X)) = R(C) - X
   have h2 : KroneckerRearrangement.R (C - KroneckerRearrangement.R_inv X) =
             KroneckerRearrangement.R C - X := by
-    rw [Kronecker.SpectralGap.R_sub, KroneckerRearrangement.R_R_inv]
+    rw [Kronecker.SpectralBounds.R_sub, KroneckerRearrangement.R_R_inv]
   rw [h1, h2]
 
 end TightKroneckerBound
@@ -1331,7 +1331,7 @@ theorem kroneckerApprox_optimal (C : Matrix (m × n) (p × q) ℂ)
   rw [kroneckerApprox, frobenius_error_via_R_isometry,
     KroneckerRearrangement.kronecker_approx_frobenius_error]
   exact eckart_young_frobenius_rect _ _ 1
-    (Kronecker.SpectralGapCharacterization.rank_outerProduct_le_one _ _)
+    (Kronecker.SpectralBounds.rank_outerProduct_le_one _ _)
 
 /-- **Error of the Van Loan–Pitsianis approximation:**
     ‖C - kroneckerApprox C‖_F² = Σᵢ (truncatedSingularValues_rect_tail (R C) 1 i)², the sum of
