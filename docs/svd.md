@@ -29,7 +29,6 @@ in `CLAUDE.md`.
 7. `svd_decomposition`: `∃ U V : unitaryGroup n ℂ, ∃ σ ≥ 0, A = U * diagonal σ * star V`.
 
 **Defined but not used by the construction:**
-- `leftUnitary` (eigenvectors of `A Aᴴ`).
 - `singularDiagonal`.
 - `sqrtConjTransposeMulSelf` (`CFC.sqrt (Aᴴ A)`).
 
@@ -112,7 +111,8 @@ These sit outside any namespace:
 - **`SpectralNormRectangular`** (L2 instances plus `instCStarRing`, local notation `‖A‖₂`, a
   private root-level `instCStarAlgebraMatrixLocal`).
   - Declares `Matrix.SVD.Rectangular.maxSingularValue`, `spectral_norm_eq_max_singularValue_rect`
-    and `spectral_norm_le_frobenius_norm_rect`.
+    and `spectral_norm_sq_le_sum_singularValues_sq_rect`. The rectangular ‖A‖₂ ≤ ‖A‖_F is the
+    root `spectral_le_frobenius_rect` in `RectangularCoherenceFactor`.
   - These take `h : 0 < min #m #n`, which `maxSingularValue` (a `Finset.sup'`) needs.
 - **`RectangularCoherenceFactor`** (L2 instances, local `‖A‖₂`; Frobenius through the explicit
   `frobeniusNormRect`). It is genuinely root-namespace:
