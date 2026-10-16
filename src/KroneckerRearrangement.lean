@@ -2,7 +2,15 @@
 Copyright (c) 2025 FLYWHEEL. All rights reserved.
 Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Aleksandar Markovski
+-/
+import Mathlib.Analysis.Matrix.Spectrum
+import Mathlib.Analysis.Matrix.PosDef
+import Mathlib.LinearAlgebra.Matrix.Kronecker
+import Mathlib.Analysis.Matrix.Normed
+import Mathlib.Analysis.Normed.Operator.LinearIsometry
+import Mathlib.LinearAlgebra.Matrix.RowCol
 
+/-!
 # Kronecker Rearrangement
 
 The Van Loan–Pitsianis rearrangement R : M_(m×n,p×q) → M_(m×p,n×q).
@@ -19,13 +27,6 @@ Key property: R(A ⊗ B) = vec(A) vec(B)ᵀ is rank-1.
 The isometry property ‖R(M)‖_F = ‖M‖_F holds since R is merely an index
 permutation. Benchmark suite indices: 57, 109, 115, 89, 111, 56, 104, 111, 106, 67, 111.
 -/
-
-import Mathlib.Analysis.Matrix.Spectrum
-import Mathlib.Analysis.Matrix.PosDef
-import Mathlib.LinearAlgebra.Matrix.Kronecker
-import Mathlib.Analysis.Matrix.Normed
-import Mathlib.Analysis.Normed.Operator.LinearIsometry
-import Mathlib.LinearAlgebra.Matrix.RowCol
 
 -- NOTE: Some of these imports might be redundant. I added them one by one
 -- when I got "unknown identifier" errors. Feel free to clean up.

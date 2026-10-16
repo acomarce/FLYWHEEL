@@ -43,6 +43,21 @@ best rank-1 approximation of `R C`.
     - But `E = R_inv E' = I₂ ⊗ I₂ = I₄`, so `‖E‖₂ = 1 < 0.9 · 2 = 0.9 ‖E‖_F`.
   - The Part 5 comment in TightBounds records this.
 
+## The Van Loan–Pitsianis theorem (`src/TightBounds.lean`, `Matrix.TightBounds`)
+
+- `kroneckerApprox C := R_inv (truncatedSVD_rect (R C) 1)`.
+- `kroneckerApprox_isKronecker`: `kroneckerApprox C = A ⊗ B` for some `A : Matrix m p ℂ`,
+  `B : Matrix n q ℂ`. The proof uses `exists_outerProduct_of_rank_le_one` (a rank ≤ 1 matrix
+  is `u vᵀ`) and `R_kronecker`.
+- `kroneckerApprox_optimal`: `‖C - kroneckerApprox C‖_F ≤ ‖C - A ⊗ B‖_F` for all `A`, `B`.
+  This is rectangular Eckart–Young (`eckart_young_frobenius_rect`) for `R C` with `k = 1`,
+  transported by the isometry `R` and `R (A ⊗ B) = vec A (vec B)ᵀ`.
+- `kroneckerApprox_error_sq`: `‖C - kroneckerApprox C‖_F² = Σᵢ (truncatedSingularValues_rect_tail
+  (R C) 1 i)²`, i.e. the sum of `σᵢ(R C)²` over `i ≥ 1` (0-indexed).
+- Not formalized: uniqueness of the optimal Kronecker approximation (it fails when
+  `σ₀(R C) = σ₁(R C)`), and anything about the spectral-norm-optimal Kronecker approximation in
+  the original space.
+
 ## Bounds that are proved
 
 **MatrixNormRelations, `Matrix.KroneckerRearrangement`:**
@@ -52,43 +67,43 @@ best rank-1 approximation of `R C`.
 - `l2_opNorm_kronecker : ‖A ⊗ B‖ = ‖A‖ * ‖B‖` (L2).
 
 **MatrixNormRelations, `Matrix.KroneckerPerturbation`:**
-- `kronecker_sub_spectral_norm_bound : ‖B⊗C − B'⊗C'‖ ≤ ‖B−B'‖‖C‖ + ‖B'‖‖C−C'‖`.
-- `kronecker_singularValue_perturbation` restates it; no singular values appear.
-- `kronecker_relative_perturbation` is not actually in relative form.
+- `kronecker_sub_spectral_norm_bound : ‖B⊗C − B'⊗C'‖ ≤ ‖B−B'‖‖C‖ + ‖B'‖‖C−C'‖`, and
+  `kronecker_sub_spectral_norm_bound_cross` with `‖B‖` in place of `‖B'‖` plus a cross term.
+- `kronecker_relative_perturbation`: for `B, C ≠ 0`,
+  `‖B⊗C − B'⊗C'‖ / ‖B⊗C‖ ≤ εB + εC + εB εC` with `εB = ‖B−B'‖/‖B‖`, `εC = ‖C−C'‖/‖C‖`.
+- `kronecker_singularValue_perturbation`: for square factors,
+  `|σₖ(B⊗C) − σₖ(B'⊗C')| ≤ ‖B−B'‖‖C‖ + ‖B'‖‖C−C'‖` (Weyl plus the bound above).
+- `kronecker_perturbation_single_factor_B/C`: equality when one factor is unchanged.
 
 **SpectralNormGap, `Matrix.Kronecker.SpectralGap`.** Note the namespace is `Kronecker`, not
 `KroneckerRearrangement`.
 - `R_inv_spectral_le_frobenius : ‖R_inv M‖₂ ≤ ‖M‖_F`.
-- `spectral_error_bound_via_R : ‖C − R_inv M‖₂ ≤ ‖R C − M‖_F`. The main usable bound; restated as
-  `kronecker_spectral_error_le_frobenius_error`.
+- `spectral_error_bound_via_R : ‖C − R_inv M‖₂ ≤ ‖R C − M‖_F`. The main usable bound.
 - `R_inv_outerProduct_spectral_bound : ‖R_inv (outerProduct u v)‖₂ ≤ ‖u‖‖v‖`.
+- `R_inv_spectral_lt_frobenius_R_one`: the bound is strict for `M = R 1` when
+  `#m · #n ≥ 2` (`‖1‖₂ = 1 < √(#m · #n) = ‖R 1‖_F`).
+- `Matrix.Coherence.R_inv_spectral_eq_frobenius_R_outerProduct`: the bound is an equality for
+  `M = R (u vᵀ)`, so its constant cannot be improved.
 
 **TightBounds, `Matrix.TightBounds`:**
 - `frobenius_error_via_R_isometry : ‖C − R_inv X‖ = ‖R C − X‖` (Frobenius).
-- `spectral_error_le_frobenius_error` for `X = truncatedSVD_rect (R C) 1`. The Frobenius error
-  equals `√(σ₂² + σ₃² + …)` of `R C`, not `σ₂`. That formula is not formalized: there is no
-  rectangular Frobenius error formula for `truncatedSVD_rect`.
+- `spectral_error_le_frobenius_error` for `X = truncatedSVD_rect (R C) 1`; with
+  `kroneckerApprox_error_sq` the right side is `√(σ₁² + σ₂² + …)` of `R C` (0-indexed).
 
 **CoherenceCharacterization, `Matrix.Coherence`:**
 - `kroneckerCoherence C := coherenceFactorRect (R C)`.
+- `coherenceFactorRect_eq_coherenceFactor`: the rectangular and square coherence factors agree
+  on square matrices.
 - `kronecker_approximation_coherence_characterization` combines `spectral_error_bound_via_R` with
   the coherence identity `‖E‖₂ = ‖E‖_F / (√rank · μ)`.
-- Four theorems take no coherence or gap hypothesis, despite their names:
-  - `nearly_coherent_bound` and `nearly_coherent_spectral_lower_bound` follow from
-    `coherenceFactor_le_one`.
-  - `frobenius_spectral_distance_with_gap` and `decision_criterion` restate
-    `frobenius_spectral_solution_distance : ‖A_F − A_*‖₂ ≤ 2‖A − A_F‖_F`. The first also gives the
-    Frobenius tail formula.
-  - Not formalized: the bound `‖E‖₂ ≤ ‖E‖_F / ((1 − ε) √rank E)` that `μ(E) ≥ 1 − ε` gives, and
-    any bound that depends on `spectralGap`.
-  - The `coherenceFactor` docstring calls `μ ≈ 1` *incoherent*, so "nearly coherent (μ ≥ 1 − ε)"
-    uses the opposite convention.
-
-## Names that overstate what is proved
-
-- **SpectralNormGap's `Tightness` section, `R_inv_bound_achievable_rank1` and
-  `bound_tight_rank1`** prove only `≤`; their docstrings say so. `bound_tight_rank1` duplicates
-  `R_inv_outerProduct_le_outerProduct_frobenius`. Equality fails in general:
-  `R_inv (vec A (vec B)ᵀ) = A ⊗ B` has spectral norm `‖A‖₂‖B‖₂`, which is `< ‖vec A‖‖vec B‖`
-  unless `A` or `B` is 0 or both have rank 1. For example, `A = B = I₂` gives `1 < 2`.
-- The only `R_inv` spectral bound is `‖R_inv X‖₂ ≤ ‖X‖_F`.
+- Convention: `μ ≈ 1` is *incoherent* (flat spectrum), `μ ≈ 1/√rank` is *coherent*.
+  - `nearly_coherent_iff`, `nearly_coherent_bound`, `nearly_coherent_spectral_lower_bound`: for
+    `E ≠ 0` and `ε < 1`, `μ(E) ≤ 1/((1 − ε)√rank E) ↔ (1 − ε)‖E‖_F ≤ ‖E‖₂`.
+  - `incoherent_improved_bound`: `α ≤ μ(E)` gives `‖E‖₂ ≤ ‖E‖_F / (α √rank E)`.
+- Solution distance, for `A_F = truncatedSVD A 1` and any spectral minimizer
+  `A_* = spectralOptimalRank1 A`:
+  - `spectral_error_truncatedSVD_one_eq_spectralOptimalRank1`: `‖A − A_F‖₂ = ‖A − A_*‖₂`;
+  - `frobenius_spectral_solution_distance`: `‖A_F − A_*‖₂ ≤ 2‖A − A_F‖₂`;
+  - `frobenius_spectral_distance_with_gap`: `‖A_F − A_*‖₂ ≤ 2(‖A‖₂ − spectralGap A)`;
+  - `decision_criterion`: `spectralGap A ≥ (1 − δ/2)‖A‖₂` gives `‖A_F − A_*‖₂ ≤ δ‖A‖₂`.
+  - Not formalized: Wedin-type bounds on singular *subspaces* in terms of the gap.

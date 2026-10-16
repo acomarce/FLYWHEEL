@@ -547,18 +547,6 @@ theorem outerProduct_spectral_norm_eq [Nonempty m] [Nonempty n]
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
 omit [DecidableEq m] in
-/-- The spectral and Frobenius norms of an outer product are equal: ‖uv*‖₂ = ‖uv*‖_F.
-    Same statement as `rank_one_spectral_eq_frobenius`; no unit-norm assumption is needed. -/
-theorem rank_one_spectral_eq_frobenius_unit [Nonempty m] [Nonempty n]
-    (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (KroneckerRearrangement.outerProduct u v) =
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.outerProduct u v) := by
-  rw [outerProduct_spectral_norm_eq,
-      Matrix.Kronecker.SpectralGap.outerProduct_frobenius_norm']
-
-omit [DecidableEq m] in
 /-- For any vectors, the spectral and Frobenius norms of their outer product are equal.
     This is the general version: ‖uv*‖₂ = ‖uv*‖_F = ‖u‖·‖v‖ -/
 theorem rank_one_spectral_eq_frobenius [Nonempty m] [Nonempty n]
@@ -1522,9 +1510,10 @@ Characterize when the Frobenius-optimal approximation is also spectrally near-op
 /-- **Spectral error via error coherence**: for E = A - truncatedSVD A k ≠ 0,
     ‖E‖₂ = ‖E‖_F / (√rank(E) · μ_err).
 
-    This identity holds for every nonzero error; no coherence assumption is made. When the
-    error is coherent (μ_err ≈ 1/√rank(E)) it gives ‖E‖₂ ≈ ‖E‖_F. -/
-theorem kronecker_coherent_spectral_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
+    This identity holds for every nonzero error; no coherence assumption is made.
+    - When μ is large (near 1, incoherent): ‖E‖₂ ≈ ‖E‖_F / √rank.
+    - When μ is small (near 1/√rank, coherent): ‖E‖₂ ≈ ‖E‖_F. -/
+theorem kronecker_spectral_eq_frobenius_div_coherence {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
     (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0) :
     ‖A - truncatedSVD A k‖₂ =
     frobeniusNormRect (A - truncatedSVD A k) /
@@ -1557,7 +1546,7 @@ theorem kronecker_tight_when_maximally_coherent {n' : Type*} [Fintype n'] [Decid
     (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0)
     (h_coh : kroneckerErrorCoherence A k = 1 / Real.sqrt (A - truncatedSVD A k).rank) :
     ‖A - truncatedSVD A k‖₂ = frobeniusNormRect (A - truncatedSVD A k) := by
-  rw [kronecker_coherent_spectral_bound A k h_err, h_coh]
+  rw [kronecker_spectral_eq_frobenius_div_coherence A k h_err, h_coh]
   have h_rank_pos : 0 < (A - truncatedSVD A k).rank :=
     rank_pos_of_ne_zero_rect _ h_err
   have h_sqrt_rank_pos : 0 < Real.sqrt (A - truncatedSVD A k).rank :=
@@ -1578,7 +1567,7 @@ theorem kronecker_loose_when_maximally_incoherent {n' : Type*} [Fintype n'] [Dec
     (h_coh : kroneckerErrorCoherence A k = 1) :
     ‖A - truncatedSVD A k‖₂ =
     frobeniusNormRect (A - truncatedSVD A k) / Real.sqrt (A - truncatedSVD A k).rank := by
-  rw [kronecker_coherent_spectral_bound A k h_err, h_coh, mul_one]
+  rw [kronecker_spectral_eq_frobenius_div_coherence A k h_err, h_coh, mul_one]
 
 /-! ### Section 4d: Coherence-Aware Main Bound
 
@@ -1599,23 +1588,6 @@ theorem kronecker_spectral_le_frobenius {n' : Type*} [Fintype n'] [DecidableEq n
     (A : Matrix n' n' ℂ) (k : ℕ) :
     ‖A - truncatedSVD A k‖₂ ≤ frobeniusNormRect (A - truncatedSVD A k) :=
   spectral_le_frobenius_rect _
-
-/-- **Coherence-Aware Spectral Identity:** the same identity as
-`kronecker_coherent_spectral_bound`.
-
-The spectral norm equals the Frobenius norm divided by (√rank · coherence):
-  ‖E‖₂ = ‖E‖_F / (√rank(E) · μ(E))
-
-This is an EQUALITY that characterizes the spectral-Frobenius relationship.
-- When μ is large (near 1, incoherent): ‖E‖₂ ≈ ‖E‖_F / √rank (large improvement)
-- When μ is small (near 1/√r, coherent): ‖E‖₂ ≈ ‖E‖_F (no improvement) -/
-theorem kronecker_spectral_eq_frobenius_div_coherence {n' : Type*}
-    [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0) :
-    ‖A - truncatedSVD A k‖₂ =
-    frobeniusNormRect (A - truncatedSVD A k) /
-    (Real.sqrt (A - truncatedSVD A k).rank * kroneckerErrorCoherence A k) :=
-  kronecker_coherent_spectral_bound A k h_err
 
 /-- **Coherence-Based Improvement Factor:**
 
@@ -1677,6 +1649,21 @@ theorem kronecker_approximation_coherence_characterization
     convert h using 1
   · -- Second part: exact formula from coherence
     exact spectral_bound_via_coherence_rect _ h_err
+
+/-- **The R⁻¹ bound is attained on rank-one matrices:** for X = R(u vᵀ), ‖R⁻¹ X‖₂ = ‖X‖_F.
+    So the constant in `Matrix.Kronecker.SpectralGap.R_inv_spectral_le_frobenius`
+    (‖R⁻¹ X‖₂ ≤ ‖X‖_F) cannot be improved; `Matrix.Kronecker.SpectralGap.R_inv_spectral_lt_frobenius_R_one` shows the bound
+    is strict for X = R(1). -/
+theorem R_inv_spectral_eq_frobenius_R_outerProduct [Nonempty (m × n)] [Nonempty (p × q)]
+    (u : EuclideanSpace ℂ (m × n)) (v : EuclideanSpace ℂ (p × q)) :
+    ‖R_inv (R (KroneckerRearrangement.outerProduct u v))‖₂ =
+      ‖R (KroneckerRearrangement.outerProduct u v)‖_F := by
+  have h1 : R_inv (R (KroneckerRearrangement.outerProduct u v)) =
+      KroneckerRearrangement.outerProduct u v := R_inv_R _
+  have h2 : ‖R (KroneckerRearrangement.outerProduct u v)‖_F =
+      ‖KroneckerRearrangement.outerProduct u v‖_F := R_frobenius_norm_eq _
+  rw [h1, h2]
+  exact rank_one_spectral_eq_frobenius u v
 
 end KroneckerCoherence
 

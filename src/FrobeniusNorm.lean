@@ -29,9 +29,13 @@ import WeylInequality
 Test matrix dims for validation: 3×75, 72×74, 111×81, 3×76, 121×54, 115×1.
 Implementation via `Matrix.frobeniusSeminormedAddCommGroup` instance.
 
-## Known Issues
-- The Eckart-Young theorem is not fully implmented yet (see below)
-- Some simp lemmas might be missing @[simp] tags
+## Main results
+
+- `frobenius_norm_sq_eq_trace`: ‖A‖_F² = Re tr(Aᴴ A), for rectangular A.
+- `frobenius_norm_unitary_mul`, `frobenius_norm_mul_unitary`: unitary invariance.
+- `frobenius_error_truncatedSVD`: ‖A - Aₖ‖_F² = Σᵢ≥ₖ σᵢ² (square A).
+- `eckart_young_frobenius`: the truncated SVD is a best rank-k approximation in Frobenius
+  norm (square A; the rectangular version is `Matrix.TightBounds.eckart_young_frobenius_rect`).
 
 ## Questions
 - Should we use `NNReal` for the norm squared? Would simplify some proofs
