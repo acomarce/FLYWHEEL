@@ -11,7 +11,9 @@ import SpectralNormGap
 
 Defines μ(E) = ‖E‖_F / (√rank · ‖E‖₂) ∈ [1/√r, 1].
 μ ≈ 1 implies incoherent (flat spectrum), μ ≈ 1/√r implies coherent.
-Convergence typically achieved in 15 iterations for practical matrices.
+
+Here "coherence" is this norm ratio only. It is not the singular-vector coherence of the
+matrix-completion references below, which are background reading, not sources of proofs.
 
 ## References
 
@@ -254,6 +256,19 @@ omit [Nonempty n] in
 theorem coherenceFactor_zero : coherenceFactor (0 : Matrix n n ℂ) = 1 := by
   simp [coherenceFactor]
 
+omit [Nonempty n] in
+/-- For square matrices, the rectangular coherence factor `coherenceFactorRect` (SVD.lean)
+    agrees with `coherenceFactor`. -/
+theorem coherenceFactorRect_eq_coherenceFactor (E : Matrix n n ℂ) :
+    coherenceFactorRect E = coherenceFactor E := by
+  by_cases hE : E = 0
+  · rw [hE, coherenceFactorRect_zero, coherenceFactor_zero]
+  · rw [coherenceFactorRect_eq_formula E hE]
+    unfold coherenceFactor
+    simp only [hE, ↓reduceIte]
+    -- Both sides are ‖E‖_F / (√rank(E) · ‖E‖₂), with the same norms unfolded differently
+    rfl
+
 /-! ## Upper Bound: coherence_factor ≤ 1 -/
 
 /-- The coherence factor is at most 1.
@@ -337,14 +352,14 @@ theorem coherenceFactor_bounds (E : Matrix n n ℂ) (hE : E ≠ 0) :
 
 /-! ## Spectral Bound with Coherence -/
 
-/-- The spectral norm can be bounded using the coherence factor:
-    ‖E‖₂ ≤ frobeniusNorm' E / (√rank(E) · μ(E))
+/-- The spectral norm in terms of the coherence factor, for E ≠ 0:
+    ‖E‖₂ = frobeniusNorm' E / (√rank(E) · μ(E)).
 
-    For coherent matrices (μ ≈ 1), this gives ‖E‖₂ ≈ ‖E‖_F / √rank
-    For incoherent matrices (μ ≈ 1/√rank), this gives ‖E‖₂ ≈ ‖E‖_F (trivial) -/
-theorem spectral_bound_with_coherence (E : Matrix n n ℂ) (hE : E ≠ 0)
-    (_h_coh_pos : 0 < coherenceFactor E) :
-    ‖E‖ ≤ frobeniusNorm' E / (Real.sqrt E.rank * coherenceFactor E) := by
+    This is the definition of μ solved for ‖E‖₂.
+    For incoherent matrices (μ ≈ 1), ‖E‖₂ ≈ ‖E‖_F / √rank.
+    For coherent matrices (μ ≈ 1/√rank), ‖E‖₂ ≈ ‖E‖_F. -/
+theorem spectral_bound_with_coherence (E : Matrix n n ℂ) (hE : E ≠ 0) :
+    ‖E‖ = frobeniusNorm' E / (Real.sqrt E.rank * coherenceFactor E) := by
   unfold coherenceFactor
   simp only [hE, ↓reduceIte]
   have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
@@ -356,8 +371,8 @@ theorem spectral_bound_with_coherence (E : Matrix n n ℂ) (hE : E ≠ 0)
       frobeniusNorm' E / ‖E‖ := by
     field_simp
   rw [h_denom_eq]
-  -- Goal: ‖E‖ ≤ frobeniusNorm' E / (frobeniusNorm' E / ‖E‖)
-  -- = ‖E‖ ≤ ‖E‖ (by algebraic simplification when frobeniusNorm' E > 0)
+  -- Goal: ‖E‖ = frobeniusNorm' E / (frobeniusNorm' E / ‖E‖)
+  -- = ‖E‖ (by algebraic simplification when frobeniusNorm' E > 0)
   have h_frob_pos : 0 < frobeniusNorm' E := by
     have h_le : ‖E‖ ≤ frobeniusNorm' E := spectral_norm_le_frobenius_norm E
     linarith
@@ -554,72 +569,57 @@ theorem rank_one_spectral_eq_frobenius [Nonempty m] [Nonempty n]
       (KroneckerRearrangement.outerProduct u v) := by
   rw [outerProduct_spectral_norm_eq, Matrix.Kronecker.SpectralGap.outerProduct_frobenius_norm']
 
-/-! ### Nearly Coherent Bound -/
+/-! ### Nearly Coherent Bound
+
+In this file's convention, μ(E) = 1/√rank(E) is the coherent extreme, where ‖E‖₂ = ‖E‖_F. The
+hypothesis μ(E) ≤ 1 / ((1 - ε) · √rank(E)) says E is within a factor 1/(1 - ε) of it, and is
+equivalent to (1 - ε) · ‖E‖_F ≤ ‖E‖₂ (`nearly_coherent_iff`). -/
 
 variable {n : Type*} [Fintype n] [DecidableEq n] [Nonempty n]
 
-/-- Frobenius-to-spectral bound with slack 1/(1 - ε): for E ≠ 0 and 0 < ε < 1,
-    ‖E‖_F ≤ √rank(E) · ‖E‖₂ / (1 - ε).
-
-    This follows from μ(E) ≤ 1 (`coherenceFactor_le_one`) alone, and the slack only weakens
-    ‖E‖_F ≤ √rank(E) · ‖E‖₂. No near-coherence assumption μ(E) ≥ 1 - ε is used. -/
-theorem nearly_coherent_bound (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0)
-    (hε_pos : 0 < ε) (hε_lt_one : ε < 1) :
-    frobeniusNorm' E ≤ Real.sqrt E.rank * ‖E‖ / (1 - ε) := by
+/-- **Near coherence in norm form:** for E ≠ 0 and ε < 1,
+    μ(E) ≤ 1 / ((1 - ε) · √rank(E)) ↔ (1 - ε) · ‖E‖_F ≤ ‖E‖₂. -/
+theorem nearly_coherent_iff (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0) (hε_lt_one : ε < 1) :
+    coherenceFactor E ≤ 1 / ((1 - ε) * Real.sqrt E.rank) ↔
+      (1 - ε) * frobeniusNorm' E ≤ ‖E‖ := by
   have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
   have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero E hE
   have h_sqrt_rank_pos : 0 < Real.sqrt E.rank := Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
   have h_one_minus_eps_pos : 0 < 1 - ε := by linarith
-  -- From μ ≤ 1 (coherenceFactor_le_one): frobeniusNorm' E ≤ √rank · ‖E‖
-  have h_coh_le_one := coherenceFactor_le_one E
-  unfold coherenceFactor at h_coh_le_one
-  simp only [hE, ↓reduceIte] at h_coh_le_one
-  have h_denom_pos' : 0 < Real.sqrt E.rank * ‖E‖ := mul_pos h_sqrt_rank_pos h_spectral_pos
-  have h_frob_le : frobeniusNorm' E ≤ Real.sqrt E.rank * ‖E‖ :=
-    (div_le_one h_denom_pos').mp h_coh_le_one
-  -- Goal: frobeniusNorm' E ≤ √rank · ‖E‖ / (1 - ε)
-  -- Since 0 < 1 - ε < 1, we have √rank · ‖E‖ ≤ √rank · ‖E‖ / (1 - ε)
-  calc frobeniusNorm' E
-      ≤ Real.sqrt E.rank * ‖E‖ := h_frob_le
-    _ ≤ Real.sqrt E.rank * ‖E‖ / (1 - ε) := by
-        have h_nonneg : 0 ≤ Real.sqrt E.rank * ‖E‖ := le_of_lt h_denom_pos'
-        rw [le_div_iff₀ h_one_minus_eps_pos]
-        calc Real.sqrt E.rank * ‖E‖ * (1 - ε)
-            ≤ Real.sqrt E.rank * ‖E‖ * 1 := by nlinarith
-          _ = Real.sqrt E.rank * ‖E‖ := by ring
+  -- Unfold μ(E) = ‖E‖_F / (√r · ‖E‖₂) and clear denominators
+  unfold coherenceFactor
+  simp only [hE, ↓reduceIte]
+  rw [div_le_div_iff₀ (mul_pos h_sqrt_rank_pos h_spectral_pos)
+    (mul_pos h_one_minus_eps_pos h_sqrt_rank_pos)]
+  -- Goal: ‖E‖_F · ((1 - ε) · √r) ≤ 1 · (√r · ‖E‖₂) ↔ (1 - ε) · ‖E‖_F ≤ ‖E‖₂
+  have h_lhs : frobeniusNorm' E * ((1 - ε) * Real.sqrt E.rank) =
+      ((1 - ε) * frobeniusNorm' E) * Real.sqrt E.rank := by ring
+  have h_rhs : 1 * (Real.sqrt E.rank * ‖E‖) = ‖E‖ * Real.sqrt E.rank := by ring
+  rw [h_lhs, h_rhs]
+  exact mul_le_mul_iff_left₀ h_sqrt_rank_pos
 
-/-- Spectral lower bound: for E ≠ 0 and 0 < ε < 1, (1 - ε) · ‖E‖_F / √rank(E) ≤ ‖E‖₂.
+/-- **Nearly coherent bound:** if μ(E) ≤ 1 / ((1 - ε) · √rank(E)) with ε < 1 and E ≠ 0, then
+    ‖E‖_F ≤ ‖E‖₂ / (1 - ε).
 
-    Like `nearly_coherent_bound`, this follows from μ(E) ≤ 1 alone; no near-coherence
-    assumption is used. -/
+    Without the coherence hypothesis only ‖E‖_F ≤ √rank(E) · ‖E‖₂ holds
+    (`coherenceFactor_le_one`). -/
+theorem nearly_coherent_bound (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0) (hε_lt_one : ε < 1)
+    (h_coh : coherenceFactor E ≤ 1 / ((1 - ε) * Real.sqrt E.rank)) :
+    frobeniusNorm' E ≤ ‖E‖ / (1 - ε) := by
+  have h_one_minus_eps_pos : 0 < 1 - ε := by linarith
+  have h := (nearly_coherent_iff E ε hE hε_lt_one).mp h_coh
+  rw [le_div_iff₀ h_one_minus_eps_pos]
+  linarith
+
+/-- **Nearly coherent spectral lower bound:** if μ(E) ≤ 1 / ((1 - ε) · √rank(E)) with ε < 1
+    and E ≠ 0, then (1 - ε) · ‖E‖_F ≤ ‖E‖₂.
+
+    Without the coherence hypothesis only ‖E‖_F / √rank(E) ≤ ‖E‖₂ holds
+    (`coherenceFactor_le_one`). -/
 theorem nearly_coherent_spectral_lower_bound (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0)
-    (hε_pos : 0 < ε) (hε_lt_one : ε < 1) :
-    (1 - ε) * frobeniusNorm' E / Real.sqrt E.rank ≤ ‖E‖ := by
-  have h_spectral_pos : 0 < ‖E‖ := norm_pos_iff.mpr hE
-  have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero E hE
-  have h_sqrt_rank_pos : 0 < Real.sqrt E.rank := Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
-  have h_one_minus_eps_pos : 0 < 1 - ε := by linarith
-  have h_denom_pos : 0 < Real.sqrt E.rank * ‖E‖ := mul_pos h_sqrt_rank_pos h_spectral_pos
-  -- μ ≤ 1 means frob ≤ √rank·‖E‖, so frob/√rank ≤ ‖E‖
-  -- Therefore: (1-ε)·frob/√rank ≤ frob/√rank ≤ ‖E‖
-  have h_frob_over_sqrt_le : frobeniusNorm' E / Real.sqrt E.rank ≤ ‖E‖ := by
-    have h_coh_le_one := coherenceFactor_le_one E
-    unfold coherenceFactor at h_coh_le_one
-    simp only [hE, ↓reduceIte] at h_coh_le_one
-    -- h_coh_le_one: frob / (√rank · ‖E‖) ≤ 1
-    -- So frob ≤ √rank · ‖E‖, hence frob/√rank ≤ ‖E‖
-    rw [div_le_iff₀ h_sqrt_rank_pos]
-    have h := (div_le_one h_denom_pos).mp h_coh_le_one
-    calc frobeniusNorm' E ≤ Real.sqrt E.rank * ‖E‖ := h
-      _ = ‖E‖ * Real.sqrt E.rank := by ring
-  calc (1 - ε) * frobeniusNorm' E / Real.sqrt E.rank
-      ≤ 1 * frobeniusNorm' E / Real.sqrt E.rank := by
-        apply div_le_div_of_nonneg_right
-        · apply mul_le_mul_of_nonneg_right (by linarith : 1 - ε ≤ 1)
-          exact frobeniusNorm'_nonneg E
-        · exact le_of_lt h_sqrt_rank_pos
-    _ = frobeniusNorm' E / Real.sqrt E.rank := by ring
-    _ ≤ ‖E‖ := h_frob_over_sqrt_le
+    (hε_lt_one : ε < 1) (h_coh : coherenceFactor E ≤ 1 / ((1 - ε) * Real.sqrt E.rank)) :
+    (1 - ε) * frobeniusNorm' E ≤ ‖E‖ :=
+  (nearly_coherent_iff E ε hE hε_lt_one).mp h_coh
 
 end CoherentCase
 
@@ -631,7 +631,7 @@ trivial bound.
 
 ### Key Results
 * `incoherent_improved_bound`: ‖E‖ ≤ ‖E‖_F / √rank(E) (for maximally incoherent)
-* `flat_spectrum_coherence_lower_bound`: Flat spectrum implies μ ≥ c/√rank
+* `flat_spectrum_coherence_eq_one`: A flat spectrum gives μ = 1
 * `effectiveRank`: Alternative characterization via entropy
 * `effectiveRank_bounds`: 1 ≤ effectiveRank E ≤ rank(E)
 -/
@@ -640,21 +640,14 @@ section IncoherentCase
 
 variable {n : Type*} [Fintype n] [DecidableEq n] [Nonempty n]
 
-/-- For matrices with coherence factor μ, we get the refined bound.
-    ‖E‖ ≤ ‖E‖_F / (√rank · μ)
+/-- For matrices with coherence factor μ, ‖E‖ ≤ ‖E‖_F / (√rank · μ); the `≤` half of
+    `spectral_bound_with_coherence`.
 
     When μ = 1 (incoherent): ‖E‖ ≤ ‖E‖_F / √rank
     When μ = 1/√rank (coherent): ‖E‖ ≤ ‖E‖_F (trivial bound) -/
 theorem spectral_bound_via_coherence (E : Matrix n n ℂ) (hE : E ≠ 0) :
-    ‖E‖ ≤ frobeniusNorm' E / (Real.sqrt E.rank * coherenceFactor E) := by
-  -- This is exactly spectral_bound_with_coherence
-  have h_coh_pos : 0 < coherenceFactor E := by
-    have h := coherenceFactor_ge_inv_sqrt_rank E hE
-    have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero E hE
-    have h_sqrt_rank_pos : 0 < Real.sqrt E.rank := Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
-    calc 0 < 1 / Real.sqrt E.rank := one_div_pos.mpr h_sqrt_rank_pos
-      _ ≤ coherenceFactor E := h
-  exact spectral_bound_with_coherence E hE h_coh_pos
+    ‖E‖ ≤ frobeniusNorm' E / (Real.sqrt E.rank * coherenceFactor E) :=
+  (spectral_bound_with_coherence E hE).le
 
 /-- **Incoherent improved bound**: When coherence factor is at least α,
     we get ‖E‖ ≤ ‖E‖_F / (α · √rank).
@@ -662,8 +655,8 @@ theorem spectral_bound_via_coherence (E : Matrix n n ℂ) (hE : E ≠ 0) :
     For maximally incoherent matrices (μ = 1), this gives ‖E‖ ≤ ‖E‖_F / √rank.
     For more coherent matrices (μ < 1), the bound is weaker.
 
-    Note: The unconditional bound ‖E‖ ≤ ‖E‖_F / √rank is FALSE in general.
-    A rank-1 matrix has μ = 1/√1 = 1 and ‖E‖ = ‖E‖_F, not ‖E‖_F / √1. -/
+    Note: The unconditional bound ‖E‖ ≤ ‖E‖_F / √rank is false in general. For
+    E = diag(1, 0.1), rank(E) = 2 and ‖E‖ = 1 > ‖E‖_F / √2 = √(1.01 / 2). -/
 theorem incoherent_improved_bound (E : Matrix n n ℂ) (hE : E ≠ 0) (α : ℝ)
     (hα_pos : 0 < α) (h_coh : α ≤ coherenceFactor E) :
     ‖E‖ ≤ frobeniusNorm' E / (α * Real.sqrt E.rank) := by
@@ -1456,28 +1449,23 @@ theorem kroneckerCoherence_pos_of_ne_zero (C : Matrix (m × n) (p × q) ℂ)
     0 < kroneckerCoherence C :=
   coherenceFactorRect_pos_of_ne_zero (R C) hC
 
-/-- Kronecker coherence is at most 1.
-    Requires the dimension hypothesis for rectangular coherence bounds. -/
+/-- Kronecker coherence is at most 1. -/
 theorem kroneckerCoherence_le_one
-    (h_dim : 0 < min (Fintype.card (m × p)) (Fintype.card (n × q)))
     (C : Matrix (m × n) (p × q) ℂ) :
     kroneckerCoherence C ≤ 1 :=
-  coherenceFactorRect_le_one h_dim (R C)
+  coherenceFactorRect_le_one (R C)
 
-/-- Kronecker coherence is at least 1/√rank(R(C)).
-    Requires the dimension hypothesis and nonzero matrix. -/
+/-- Kronecker coherence is at least 1/√rank(R(C)) when R(C) ≠ 0. -/
 theorem kroneckerCoherence_ge_inv_sqrt_rank
-    (h_dim : 0 < min (Fintype.card (m × p)) (Fintype.card (n × q)))
     (C : Matrix (m × n) (p × q) ℂ) (hC : R C ≠ 0) :
     1 / Real.sqrt (R C).rank ≤ kroneckerCoherence C :=
-  coherenceFactorRect_ge_inv_sqrt_rank h_dim (R C) hC
+  coherenceFactorRect_ge_inv_sqrt_rank (R C) hC
 
 /-- Combined bounds for Kronecker coherence: 1/√rank ≤ μ_R(C) ≤ 1. -/
 theorem kroneckerCoherence_bounds
-    (h_dim : 0 < min (Fintype.card (m × p)) (Fintype.card (n × q)))
     (C : Matrix (m × n) (p × q) ℂ) (hC : R C ≠ 0) :
     1 / Real.sqrt (R C).rank ≤ kroneckerCoherence C ∧ kroneckerCoherence C ≤ 1 :=
-  ⟨kroneckerCoherence_ge_inv_sqrt_rank h_dim C hC, kroneckerCoherence_le_one h_dim C⟩
+  ⟨kroneckerCoherence_ge_inv_sqrt_rank C hC, kroneckerCoherence_le_one C⟩
 
 /-! ### Section 4b: Coherence of Kronecker Error
 
@@ -1513,36 +1501,33 @@ theorem kroneckerErrorCoherence_pos_of_ne_zero {n' : Type*} [Fintype n'] [Decida
 
 /-- Error coherence is at most 1. -/
 theorem kroneckerErrorCoherence_le_one {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
     (A : Matrix n' n' ℂ) (k : ℕ) :
     kroneckerErrorCoherence A k ≤ 1 :=
-  coherenceFactorRect_le_one h_dim _
+  coherenceFactorRect_le_one _
 
 /-- Error coherence is at least 1/√rank(error). -/
 theorem kroneckerErrorCoherence_ge_inv_sqrt_rank {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
     (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0) :
     1 / Real.sqrt (A - truncatedSVD A k).rank ≤ kroneckerErrorCoherence A k :=
-  coherenceFactorRect_ge_inv_sqrt_rank h_dim _ h_err
+  coherenceFactorRect_ge_inv_sqrt_rank _ h_err
 
 /-! ### Section 4c: Tight vs Loose Characterization
 
 Characterize when the Frobenius-optimal approximation is also spectrally near-optimal.
 -/
 
-/-- **Coherent case bound**: When the error is coherent (μ_err ≈ 1/√r),
-    the spectral norm is close to the Frobenius norm.
+/-- **Spectral error via error coherence**: for E = A - truncatedSVD A k ≠ 0,
+    ‖E‖₂ = ‖E‖_F / (√rank(E) · μ_err).
 
-    For coherent errors, the spectral bound is essentially tight:
-    ‖E‖₂ ≈ ‖E‖_F (only a factor of √rank(E) difference in the formula) -/
+    This identity holds for every nonzero error; no coherence assumption is made. When the
+    error is coherent (μ_err ≈ 1/√rank(E)) it gives ‖E‖₂ ≈ ‖E‖_F. -/
 theorem kronecker_coherent_spectral_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
     (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0) :
     ‖A - truncatedSVD A k‖₂ =
     frobeniusNormRect (A - truncatedSVD A k) /
     (Real.sqrt (A - truncatedSVD A k).rank * kroneckerErrorCoherence A k) := by
   unfold kroneckerErrorCoherence
-  exact spectral_bound_via_coherence_rect h_dim _ h_err
+  exact spectral_bound_via_coherence_rect _ h_err
 
 /-- **Incoherent improved bound**: When the error coherence is bounded below by α,
     we get an improved spectral bound.
@@ -1552,14 +1537,13 @@ theorem kronecker_coherent_spectral_bound {n' : Type*} [Fintype n'] [DecidableEq
 
     For α = 1 (maximally incoherent), this gives a √rank improvement! -/
 theorem kronecker_incoherent_improved_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
     (A : Matrix n' n' ℂ) (k : ℕ) (α : ℝ)
     (h_err : A - truncatedSVD A k ≠ 0)
     (hα_pos : 0 < α) (hα_bound : α ≤ kroneckerErrorCoherence A k) :
     ‖A - truncatedSVD A k‖₂ ≤
     frobeniusNormRect (A - truncatedSVD A k) / (α * Real.sqrt (A - truncatedSVD A k).rank) := by
   unfold kroneckerErrorCoherence at hα_bound
-  exact incoherent_improved_bound_rect h_dim _ h_err α hα_pos hα_bound
+  exact incoherent_improved_bound_rect _ h_err α hα_pos hα_bound
 
 /-- **Tight case**: When μ_err = 1/√rank (maximally coherent), the error is rank-1 like.
     In this case, the spectral norm equals the Frobenius norm (no √rank improvement).
@@ -1567,11 +1551,10 @@ theorem kronecker_incoherent_improved_bound {n' : Type*} [Fintype n'] [Decidable
     This is the "tight" case where ‖E‖₂ ≈ ‖E‖_F because the singular values are dominated
     by a single large one (like a rank-1 matrix). -/
 theorem kronecker_tight_when_maximally_coherent {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
     (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0)
     (h_coh : kroneckerErrorCoherence A k = 1 / Real.sqrt (A - truncatedSVD A k).rank) :
     ‖A - truncatedSVD A k‖₂ = frobeniusNormRect (A - truncatedSVD A k) := by
-  rw [kronecker_coherent_spectral_bound h_dim A k h_err, h_coh]
+  rw [kronecker_coherent_spectral_bound A k h_err, h_coh]
   have h_rank_pos : 0 < (A - truncatedSVD A k).rank :=
     rank_pos_of_ne_zero_rect _ h_err
   have h_sqrt_rank_pos : 0 < Real.sqrt (A - truncatedSVD A k).rank :=
@@ -1588,12 +1571,11 @@ theorem kronecker_tight_when_maximally_coherent {n' : Type*} [Fintype n'] [Decid
 
     ‖E‖₂ = ‖E‖_F / √rank  (when μ = 1) -/
 theorem kronecker_loose_when_maximally_incoherent {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
     (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0)
     (h_coh : kroneckerErrorCoherence A k = 1) :
     ‖A - truncatedSVD A k‖₂ =
     frobeniusNormRect (A - truncatedSVD A k) / Real.sqrt (A - truncatedSVD A k).rank := by
-  rw [kronecker_coherent_spectral_bound h_dim A k h_err, h_coh, mul_one]
+  rw [kronecker_coherent_spectral_bound A k h_err, h_coh, mul_one]
 
 /-! ### Section 4d: Coherence-Aware Main Bound
 
@@ -1611,12 +1593,12 @@ The coherence factor tells us how much better the spectral norm is:
 So a high coherence μ means ‖E‖₂ is much smaller than ‖E‖_F.
 This theorem simply states the spectral ≤ Frobenius bound, which is always valid. -/
 theorem kronecker_spectral_le_frobenius {n' : Type*} [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
     (A : Matrix n' n' ℂ) (k : ℕ) :
     ‖A - truncatedSVD A k‖₂ ≤ frobeniusNormRect (A - truncatedSVD A k) :=
-  spectral_le_frobenius_rect h_dim _
+  spectral_le_frobenius_rect _
 
-/-- **Correct Coherence-Aware Spectral Bound (Exact):**
+/-- **Coherence-Aware Spectral Identity:** the same identity as
+`kronecker_coherent_spectral_bound`.
 
 The spectral norm equals the Frobenius norm divided by (√rank · coherence):
   ‖E‖₂ = ‖E‖_F / (√rank(E) · μ(E))
@@ -1626,12 +1608,11 @@ This is an EQUALITY that characterizes the spectral-Frobenius relationship.
 - When μ is small (near 1/√r, coherent): ‖E‖₂ ≈ ‖E‖_F (no improvement) -/
 theorem kronecker_spectral_eq_frobenius_div_coherence {n' : Type*}
     [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
     (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0) :
     ‖A - truncatedSVD A k‖₂ =
     frobeniusNormRect (A - truncatedSVD A k) /
     (Real.sqrt (A - truncatedSVD A k).rank * kroneckerErrorCoherence A k) :=
-  kronecker_coherent_spectral_bound h_dim A k h_err
+  kronecker_coherent_spectral_bound A k h_err
 
 /-- **Coherence-Based Improvement Factor:**
 
@@ -1644,11 +1625,10 @@ When μ = 1/√rank (maximally coherent): improvement = 1 (no improvement)
 This theorem expresses ‖E‖_F / ‖E‖₂ = √rank · μ. -/
 theorem kronecker_coherence_improvement_factor {n' : Type*}
     [Fintype n'] [DecidableEq n'] [Nonempty n']
-    (h_dim : 0 < min (Fintype.card n') (Fintype.card n'))
     (A : Matrix n' n' ℂ) (k : ℕ) (h_err : A - truncatedSVD A k ≠ 0) :
     frobeniusNormRect (A - truncatedSVD A k) / ‖A - truncatedSVD A k‖₂ =
     Real.sqrt (A - truncatedSVD A k).rank * kroneckerErrorCoherence A k := by
-  have h_eq := kronecker_spectral_eq_frobenius_div_coherence h_dim A k h_err
+  have h_eq := kronecker_spectral_eq_frobenius_div_coherence A k h_err
   -- h_eq : ‖E‖₂ = F / (√r · μ)
   -- Goal : F / ‖E‖₂ = √r · μ
   have h_spectral_pos : 0 < ‖A - truncatedSVD A k‖₂ := by
@@ -1681,7 +1661,6 @@ Combined with the coherence analysis of R(C) - M, we can characterize
 when this bound is tight vs loose. -/
 theorem kronecker_approximation_coherence_characterization
     (C : Matrix (m × n) (p × q) ℂ) (M : Matrix (m × p) (n × q) ℂ)
-    (h_dim : 0 < min (Fintype.card (m × p)) (Fintype.card (n × q)))
     (h_err : R C - M ≠ 0) :
     -- The spectral error in C-space is bounded by the Frobenius error in R-space
     ‖C - R_inv M‖₂ ≤ frobeniusNormRect (R C - M) ∧
@@ -1694,37 +1673,40 @@ theorem kronecker_approximation_coherence_characterization
     have h := Matrix.Kronecker.SpectralGap.spectral_error_bound_via_R C M
     convert h using 1
   · -- Second part: exact formula from coherence
-    exact spectral_bound_via_coherence_rect h_dim _ h_err
+    exact spectral_bound_via_coherence_rect _ h_err
 
 end KroneckerCoherence
 
 /-! ## Frobenius-Spectral Solution Distance
 
-This section proves bounds on the distance between:
-- A_F: The Frobenius-optimal Kronecker approximation (computed via SVD of R(A))
-- A_*: The spectral-optimal Kronecker approximation (minimizer of spectral norm error)
+For a square matrix `A`, compare
+- `A_F = truncatedSVD A 1`, the Frobenius-optimal rank-1 approximation, and
+- `A_* = spectralOptimalRank1 A`, an arbitrary (`Classical.choose`) spectral-norm minimizer
+  over rank-1 matrices.
 
-**Main Result:**
-  ‖A_F - A_*‖₂ ≤ f(coherence, gap)
+In the Kronecker application `A` is the rearrangement `R C`; nothing here uses that.
 
-This tells us when the cheap SVD-based solution is close to the expensive spectral optimum.
+**Main results** (`‖·‖` is the L2 operator norm):
+- `spectral_error_truncatedSVD_one_eq_spectralOptimalRank1`: `‖A - A_F‖ = ‖A - A_*‖`. By the
+  spectral Eckart–Young theorem, `A_F` is itself a spectral minimizer.
+- `norm_sub_truncatedSVD_one_eq_norm_sub_spectralGap`: `‖A - A_F‖ = ‖A‖ - spectralGap A`
+  (that is, `σ₁` when `card n > 1`, 0-indexed).
+- `frobenius_spectral_solution_distance`: `‖A_F - A_*‖ ≤ 2 · ‖A - A_F‖`.
+- `frobenius_spectral_distance_with_gap`: `‖A_F - A_*‖ ≤ 2 · (‖A‖ - spectralGap A)`.
+- `decision_criterion`: a gap of at least `(1 - δ/2) · ‖A‖` gives `‖A_F - A_*‖ ≤ δ · ‖A‖`.
 
-### Key Insight
-When the spectral gap σ₁ - σ₂ of R(A) is large and the error coherence is high,
-the Frobenius-optimal solution A_F is provably close to the spectral-optimal A_*.
+Spectral minimizers are not unique, so `‖A_F - A_*‖` need not be 0. For `A = diag(2, 1)`,
+both `diag(2, 0)` and `diag(3, 0)` have spectral error 1.
 -/
 
 section SolutionDistance
 
-variable {m n p q : Type*}
-variable [Fintype m] [Fintype n] [Fintype p] [Fintype q]
-variable [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q]
-variable [Nonempty n]
+variable {n : Type*} [Fintype n] [DecidableEq n] [Nonempty n]
 
 /-! ### Basic Definitions -/
 
-/-- The spectral gap of a matrix: σ₁ - σ₂ (difference between top two singular values).
-    A large gap means the rank-1 approximation captures most of the matrix's structure. -/
+/-- The spectral gap of a matrix: σ₀ - σ₁, the difference between the two largest singular
+    values (0-indexed). For a 1×1 matrix it is σ₀. -/
 noncomputable def spectralGap (A : Matrix n n ℂ) : ℝ :=
   if h : 1 < Fintype.card n then
     SVD.singularValues₀ A 0 - SVD.singularValues₀ A ⟨1, h⟩
@@ -1743,23 +1725,20 @@ theorem spectralGap_nonneg (A : Matrix n n ℂ) : 0 ≤ spectralGap A := by
   · -- Case: card n ≤ 1
     exact SVD.singularValues₀_nonneg A _
 
-/-- The Frobenius-optimal rank-1 Kronecker approximation.
-    This is R⁻¹ applied to the rank-1 truncated SVD of R(A).
-
-    In the Kronecker setting where A is a block matrix:
-    - R(A) transforms it to a matrix where Kronecker products become rank-1
-    - truncatedSVD gives the best Frobenius approximation
-    - R⁻¹ transforms back to the original block structure -/
-noncomputable def frobeniusOptimalKronecker
-    (A : Matrix (m × p) (n × q) ℂ) : Matrix (m × p) (n × q) ℂ :=
-  -- Note: We need square R(A) for truncatedSVD, so we work with the composed space
-  -- For now, we define this for the case where R(A) is square
-  A  -- Placeholder: actual implementation requires rectangular truncatedSVD
+/-- The spectral gap is at most the spectral norm: `spectralGap A ≤ ‖A‖`. -/
+theorem spectralGap_le_norm (A : Matrix n n ℂ) : spectralGap A ≤ ‖A‖ := by
+  have h_norm : ‖A‖ = SVD.singularValues₀ A 0 :=
+    Matrix.SVD.Rectangular.spectral_norm_eq_singularValues₀_zero A
+  rw [h_norm]
+  unfold spectralGap
+  split_ifs with h
+  · linarith [SVD.singularValues₀_nonneg A ⟨1, h⟩]
+  · exact le_refl _
 
 /-- **Existence of Spectral-Optimal Solution**
 
-For any matrix A, there exists a rank-1 matrix M* in the rearranged space
-that minimizes the spectral norm ‖R(A) - M‖₂ over all rank-1 matrices M.
+For any matrix A, there exists a rank-1 matrix M* that minimizes the spectral norm ‖A - M‖₂
+over all rank-1 matrices M.
 
 The rank-1 truncated SVD is such a minimizer, by the spectral-norm
 Eckart-Young theorem (`eckart_young_spectral`). -/
@@ -1781,18 +1760,39 @@ theorem spectralOptimalRank1_is_optimal (A : Matrix n n ℂ) :
 
 /-! ### Main Distance Bound -/
 
-/-- **Key Lemma: Frobenius-Spectral Error Relationship**
+/-- **The Frobenius-optimal rank-1 approximation is spectrally optimal:**
+    ‖A - A_F‖₂ = ‖A - A_*‖₂ for A_F = truncatedSVD A 1 and A_* = spectralOptimalRank1 A. -/
+theorem spectral_error_truncatedSVD_one_eq_spectralOptimalRank1 (A : Matrix n n ℂ) :
+    ‖A - Matrix.SVD.truncatedSVD A 1‖ = ‖A - spectralOptimalRank1 A‖ := by
+  have ⟨h_rank, h_opt⟩ := spectralOptimalRank1_is_optimal A
+  -- A_F is no worse than A_*, by spectral Eckart–Young
+  have h_le : ‖A - Matrix.SVD.truncatedSVD A 1‖ ≤ ‖A - spectralOptimalRank1 A‖ :=
+    Matrix.SVD.Rectangular.eckart_young_spectral A 1 _ h_rank
+  -- A_* is no worse than A_F, by its own optimality
+  have h_ge : ‖A - spectralOptimalRank1 A‖ ≤ ‖A - Matrix.SVD.truncatedSVD A 1‖ :=
+    h_opt _ (Matrix.SVD.truncatedSVD_rank_le A 1)
+  exact le_antisymm h_le h_ge
 
-For any matrix A and its rank-1 truncated SVD A_k:
-  ‖A - A_k‖₂ ≤ ‖A - A_k‖_F
+/-- **Spectral error of the rank-1 truncation in terms of the gap:**
+    ‖A - truncatedSVD A 1‖₂ = ‖A‖₂ - spectralGap A.
 
-Combined with the fact that A_k minimizes Frobenius error:
-  ‖A - A_k‖_F ≤ ‖A - M‖_F for any rank-1 M
-
-This connects the two optimization problems. -/
-theorem frobenius_optimal_spectral_bound (A : Matrix n n ℂ) :
-    ‖A - Matrix.SVD.truncatedSVD A 1‖ ≤ frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) :=
-  spectral_norm_le_frobenius_norm (A - Matrix.SVD.truncatedSVD A 1)
+    For `card n > 1` both sides equal σ₁ (0-indexed); for `card n = 1` both are 0. -/
+theorem norm_sub_truncatedSVD_one_eq_norm_sub_spectralGap (A : Matrix n n ℂ) :
+    ‖A - Matrix.SVD.truncatedSVD A 1‖ = ‖A‖ - spectralGap A := by
+  have h_norm : ‖A‖ = SVD.singularValues₀ A 0 :=
+    Matrix.SVD.Rectangular.spectral_norm_eq_singularValues₀_zero A
+  rw [h_norm]
+  unfold spectralGap
+  split_ifs with h
+  · -- card n > 1: the error is σ₁
+    have h_err : ‖A - Matrix.SVD.truncatedSVD A 1‖ = SVD.singularValues₀ A ⟨1, h⟩ :=
+      Matrix.SVD.Rectangular.spectral_error_truncatedSVD A 1 h
+    rw [h_err]
+    ring
+  · -- card n ≤ 1: the truncation is A itself
+    have h_full : Matrix.SVD.truncatedSVD A 1 = A :=
+      Matrix.SVD.truncatedSVD_full A 1 (Nat.le_of_not_lt h)
+    rw [h_full, sub_self, norm_zero, sub_self]
 
 /-- **Main Theorem: Distance Between Frobenius and Spectral Solutions**
 
@@ -1800,21 +1800,16 @@ Let A_F = truncatedSVD(A, 1) be the Frobenius-optimal rank-1 approximation
 and A_* = spectralOptimalRank1(A) be the spectral-optimal rank-1 approximation.
 
 Then:
-  ‖A_F - A_*‖₂ ≤ 2 · ‖A - A_F‖_F
+  ‖A_F - A_*‖₂ ≤ 2 · ‖A - A_F‖₂
 
-**Proof Sketch:**
+**Proof:**
 1. ‖A_F - A_*‖ ≤ ‖A - A_F‖ + ‖A - A_*‖  (triangle inequality)
-2. ‖A - A_*‖ ≤ ‖A - A_F‖              (A_* minimizes spectral, A_F is rank-1)
-3. ‖A - A_F‖ ≤ ‖A - A_F‖_F            (spectral ≤ Frobenius)
-4. Combining: ‖A_F - A_*‖ ≤ 2·‖A - A_F‖_F
+2. ‖A - A_*‖ ≤ ‖A - A_F‖              (A_* minimizes spectral error, A_F is rank-1)
 
-**Tighter bound with coherence:**
-When the error A - A_F has high coherence μ, we get:
-  ‖A_F - A_*‖₂ ≤ ‖A - A_F‖_F · (1 + 1/(√r · μ))
--/
+Since ‖·‖₂ ≤ ‖·‖_F, this implies ‖A_F - A_*‖₂ ≤ 2 · ‖A - A_F‖_F. -/
 theorem frobenius_spectral_solution_distance (A : Matrix n n ℂ) :
     ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖ ≤
-      2 * frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) := by
+      2 * ‖A - Matrix.SVD.truncatedSVD A 1‖ := by
   -- Let A_F = truncatedSVD A 1, A_* = spectralOptimalRank1 A
   let A_F := Matrix.SVD.truncatedSVD A 1
   let A_star := spectralOptimalRank1 A
@@ -1830,32 +1825,48 @@ theorem frobenius_spectral_solution_distance (A : Matrix n n ℂ) :
   have h_A_F_rank : A_F.rank ≤ 1 := Matrix.SVD.truncatedSVD_rank_le A 1
   have ⟨_, h_opt⟩ := spectralOptimalRank1_is_optimal A
   have h_star_le : ‖A - A_star‖ ≤ ‖A - A_F‖ := h_opt A_F h_A_F_rank
-  -- Spectral ≤ Frobenius
-  have h_spec_frob : ‖A - A_F‖ ≤ frobeniusNorm' (A - A_F) :=
-    spectral_norm_le_frobenius_norm (A - A_F)
-  -- Combine
   calc ‖A_F - A_star‖
       ≤ ‖A - A_F‖ + ‖A - A_star‖ := h_tri
     _ ≤ ‖A - A_F‖ + ‖A - A_F‖ := by linarith [h_star_le]
     _ = 2 * ‖A - A_F‖ := by ring
-    _ ≤ 2 * frobeniusNorm' (A - A_F) := by linarith [h_spec_frob]
 
-/-- **Solution distance together with the Frobenius tail formula.**
+/-- **Frobenius form of the solution distance:** ‖A_F - A_*‖₂ ≤ 2 · ‖A - A_F‖_F.
 
-Pairs `frobenius_spectral_solution_distance` (‖A_F - A_*‖₂ ≤ 2 · ‖A - A_F‖_F) with the identity
-‖A - A_F‖_F² = Σᵢ≥₁ σᵢ² (0-indexed, so σ₀ is the largest).
-
-No spectral-gap assumption is used. A refinement that depends on `spectralGap A` is not
-formalized. -/
-theorem frobenius_spectral_distance_with_gap (A : Matrix n n ℂ) :
-    -- The Frobenius error provides an upper bound
+    Weaker than `frobenius_spectral_solution_distance`, since ‖·‖₂ ≤ ‖·‖_F. -/
+theorem frobenius_spectral_solution_distance_le_frobenius (A : Matrix n n ℂ) :
     ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖ ≤
-      2 * frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) ∧
+      2 * frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) := by
+  have h_dist := frobenius_spectral_solution_distance A
+  have h_spec_frob : ‖A - Matrix.SVD.truncatedSVD A 1‖ ≤
+      frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) :=
+    spectral_norm_le_frobenius_norm (A - Matrix.SVD.truncatedSVD A 1)
+  linarith
+
+/-- **Key Lemma: Frobenius-Spectral Error Relationship**
+
+For any matrix A and its rank-1 truncated SVD A_k:
+  ‖A - A_k‖₂ ≤ ‖A - A_k‖_F
+
+The left side is σ₁ (`norm_sub_truncatedSVD_one_eq_norm_sub_spectralGap`) and the right side
+is √(σ₁² + σ₂² + ⋯) (`frobenius_spectral_distance_with_gap`'s tail formula). -/
+theorem frobenius_optimal_spectral_bound (A : Matrix n n ℂ) :
+    ‖A - Matrix.SVD.truncatedSVD A 1‖ ≤ frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) :=
+  spectral_norm_le_frobenius_norm (A - Matrix.SVD.truncatedSVD A 1)
+
+/-- **Solution distance in terms of the spectral gap:**
+    ‖A_F - A_*‖₂ ≤ 2 · (‖A‖₂ - spectralGap A), together with the Frobenius tail formula
+    ‖A - A_F‖_F² = Σᵢ≥₁ σᵢ² (0-indexed, so σ₀ is the largest).
+
+    The larger the gap σ₀ - σ₁ relative to ‖A‖₂ = σ₀, the closer every spectral minimizer is
+    to A_F. -/
+theorem frobenius_spectral_distance_with_gap (A : Matrix n n ℂ) :
+    ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖ ≤ 2 * (‖A‖ - spectralGap A) ∧
     -- The squared Frobenius error is the sum of the squared tail singular values
     frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) ^ 2 =
       ∑ i : Fin (Fintype.card n), if i.val = 0 then 0 else (SVD.singularValues₀ A i) ^ 2 := by
   constructor
-  · exact frobenius_spectral_solution_distance A
+  · rw [← norm_sub_truncatedSVD_one_eq_norm_sub_spectralGap]
+    exact frobenius_spectral_solution_distance A
   · -- The Frobenius error of truncatedSVD equals the sum of tail singular values squared
     -- Use frobenius_error_truncatedSVD from FrobeniusNorm.lean which gives:
     -- ‖A - truncatedSVD A k‖² = ∑ i : n, (truncatedSingularValues_tail A k i)²
@@ -1898,76 +1909,41 @@ theorem frobenius_spectral_distance_with_gap (A : Matrix n n ℂ) :
       have h1 : 1 ≤ j.val := Nat.one_le_iff_ne_zero.mpr hj
       simp only [h1, ↓reduceIte, hj]
 
-/-- **Coherence-Aware Distance Bound**
+/-- **Coherence form of the distance bound**
 
-The tightest bound uses both gap and coherence:
-  ‖A_F - A_*‖₂ ≤ ‖A - A_F‖_F · (1 + 1/(√r · μ))
+  ‖A_F - A_*‖₂ ≤ 2 · ‖E‖_F / (√r · μ)
 
-where r = rank(A - A_F) and μ = coherenceFactor(A - A_F).
-
-**When this bound is useful:**
-- High coherence (μ → 1): Factor approaches 2 (back to basic bound)
-- Low coherence (μ → 1/√r): Factor approaches 1 + √r (looser, but still bounded)
-- Large gap: Both A_F and A_* are close to the true best approximation -/
+where E = A - A_F, r = rank(E) and μ = coherenceFactor(E). The right side equals 2 · ‖E‖₂
+(`spectral_bound_with_coherence`), so this is `frobenius_spectral_solution_distance` written
+in coherence terms. Since ‖E‖₂ ≤ ‖E‖_F, it is at most ‖E‖_F · (1 + 1/(√r · μ)). -/
 theorem frobenius_spectral_distance_coherence_aware (A : Matrix n n ℂ)
     (h_err : A - Matrix.SVD.truncatedSVD A 1 ≠ 0) :
     let E := A - Matrix.SVD.truncatedSVD A 1
     let μ := coherenceFactor E
     let r := E.rank
     ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖ ≤
-      frobeniusNorm' E * (1 + 1 / (Real.sqrt r * μ)) := by
+      2 * (frobeniusNorm' E / (Real.sqrt r * μ)) := by
   intro E μ r
-  -- Key ingredients:
-  -- 1. Triangle: ‖A_F - A_*‖ ≤ ‖E‖ + ‖A - A_*‖
-  -- 2. Optimality: ‖A - A_*‖ ≤ ‖A - A_F‖ = ‖E‖
-  -- 3. Coherence: ‖E‖ ≤ ‖E‖_F / (√r · μ)
-  -- Combining: ‖A_F - A_*‖ ≤ ‖E‖_F + ‖E‖_F/(√r·μ) = ‖E‖_F·(1 + 1/(√r·μ))
-  let A_F := Matrix.SVD.truncatedSVD A 1
-  let A_star := spectralOptimalRank1 A
-  -- Coherence bound gives ‖E‖₂ ≤ ‖E‖_F / (√r · μ)
-  have h_coh_bound := spectral_bound_with_coherence E h_err
-  -- Positivity facts
-  have h_rank_pos : 0 < r := rank_pos_of_ne_zero E h_err
-  have h_sqrt_pos : 0 < Real.sqrt r := Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
-  have h_coh_pos : 0 < μ := by
-    have h := coherenceFactor_ge_inv_sqrt_rank E h_err
-    calc 0 < 1 / Real.sqrt E.rank := one_div_pos.mpr h_sqrt_pos
-      _ ≤ coherenceFactor E := h
-  have h_denom_pos : 0 < Real.sqrt r * μ := mul_pos h_sqrt_pos h_coh_pos
-  -- Triangle inequality
-  have h_tri : ‖A_F - A_star‖ ≤ ‖E‖ + ‖A - A_star‖ := by
-    have h_eq : A_F - A_star = (A_F - A) + (A - A_star) := by simp [sub_add_sub_cancel]
-    calc ‖A_F - A_star‖
-        = ‖(A_F - A) + (A - A_star)‖ := by rw [h_eq]
-      _ ≤ ‖A_F - A‖ + ‖A - A_star‖ := norm_add_le _ _
-      _ = ‖A - A_F‖ + ‖A - A_star‖ := by rw [norm_sub_rev]
-      _ = ‖E‖ + ‖A - A_star‖ := rfl
-  -- Optimality of spectral solution
-  have h_A_F_rank : A_F.rank ≤ 1 := Matrix.SVD.truncatedSVD_rank_le A 1
-  have ⟨_, h_opt⟩ := spectralOptimalRank1_is_optimal A
-  have h_star_le : ‖A - A_star‖ ≤ ‖E‖ := h_opt A_F h_A_F_rank
-  -- Frobenius bound
-  have h_frob : frobeniusNorm' E = frobeniusNorm' (A - A_F) := rfl
-  have h_frob_nonneg : 0 ≤ frobeniusNorm' E := frobeniusNorm'_nonneg E
-  -- Combine bounds using triangle inequality and coherence
-  have h_spec_frob : ‖E‖ ≤ frobeniusNorm' E := spectral_norm_le_frobenius_norm E
-  have h_coh_applied : ‖E‖ ≤ frobeniusNorm' E / (Real.sqrt r * μ) := h_coh_bound h_coh_pos
-  calc ‖A_F - A_star‖
-      ≤ ‖E‖ + ‖A - A_star‖ := h_tri
-    _ ≤ ‖E‖ + ‖E‖ := by linarith [h_star_le]
-    _ ≤ frobeniusNorm' E + ‖E‖ := by linarith [h_spec_frob]
-    _ ≤ frobeniusNorm' E + frobeniusNorm' E / (Real.sqrt r * μ) := by linarith [h_coh_applied]
-    _ = frobeniusNorm' E * (1 + 1 / (Real.sqrt r * μ)) := by field_simp
+  -- ‖E‖₂ = ‖E‖_F / (√r · μ)
+  have h_coh_eq : ‖E‖ = frobeniusNorm' E / (Real.sqrt r * μ) :=
+    spectral_bound_with_coherence E h_err
+  have h_dist : ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖ ≤ 2 * ‖E‖ :=
+    frobenius_spectral_solution_distance A
+  rw [← h_coh_eq]
+  exact h_dist
 
-/-- **Decision criterion (gap-free form).** ‖A_F - A_*‖₂ ≤ 2 · ‖A - A_F‖_F, restating
-`frobenius_spectral_solution_distance`.
+/-- **Decision criterion.** If the spectral gap is at least (1 - δ/2) · ‖A‖₂, then every
+    spectral-optimal rank-1 approximation is within δ · ‖A‖₂ of A_F:
 
-The intended criterion, that spectralGap A > ε · ‖A‖_F gives ‖A_F - A_*‖ < δ · ‖A‖, is not
-formalized: no gap assumption is used. -/
-theorem decision_criterion (A : Matrix n n ℂ) :
-    ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖ ≤
-      2 * frobeniusNorm' (A - Matrix.SVD.truncatedSVD A 1) :=
-  frobenius_spectral_solution_distance A
+      spectralGap A ≥ (1 - δ/2) · ‖A‖₂  ⟹  ‖A_F - A_*‖₂ ≤ δ · ‖A‖₂. -/
+theorem decision_criterion (A : Matrix n n ℂ) (δ : ℝ)
+    (h_gap : (1 - δ / 2) * ‖A‖ ≤ spectralGap A) :
+    ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖ ≤ δ * ‖A‖ := by
+  have h_dist := (frobenius_spectral_distance_with_gap A).1
+  calc ‖Matrix.SVD.truncatedSVD A 1 - spectralOptimalRank1 A‖
+      ≤ 2 * (‖A‖ - spectralGap A) := h_dist
+    _ ≤ 2 * (‖A‖ - (1 - δ / 2) * ‖A‖) := by linarith
+    _ = δ * ‖A‖ := by ring
 
 end SolutionDistance
 

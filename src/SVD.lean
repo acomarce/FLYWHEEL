@@ -3701,6 +3701,15 @@ theorem rank_pos_of_ne_zero_rect (A : Matrix m n ℂ) (hA : A ≠ 0) : 0 < A.ran
     exact this
   exact hA h_zero
 
+omit [DecidableEq m] [DecidableEq n] in
+/-- A nonzero matrix has nonempty row and column index types: `0 < min #m #n`. -/
+theorem min_card_pos_of_ne_zero_rect {E : Matrix m n ℂ} (hE : E ≠ 0) :
+    0 < min (Fintype.card m) (Fintype.card n) := by
+  by_contra h
+  apply hE
+  ext i j
+  exact absurd (lt_min (Fintype.card_pos_iff.mpr ⟨i⟩) (Fintype.card_pos_iff.mpr ⟨j⟩)) h
+
 /-! ### Main Definition: Rectangular Coherence Factor -/
 
 /-- **Coherence factor for rectangular matrices.**
@@ -3833,13 +3842,13 @@ theorem sum_singularValues_sq_le_rank_mul_max_sq_rect
 
 This is the main upper bound for coherence factor. It follows from:
   ‖E‖_F² = ∑ σₖ² ≤ rank(E) · max(σₖ)² = rank(E) · ‖E‖₂² -/
-theorem coherenceFactorRect_le_one
-    (h : 0 < min (Fintype.card m) (Fintype.card n)) (E : Matrix m n ℂ) :
+theorem coherenceFactorRect_le_one (E : Matrix m n ℂ) :
     coherenceFactorRect E ≤ 1 := by
   unfold coherenceFactorRect
   split_ifs with hE
   · linarith  -- E = 0 case: coherenceFactorRect 0 = 1 ≤ 1
-  · -- E ≠ 0
+  · -- E ≠ 0, so both index types are nonempty
+    have h : 0 < min (Fintype.card m) (Fintype.card n) := min_card_pos_of_ne_zero_rect hE
     have h_spectral_pos : 0 < ‖E‖₂ := @norm_pos_iff _ _ E |>.mpr hE
     have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero_rect E hE
     have h_denom_pos : 0 < Real.sqrt E.rank * ‖E‖₂ := by
@@ -3889,8 +3898,9 @@ theorem coherenceFactorRect_le_one
 
 /-! ## Lower Bound — μ ≥ 1/√rank
 
-The coherence factor is bounded below by 1/√rank. This is the tight lower bound,
-achieved when all nonzero singular values are equal (i.e., when E is "maximally incoherent").
+The coherence factor is bounded below by 1/√rank. Equality holds exactly when ‖E‖₂ = ‖E‖_F,
+that is, when E has rank 1, where both bounds equal 1. For rank r ≥ 2 the bound is an
+infimum: it is approached as σ₂, …, σᵣ → 0 but not attained.
 
 **Proof strategy:**
   σ₁² ≤ ∑_{k=1}^{r} σₖ² = ‖E‖_F²
@@ -3924,9 +3934,13 @@ theorem max_singularValue_sq_le_sum_rect
 
 This uses the Frobenius norm defined via `frobeniusNormRect` which matches the
 `Matrix.frobeniusSeminormedAddCommGroup` instance. -/
-theorem spectral_le_frobenius_rect
-    (h : 0 < min (Fintype.card m) (Fintype.card n)) (E : Matrix m n ℂ) :
+theorem spectral_le_frobenius_rect (E : Matrix m n ℂ) :
     ‖E‖₂ ≤ frobeniusNormRect E := by
+  by_cases hE : E = 0
+  · -- Both norms vanish at 0
+    rw [hE, frobeniusNormRect_zero]
+    exact (norm_zero (E := Matrix m n ℂ)).le
+  have h : 0 < min (Fintype.card m) (Fintype.card n) := min_card_pos_of_ne_zero_rect hE
   have h_spec_sq : ‖E‖₂ ^ 2 ≤ frobeniusNormRect E ^ 2 := by
     -- Spectral norm = max singular value
     let M := Finset.sup' Finset.univ (Finset.univ_nonempty_iff.mpr ⟨⟨0, h⟩⟩)
@@ -3949,12 +3963,11 @@ theorem spectral_le_frobenius_rect
 /-- The ratio of Frobenius norm to spectral norm is at least 1: 1 ≤ ‖E‖_F / ‖E‖.
 
 This is a reformulation of `spectral_le_frobenius_rect` as a ratio bound. -/
-theorem frobenius_spectral_ratio_ge_one_rect
-    (h : 0 < min (Fintype.card m) (Fintype.card n)) (E : Matrix m n ℂ) (hE : E ≠ 0) :
+theorem frobenius_spectral_ratio_ge_one_rect (E : Matrix m n ℂ) (hE : E ≠ 0) :
     1 ≤ frobeniusNormRect E / ‖E‖₂ := by
   have h_spec_pos : 0 < ‖E‖₂ := @norm_pos_iff _ _ E |>.mpr hE
   rw [one_le_div h_spec_pos]
-  exact spectral_le_frobenius_rect h E
+  exact spectral_le_frobenius_rect E
 
 /-- **The coherence factor is at least 1/√rank.**
 
@@ -3964,9 +3977,8 @@ This is the tight lower bound for coherence factor. It follows from:
 Therefore:
   μ(E) = ‖E‖_F / (√rank · ‖E‖) ≥ ‖E‖ / (√rank · ‖E‖) = 1/√rank
 
-The bound is tight when all nonzero singular values are equal (maximally incoherent). -/
-theorem coherenceFactorRect_ge_inv_sqrt_rank
-    (h : 0 < min (Fintype.card m) (Fintype.card n)) (E : Matrix m n ℂ) (hE : E ≠ 0) :
+For rank r ≥ 2 the bound is approached but not attained (see the section note). -/
+theorem coherenceFactorRect_ge_inv_sqrt_rank (E : Matrix m n ℂ) (hE : E ≠ 0) :
     1 / Real.sqrt E.rank ≤ coherenceFactorRect E := by
   unfold coherenceFactorRect
   simp only [hE, ↓reduceIte]
@@ -3980,22 +3992,22 @@ theorem coherenceFactorRect_ge_inv_sqrt_rank
   -- Goal: 1 * (√rank · ‖E‖) ≤ ‖E‖_F * √rank
   rw [one_mul, mul_comm (frobeniusNormRect E) (Real.sqrt E.rank)]
   -- Goal: √rank · ‖E‖ ≤ √rank · ‖E‖_F
-  exact mul_le_mul_of_nonneg_left (spectral_le_frobenius_rect h E) (le_of_lt h_sqrt_rank_pos)
+  exact mul_le_mul_of_nonneg_left (spectral_le_frobenius_rect E) (le_of_lt h_sqrt_rank_pos)
 
 /-- Combined bounds: the coherence factor lies in [1/√rank, 1].
 
 This combines `coherenceFactorRect_ge_inv_sqrt_rank` and `coherenceFactorRect_le_one`. -/
-theorem coherenceFactorRect_bounds
-    (h : 0 < min (Fintype.card m) (Fintype.card n)) (E : Matrix m n ℂ) (hE : E ≠ 0) :
+theorem coherenceFactorRect_bounds (E : Matrix m n ℂ) (hE : E ≠ 0) :
     1 / Real.sqrt E.rank ≤ coherenceFactorRect E ∧ coherenceFactorRect E ≤ 1 :=
-  ⟨coherenceFactorRect_ge_inv_sqrt_rank h E hE, coherenceFactorRect_le_one h E⟩
+  ⟨coherenceFactorRect_ge_inv_sqrt_rank E hE, coherenceFactorRect_le_one E⟩
 
 /-! ### Application Theorems
 
 These theorems connect coherence factor bounds to spectral norm bounds.
-The key insight is that coherence μ characterizes how "spread out" the singular values are:
-- μ = 1 means the matrix is maximally coherent (rank-1 structure, one dominant singular value)
-- μ = 1/√rank means maximally incoherent (all nonzero singular values equal)
+The key insight is that coherence μ characterizes how "spread out" the singular values are,
+with the convention of `coherenceFactorRect`:
+- μ = 1 means maximally incoherent (all nonzero singular values equal)
+- μ near 1/√rank means coherent (one dominant singular value)
 
 When μ is bounded away from 1/√rank, we get improved spectral bounds beyond the naive
 ‖E‖ ≤ ‖E‖_F relationship.
@@ -4008,8 +4020,7 @@ From μ(E) = ‖E‖_F / (√rank · ‖E‖), we can solve for ‖E‖:
   ‖E‖ = ‖E‖_F / (√rank · μ(E))
 
 This gives a way to bound the spectral norm using Frobenius norm and coherence. -/
-theorem spectral_bound_via_coherence_rect
-    (_h : 0 < min (Fintype.card m) (Fintype.card n)) (E : Matrix m n ℂ) (hE : E ≠ 0) :
+theorem spectral_bound_via_coherence_rect (E : Matrix m n ℂ) (hE : E ≠ 0) :
     ‖E‖₂ = frobeniusNormRect E / (Real.sqrt E.rank * coherenceFactorRect E) := by
   unfold coherenceFactorRect
   simp only [hE, ↓reduceIte]
@@ -4041,8 +4052,7 @@ If the coherence factor is bounded below by α (i.e., α ≤ μ(E)), then:
 
 This is useful when we know E is "incoherent" (μ bounded away from 1/√rank).
 The smaller α is, the weaker the bound; α = 1/√rank gives the trivial bound ‖E‖ ≤ ‖E‖_F. -/
-theorem incoherent_improved_bound_rect
-    (h : 0 < min (Fintype.card m) (Fintype.card n)) (E : Matrix m n ℂ) (hE : E ≠ 0)
+theorem incoherent_improved_bound_rect (E : Matrix m n ℂ) (hE : E ≠ 0)
     (α : ℝ) (hα_pos : 0 < α) (hα_bound : α ≤ coherenceFactorRect E) :
     ‖E‖₂ ≤ frobeniusNormRect E / (α * Real.sqrt E.rank) := by
   have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero_rect E hE
@@ -4052,7 +4062,7 @@ theorem incoherent_improved_bound_rect
     coherenceFactorRect_pos_of_ne_zero E hE
   have h_frob_pos : 0 < frobeniusNormRect E := frobeniusNormRect_pos_of_ne_zero E hE
   -- From spectral_bound_via_coherence_rect: ‖E‖ = ‖E‖_F / (√rank · μ)
-  rw [spectral_bound_via_coherence_rect h E hE]
+  rw [spectral_bound_via_coherence_rect E hE]
   -- Goal: ‖E‖_F / (√rank · μ) ≤ ‖E‖_F / (α · √rank)
   rw [mul_comm α (Real.sqrt E.rank)]
   -- Goal: ‖E‖_F / (√rank · μ) ≤ ‖E‖_F / (√rank · α)
@@ -4071,8 +4081,7 @@ Equivalently:
 
 This shows that coherence captures exactly how much the spectral norm differs
 from the "averaged" Frobenius norm per rank dimension. -/
-theorem coherence_eq_norm_ratio_rect
-    (_h : 0 < min (Fintype.card m) (Fintype.card n)) (E : Matrix m n ℂ) (hE : E ≠ 0) :
+theorem coherence_eq_norm_ratio_rect (E : Matrix m n ℂ) (hE : E ≠ 0) :
     coherenceFactorRect E = (frobeniusNormRect E / ‖E‖₂) / Real.sqrt E.rank := by
   unfold coherenceFactorRect
   simp only [hE, ↓reduceIte]
@@ -4084,10 +4093,10 @@ omit [DecidableEq m] in
 The ratio ‖E‖_F / ‖E‖ = √rank · μ(E).
 
 This is useful for estimating how far the spectral norm is from the Frobenius norm. -/
-theorem frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect
-    (h : 0 < min (Fintype.card m) (Fintype.card n)) (E : Matrix m n ℂ) (hE : E ≠ 0) :
+theorem frobenius_spectral_ratio_eq_sqrt_rank_mul_coherence_rect (E : Matrix m n ℂ)
+    (hE : E ≠ 0) :
     frobeniusNormRect E / ‖E‖₂ = Real.sqrt E.rank * coherenceFactorRect E := by
-  rw [coherence_eq_norm_ratio_rect h E hE]
+  rw [coherence_eq_norm_ratio_rect E hE]
   have h_rank_pos : 0 < E.rank := rank_pos_of_ne_zero_rect E hE
   have h_sqrt_rank_pos : 0 < Real.sqrt E.rank :=
     Real.sqrt_pos.mpr (Nat.cast_pos.mpr h_rank_pos)
