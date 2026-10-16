@@ -78,14 +78,14 @@ Namespaces do not match file names. Always look a name up in `docs/INDEX.md`.
 
 | File | Namespaces |
 |---|---|
-| SVD | `Matrix.SVD` (square), `Matrix.SVD.Real`, `Matrix.SVD.Rectangular`, and root (see below) |
+| SVD | `Matrix.SVD` (square), `Matrix.SVD.Real`, `Matrix.SVD.Rectangular`, two `Matrix.SpectralNorm` Hermitian-norm lemmas, and root (see below) |
 | KroneckerRearrangement | `Matrix.KroneckerRearrangement` (`vec`, `R`, `R_inv`, `outerProduct`) |
 | CourantFischer | top-level `CourantFischer` (not `Matrix.*`) |
 | TruncatedSVDRank1 | root (no namespace) |
 | WeylInequality | `Matrix.WeylInequality` (Weyl, Thompson interlacing) |
 | FrobeniusNorm | `Matrix.FrobeniusNorm` (includes `eckart_young_frobenius`) |
-| MatrixNormRelations | `Matrix.SVD` (square spectral Eckart–Young), `Matrix.SpectralNorm`, `Matrix.KroneckerRearrangement`, `Matrix.KroneckerPerturbation` |
-| SpectralNormGap | `Matrix.Kronecker.SpectralGap`, `Matrix.Kronecker.SpectralGapCharacterization` |
+| MatrixNormRelations | `Matrix.SVD` (square spectral Eckart–Young), `Matrix.SpectralNorm`, `Matrix.KroneckerRearrangement`, `Matrix.KroneckerPerturbation`, root `Finset.sup'_prod_eq_mul_sup'` |
+| SpectralNormGap | `Matrix.Kronecker.SpectralBounds` (‖·‖₂ vs ‖·‖_F through R⁻¹) |
 | CoherenceCharacterization | `Matrix.Coherence` |
 | TightBounds | `Matrix.TightBounds` (rectangular `truncatedSVD_rect`, rectangular Eckart–Young, Van Loan–Pitsianis `kroneckerApprox`) |
 
@@ -97,11 +97,10 @@ Traps:
   SVD itself.
 - **SVD.lean has root-namespace sections.** `FrobeniusNormRectangular` and
   `SpectralNormRectangular` declare fully qualified `Matrix.SVD.Rectangular.*` names (their
-  private helpers stay at root). `RectangularCoherenceFactor` is genuinely root:
-  `coherenceFactorRect`, `frobeniusNormRect`, ….
-- **"Gap" means two things.** The SpectralNormGap namespaces (`Matrix.Kronecker.SpectralGap*`)
-  are about ‖·‖₂ versus ‖·‖_F (the ratio ‖A‖_F/‖A‖₂ is √(stable rank)).
-  `Matrix.Coherence.spectralGap A` is σ₀ − σ₁.
+  private helpers stay at root). `SpectralNormRectangular` also declares
+  `Matrix.SpectralNorm.l2_opNorm_hermitian_eq_sup_abs_eigenvalues` (used by MatrixNormRelations).
+  `RectangularCoherenceFactor` is genuinely root: `coherenceFactorRect`, `frobeniusNormRect`, ….
+  The order lemma `Finset.sup'_sq_eq_sq_sup'` is in the real `Finset` namespace.
 - **Nothing opens `Matrix.SVD.Rectangular`.** Downstream files spell names fully, e.g.
   `Matrix.SVD.Rectangular.singularValues` in WeylInequality and TightBounds.
 
