@@ -81,7 +81,7 @@ Downstream use: `Matrix.Coherence.exists_spectral_minimizer_rank1` and
   `k < min`, write `D = D * P`, where `P` is the 0/1 diagonal projection onto columns whose
   `eigenvaluesBijection` index is `< k`.
 - `spectral_error_truncatedSVD_rect (hk : k < min #m #n) : ‖A - truncatedSVD_rect A k‖ =
-  singularValues₀_rect A ⟨k, hk⟩`.
+  Matrix.SVD.Rectangular.singularValues A ⟨k, hk⟩`.
 - `frobenius_error_truncatedSVD_rect`: the error is `U D V*` with `D` the tail diagonal
   (`truncatedSVD_rect_tail_eq_USV`), `‖U D V*‖_F = ‖D‖_F` (`frobenius_norm_unitary_conj_rect`),
   and `‖D‖_F² = Re tr(DᴴD)` is summed with `DtD_diagonal_entry`, then reindexed from `n` to
