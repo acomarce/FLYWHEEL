@@ -577,6 +577,7 @@ equivalent to (1 - ε) · ‖E‖_F ≤ ‖E‖₂ (`nearly_coherent_iff`). -/
 
 variable {n : Type*} [Fintype n] [DecidableEq n] [Nonempty n]
 
+omit [Nonempty n] in
 /-- **Near coherence in norm form:** for E ≠ 0 and ε < 1,
     μ(E) ≤ 1 / ((1 - ε) · √rank(E)) ↔ (1 - ε) · ‖E‖_F ≤ ‖E‖₂. -/
 theorem nearly_coherent_iff (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0) (hε_lt_one : ε < 1) :
@@ -598,6 +599,7 @@ theorem nearly_coherent_iff (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0) (hε_
   rw [h_lhs, h_rhs]
   exact mul_le_mul_iff_left₀ h_sqrt_rank_pos
 
+omit [Nonempty n] in
 /-- **Nearly coherent bound:** if μ(E) ≤ 1 / ((1 - ε) · √rank(E)) with ε < 1 and E ≠ 0, then
     ‖E‖_F ≤ ‖E‖₂ / (1 - ε).
 
@@ -611,6 +613,7 @@ theorem nearly_coherent_bound (E : Matrix n n ℂ) (ε : ℝ) (hE : E ≠ 0) (h�
   rw [le_div_iff₀ h_one_minus_eps_pos]
   linarith
 
+omit [Nonempty n] in
 /-- **Nearly coherent spectral lower bound:** if μ(E) ≤ 1 / ((1 - ε) · √rank(E)) with ε < 1
     and E ≠ 0, then (1 - ε) · ‖E‖_F ≤ ‖E‖₂.
 
