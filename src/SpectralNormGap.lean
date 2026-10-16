@@ -425,15 +425,6 @@ theorem outerProduct_spectral_norm_le (u : EuclideanSpace ℂ m) (v : EuclideanS
           (KroneckerRearrangement.outerProduct u v) := l2_opNorm_le_frobenius _
     _ = ‖u‖ * ‖v‖ := outerProduct_frobenius_norm' u v
 
-omit [DecidableEq m] in
-/-- Spectral ≤ Frobenius for outer products: ‖uv*‖₂ ≤ ‖uv*‖_F. Only the inequality is proved. -/
-theorem outerProduct_spectral_le_frobenius (u : EuclideanSpace ℂ m) (v : EuclideanSpace ℂ n) :
-    @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
-      (KroneckerRearrangement.outerProduct u v) ≤
-    @Norm.norm _ Matrix.frobeniusSeminormedAddCommGroup.toNorm
-      (KroneckerRearrangement.outerProduct u v) :=
-  l2_opNorm_le_frobenius _
-
 /-! ### Part B: R⁻¹ Bounds for Outer Products
 
 Upper bounds for ‖R⁻¹(uv*)‖₂, and an example where ‖R⁻¹ M‖₂ ≤ ‖M‖_F is strict.

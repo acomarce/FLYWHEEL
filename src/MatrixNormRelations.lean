@@ -765,14 +765,6 @@ lemma Finset.sup'_prod_eq_mul_sup' [Nonempty p] [Nonempty q]
 
 /-! #### Eigenvalue Structure of Kronecker Products -/
 
-omit [Fintype p] [Fintype q] in
-/-- The diagonal of H₁ ⊗ H₂ when both are diagonal matrices.
-    diagonal d₁ ⊗ diagonal d₂ = diagonal (fun (i,j) => d₁ i * d₂ j) -/
-lemma diagonal_kronecker_diagonal_apply (d₁ : p → ℂ) (d₂ : q → ℂ) :
-    kroneckerMap (· * ·) (diagonal d₁) (diagonal d₂) =
-    diagonal (fun ij : p × q => d₁ ij.1 * d₂ ij.2) :=
-  diagonal_kronecker_diagonal d₁ d₂
-
 /-- For Hermitian matrices, the norm equals the supremum of absolute eigenvalues.
     For PSD matrices, all eigenvalues are nonnegative, so |λ| = λ. -/
 lemma l2_opNorm_posSemidef_eq_sup_eigenvalues [Nonempty p]

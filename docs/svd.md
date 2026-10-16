@@ -85,10 +85,12 @@ explains why: it stays consistent with `rightUnitary`, and it avoids the `equivF
   (TightBounds unfolds it). `singularDiagonal_eq_rectDiagonal` relates the two by `rfl`.
 
 **`U`.**
-- `extendedONB_rectangular_v2` extends the `m`-indexed `leftSingularVectorByM`. This gives
-  `constructedU_rectangular` and `constructedU_rectangular_column_spec`.
-- The older `extendedONB_rectangular` reindexes through an arbitrary `equivOfCardEq`, which loses
-  the column/diagonal alignment. It is kept "for compatibility" and is unused.
+- `extendedONB_rectangular` extends the `m`-indexed `leftSingularVectorByM` to an orthonormal
+  basis indexed by `m` itself, so no reindexing is needed. This gives `constructedU_rectangular`
+  and `constructedU_rectangular_column_spec`.
+- Extending the `n`-indexed vectors instead would need a reindexing `u ≃ m` through an arbitrary
+  `equivOfCardEq`, losing the column/diagonal alignment; an unused definition that did this was
+  removed.
 
 **Results:**
 - `AV_eq_US_rectangular : A * rightUnitary A = constructedU_rectangular A * singularDiagonal A`.

@@ -680,10 +680,6 @@ private lemma det_conj_of_isUnit' {R : Type*} [CommRing R] (M P : Matrix n n R) 
     rw [Ring.mul_inverse_cancel _ hP]
   rw [h, mul_one]
 
-/-- Determinant is invariant under similarity (complex matrices). -/
-private lemma det_conj_of_isUnit (M P : Matrix n n ℂ) (hP : IsUnit P.det) :
-    (P * M * P⁻¹).det = M.det := det_conj_of_isUnit' M P hP
-
 /-- The characteristic matrix transforms under similarity. -/
 private lemma charmatrix_conj_of_isUnit (M P : Matrix n n ℂ) (hP : IsUnit P.det) :
     (P * M * P⁻¹).charmatrix = (P.map Polynomial.C) * M.charmatrix * (P.map Polynomial.C)⁻¹ := by
@@ -1890,14 +1886,12 @@ lemma card_nonzero_eigenvalues₀_eq_card_nonzero_eigenvalues
   }⟩
 
 set_option linter.unusedSectionVars false in
-/-- Eigenvalues₀ of Aᴴ*A at indices beyond rank(A) are zero.
+/-- Eigenvalues₀ of Aᴴ*A at indices ≥ rank(A) are zero.
 
-For a matrix A : m × n, rank(Aᴴ*A) = rank(A) ≤ min(m,n).
-Since eigenvalues₀ is antitone (sorted decreasing), eigenvalues at index ≥ rank are 0.
-When i.val ≥ card m and card m < card n, eigenvalues₀ i = 0. -/
+rank(Aᴴ*A) = rank(A) counts the nonzero eigenvalues, and eigenvalues₀ is antitone and
+nonnegative, so every index ≥ rank(A) carries the eigenvalue 0. -/
 lemma eigenvalues₀_zero_beyond_rank (A : Matrix m n ℂ) (i : Fin (Fintype.card n))
-    (h_idx : i.val ≥ Fintype.card m)
-    (_h_card : Fintype.card m < Fintype.card n) :
+    (h_idx : A.rank ≤ i.val) :
     (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ i = 0 := by
   let hAHA := posSemidef_conjTranspose_mul_self A
   let hermAHA := hAHA.isHermitian
@@ -1908,21 +1902,19 @@ lemma eigenvalues₀_zero_beyond_rank (A : Matrix m n ℂ) (i : Fin (Fintype.car
   -- Step 2: eigenvalues₀ is antitone
   have h_anti : Antitone hermAHA.eigenvalues₀ := hermAHA.eigenvalues₀_antitone
 
-  -- Step 3: Rank bound: rank(Aᴴ*A) = rank(A) ≤ card m
+  -- Step 3: rank(Aᴴ*A) = rank(A)
   have h_rank_eq : (Aᴴ * A).rank = A.rank := rank_conjTranspose_mul_self A
-  have h_rank_le : A.rank ≤ Fintype.card m := rank_le_card_height A
 
   -- Step 4: Transfer rank to card of nonzero eigenvalues₀
   have h_rank_eigs : Fintype.card {j : n // hermAHA.eigenvalues j ≠ 0} = (Aᴴ * A).rank :=
     (hermAHA.rank_eq_card_non_zero_eigs).symm
 
-  have h_card_eigs₀ : Fintype.card {j : Fin (Fintype.card n) // hermAHA.eigenvalues₀ j ≠ 0} ≤ Fintype.card m := by
+  have h_card_eigs₀ : Fintype.card {j : Fin (Fintype.card n) // hermAHA.eigenvalues₀ j ≠ 0} ≤ A.rank := by
     calc Fintype.card {j : Fin (Fintype.card n) // hermAHA.eigenvalues₀ j ≠ 0}
       = Fintype.card {j : n // hermAHA.eigenvalues j ≠ 0} :=
           card_nonzero_eigenvalues₀_eq_card_nonzero_eigenvalues hermAHA
       _ = (Aᴴ * A).rank := h_rank_eigs
       _ = A.rank := h_rank_eq
-      _ ≤ Fintype.card m := h_rank_le
 
   -- Step 5: Apply antitone_nonneg_zeros_after_rank
   exact antitone_nonneg_zeros_after_rank hermAHA.eigenvalues₀ h_anti h_nonneg h_card_eigs₀ i h_idx
@@ -2622,25 +2614,8 @@ set_option linter.unusedSectionVars false in
     This follows from rank(A) ≤ min(#m, #n) and the eigenvalue structure. -/
 theorem eigenvalues₀_zero_beyond_min (A : Matrix m n ℂ) (j : Fin (Fintype.card n))
     (hj : j.val ≥ min (Fintype.card m) (Fintype.card n)) :
-    (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ j = 0 := by
-  let hermAHA := (posSemidef_conjTranspose_mul_self A).isHermitian
-  let h_psd := posSemidef_conjTranspose_mul_self A
-  -- rank(A) ≤ min(#m, #n) ≤ j.val
-  have h_rank_le : A.rank ≤ min (Fintype.card m) (Fintype.card n) := rank_le_min_card A
-  have h_card_nonzero : Fintype.card {i : Fin (Fintype.card n) // hermAHA.eigenvalues₀ i ≠ 0} ≤
-                        min (Fintype.card m) (Fintype.card n) := by
-    have h_eq := card_nonzero_eigenvalues₀_eq_card_nonzero_eigenvalues hermAHA
-    have h_herm_rank := hermAHA.rank_eq_card_non_zero_eigs
-    have h_rank_eq : A.rank = (Aᴴ * A).rank := (rank_conjTranspose_mul_self A).symm
-    calc Fintype.card {i : Fin (Fintype.card n) // hermAHA.eigenvalues₀ i ≠ 0}
-        = Fintype.card {i : n // hermAHA.eigenvalues i ≠ 0} := h_eq
-      _ = (Aᴴ * A).rank := h_herm_rank.symm
-      _ = A.rank := h_rank_eq.symm
-      _ ≤ min (Fintype.card m) (Fintype.card n) := h_rank_le
-  exact antitone_nonneg_zeros_after_rank hermAHA.eigenvalues₀
-    hermAHA.eigenvalues₀_antitone
-    (fun i => PosSemidef_eigenvalues₀_nonneg h_psd i)
-    h_card_nonzero j hj
+    (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ j = 0 :=
+  eigenvalues₀_zero_beyond_rank A j (le_trans (rank_le_min_card A) hj)
 
 /-- **Sum of squared singular values equals trace** for rectangular matrices.
     For A : Matrix m n ℂ, ∑ k, (singularValues A k)² = Re(trace(Aᴴ * A)).
@@ -3163,47 +3138,16 @@ theorem leftSingularVectorByM_orthonormal_on_nonzero (A : Matrix m n ℂ) :
 /-- Extend the m-indexed left singular vectors to a full orthonormal basis.
     This uses `exists_orthonormalBasis_extension_of_card_eq` to get an ONB indexed by m
     that agrees with the left singular vectors on the diagonal nonzero positions. -/
-noncomputable def extendedONB_rectangular_v2 (A : Matrix m n ℂ) :
+noncomputable def extendedONB_rectangular (A : Matrix m n ℂ) :
     OrthonormalBasis m ℂ (EuclideanSpace ℂ m) :=
   (leftSingularVectorByM_orthonormal_on_nonzero A).exists_orthonormalBasis_extension_of_card_eq
     finrank_euclideanSpace |>.choose
 
 /-- The extended ONB agrees with left singular vectors on the nonzero diagonal positions. -/
-theorem extendedONB_rectangular_v2_spec (A : Matrix m n ℂ) (k : m) (hk : k ∈ nonzeroSingularIndicesM A) :
-    (extendedONB_rectangular_v2 A) k = leftSingularVectorByM A k :=
+theorem extendedONB_rectangular_spec (A : Matrix m n ℂ) (k : m) (hk : k ∈ nonzeroSingularIndicesM A) :
+    (extendedONB_rectangular A) k = leftSingularVectorByM A k :=
   (leftSingularVectorByM_orthonormal_on_nonzero A).exists_orthonormalBasis_extension_of_card_eq
     finrank_euclideanSpace |>.choose_spec k hk
-
-/-! ##### Original Orthonormal Basis Extension (kept for compatibility) -/
-
-/-- Extend the orthonormal left singular vectors to a full orthonormal basis of EuclideanSpace ℂ m.
-
-    Note: The partial set is indexed by a subset of n (columns with σⱼ ≠ 0), but the full
-    basis must be indexed by m. The extension theorem handles this mismatch by constructing
-    a basis indexed by m that agrees with our vectors on their domain. -/
-noncomputable def extendedONB_rectangular (A : Matrix m n ℂ) :
-    OrthonormalBasis m ℂ (EuclideanSpace ℂ m) := by
-  let s := nonzeroSingularIndices_rectangular A
-  let v := leftSingularVectorExtended_rectangular A
-  have h_on := leftSingularVectorExtended_orthonormal_on_nonzero_rectangular A
-  -- The range of the restricted function forms an orthonormal set
-  let restricted_v := s.restrict v
-  have h_inj : Function.Injective restricted_v := h_on.linearIndependent.injective
-  -- Convert to orthonormal on the range (as a set)
-  have h_img_on : Orthonormal ℂ ((↑) : Set.range restricted_v → EuclideanSpace ℂ m) :=
-    (orthonormal_subtype_range h_inj).mpr h_on
-  -- Get extension - use Classical.choose to extract the witnesses
-  let ext_proof := h_img_on.exists_orthonormalBasis_extension
-  let u : Finset (EuclideanSpace ℂ m) := ext_proof.choose
-  let b : OrthonormalBasis u ℂ (EuclideanSpace ℂ m) := ext_proof.choose_spec.choose
-  -- Reindex to m using cardinality equality
-  -- Fintype.card u = u.card by Fintype.card_coe
-  -- u.card = finrank by Module.finrank_eq_card_finset_basis
-  -- finrank = Fintype.card m by finrank_euclideanSpace
-  have h_card : Fintype.card u = Fintype.card m := by
-    rw [Fintype.card_coe, (Module.finrank_eq_card_finset_basis b.toBasis).symm,
-        finrank_euclideanSpace]
-  exact b.reindex (Fintype.equivOfCardEq h_card)
 
 /-! #### Unitary Matrix Construction
 
@@ -3241,7 +3185,7 @@ theorem onbToMatrix_rectangular_mem_unitaryGroup (b : OrthonormalBasis m ℂ (Eu
 /-- The constructed unitary matrix U for rectangular SVD.
     Columns are derived from the extended orthonormal basis (v2 with diagonal alignment). -/
 noncomputable def constructedU_rectangular (A : Matrix m n ℂ) : unitaryGroup m ℂ :=
-  ⟨onbToMatrix_rectangular (extendedONB_rectangular_v2 A),
+  ⟨onbToMatrix_rectangular (extendedONB_rectangular A),
    onbToMatrix_rectangular_mem_unitaryGroup _⟩
 
 /-- Column k of constructedU_rectangular equals the left singular vector uⱼ
@@ -3253,7 +3197,7 @@ theorem constructedU_rectangular_column_spec (A : Matrix m n ℂ) (k : m) (j : n
   ext i
   simp only [constructedU_rectangular, onbToMatrix_rectangular]
   have hk_mem : k ∈ nonzeroSingularIndicesM A := ⟨j, hcorr, hj⟩
-  have h_spec := extendedONB_rectangular_v2_spec A k hk_mem
+  have h_spec := extendedONB_rectangular_spec A k hk_mem
   rw [h_spec, leftSingularVectorByM_eq A k j hcorr hj]
   simp only [leftSingularVectorEuclidean_rectangular]
   rfl
@@ -3544,12 +3488,10 @@ theorem AV_eq_US_rectangular (A : Matrix m n ℂ) :
         unfold eigenvaluesBijection
         rfl
       rw [h_eq]
-      -- Use eigenvalues₀_zero_beyond_rank since (eigenvaluesBijection n j).val ≥ card m
+      -- (eigenvaluesBijection n j).val ≥ card m ≥ rank A, so the eigenvalue is 0
       have h_ge_m : (eigenvaluesBijection n j).val ≥ Fintype.card m := le_of_not_gt h_in_range
-      have h_card_lt : Fintype.card m < Fintype.card n := by
-        -- Since j exists and its index ≥ card m, we must have card m < card n
-        exact Nat.lt_of_le_of_lt h_ge_m (eigenvaluesBijection n j).isLt
-      have h_eig_zero := eigenvalues₀_zero_beyond_rank A (eigenvaluesBijection n j) h_ge_m h_card_lt
+      have h_eig_zero := eigenvalues₀_zero_beyond_rank A (eigenvaluesBijection n j)
+        (le_trans (rank_le_card_height A) h_ge_m)
       rw [h_eig_zero]
       exact Real.sqrt_zero
     exact AV_column_zero_of_eigenvalue_zero_rectangular A j h_sigma_zero i
