@@ -54,7 +54,7 @@ if [ ! -x "$ELAN_HOME/bin/elan" ]; then
 fi
 
 # --- toolchain -------------------------------------------------------------
-toolchain="$(tr -d '[:space:]' < "$PROJECT_DIR/lean-toolchain")"  # leanprover/lean4:v4.26.0-rc2
+toolchain="$(tr -d '[:space:]' < "$PROJECT_DIR/lean-toolchain")"  # e.g. leanprover/lean4:v4.35.0
 origin="${toolchain%%:*}"
 version="${toolchain#*:}"
 tc_dir="$ELAN_HOME/toolchains/$(echo "$toolchain" | sed 's|/|--|g; s|:|---|g')"
@@ -96,14 +96,19 @@ else
   clone="cloning the Mathlib dependency also failed"
 fi
 # When the cache host is blocked, `lake exe cache get` retries every one of
-# ~7700 files (about an hour), so probe the hosts first.
+# ~9000 files (about an hour), so probe the hosts first. Mathlib's cache reads
+# from cache.mathlib.org; MATHLIB_CACHE_DEBUG_USE_LEGACY=1 makes it read the
+# Azure storage account behind it instead.
 cache_host=""
-for h in lakecache.blob.core.windows.net mathlib4.lean-cache.cloud; do
+for h in cache.mathlib.org lakecache.blob.core.windows.net; do
   if curl -s -o /dev/null --max-time 10 "https://$h/"; then cache_host="$h"; break; fi
 done
+if [ "$cache_host" = "lakecache.blob.core.windows.net" ]; then
+  export MATHLIB_CACHE_DEBUG_USE_LEGACY=1
+fi
 no_build="Do not run \`lake build\` or \`lake env lean\` here: without the cache they compile Mathlib from source, which takes hours. Verify by pushing and reading the CI logs instead (see CLAUDE.md)."
 if [ -z "$cache_host" ]; then
-  say "WARNING: Mathlib cache hosts (lakecache.blob.core.windows.net, mathlib4.lean-cache.cloud) are blocked by the network policy, so \`lake exe cache get\` was skipped. $clone. $no_build To build locally, ask the owner to add those hosts to the environment's allowed domains."
+  say "WARNING: Mathlib cache hosts (cache.mathlib.org, lakecache.blob.core.windows.net) are blocked by the network policy, so \`lake exe cache get\` was skipped. $clone. $no_build To build locally, ask the owner to add cache.mathlib.org to the environment's allowed domains."
 elif timeout 1200 lake exe cache get >> "$LOG" 2>&1; then
   say "Mathlib cache ready ($clone). \`lake build\` checks the whole project; \`lake env lean src/<File>.lean\` checks one file."
 else

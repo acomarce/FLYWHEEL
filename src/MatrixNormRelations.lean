@@ -508,6 +508,7 @@ theorem eckart_young_spectral [Nonempty n] (A : Matrix n n ℂ) (k : ℕ)
       have h := Matrix.WeylInequality.interlacing_for_eckart_young A B k hB k (le_refl k) hk
       simp only [Nat.sub_self] at h
       convert h using 2
+      exact Fin.ext (by simp)
     -- Step 3: σ₀(A - B) = ‖A - B‖
     have h_rhs : singularValues₀ (A - B) 0 = ‖A - B‖ := (spectral_norm_eq_singularValues₀_zero (A - B)).symm
     -- Combine
@@ -818,9 +819,7 @@ lemma sup_eigenvalues_kronecker_eq_mul [Nonempty p] [Nonempty q]
       -- Convert U₁₂ (which is a raw matrix we know is unitary) to a subtype
       let U₁₂' : unitary (Matrix (p × q) (p × q) ℂ) := ⟨U₁₂, hU₁₂_unitary⟩
       -- Now apply the lemma
-      have h := @Unitary.spectrum_star_right_conjugate ℂ (Matrix (p × q) (p × q) ℂ) _ _ _ _ D₁₂ U₁₂'
-      simp only at h
-      exact h
+      exact @Unitary.spectrum_star_right_conjugate ℂ (Matrix (p × q) (p × q) ℂ) _ _ _ _ D₁₂ U₁₂'
     exact this
 
   -- Step 3: Spectrum of diagonal matrix = range of diagonal entries

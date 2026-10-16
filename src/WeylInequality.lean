@@ -36,7 +36,7 @@ omit [Nonempty n] in
 /-- `toEuclideanLin` is additive in the matrix: (A + B)x = Ax + Bx. -/
 theorem toEuclideanLin_add (A B : Matrix n n ℂ) (x : EuclideanSpace ℂ n) :
     Matrix.toEuclideanLin (A + B) x = Matrix.toEuclideanLin A x + Matrix.toEuclideanLin B x := by
-  simp only [Matrix.toEuclideanLin_apply, Matrix.add_mulVec]
+  simp only [Matrix.toLpLin_apply, Matrix.add_mulVec]
   rfl
 
 omit [Nonempty n] in
@@ -196,12 +196,13 @@ theorem weyl_eigenvalue_lower_bound (A B : Matrix n n ℂ)
     -- h : rayleighInf ≤ eigenvalues₀ ⟨k_succ - 1, _⟩
     -- Note: k_succ = k + 1, so k_succ - 1 = k
     convert h.ge using 1
+    exact congrArg (hA.add hB).eigenvalues₀ (Fin.ext (by simp [k_succ]))
 
   -- Step 2: rayleighInf(A+B, W) ≥ λₖ(A) + λₙ₋₁(B)
   have h_step2 : CourantFischer.rayleighInf (A + B) W ≥
       hA.eigenvalues₀ k + hB.eigenvalues₀ minEigenvalueIdx := by
     unfold CourantFischer.rayleighInf CourantFischer.rayleighQuotient
-    haveI : Nonempty { x : W // x.val ≠ 0 } := by
+    have : Nonempty { x : W // x.val ≠ 0 } := by
       obtain ⟨x, hx⟩ := hW_nonempty
       exact ⟨⟨x, hx⟩⟩
     apply le_ciInf
@@ -303,7 +304,7 @@ theorem weyl_eigenvalue_upper_bound (A B : Matrix n n ℂ)
         rw [h_dim_W]
         exact Nat.sub_pos_of_lt k.isLt
       exact CourantFischer.exists_nonzero_of_finrank_pos W h_pos
-    haveI : Nonempty { x : W // x.val ≠ 0 } := by
+    have : Nonempty { x : W // x.val ≠ 0 } := by
       obtain ⟨x, hx⟩ := hW_nonempty_local
       exact ⟨⟨x, hx⟩⟩
     apply ciSup_le
@@ -362,6 +363,7 @@ theorem weyl_eigenvalue_upper_bound (A B : Matrix n n ℂ)
 
     have h := CourantFischer.eigenvalue_le_rayleighSup (A + B) (hA.add hB) k_succ hk_pos W h_dim_adjusted
     convert h using 1
+    exact congrArg (hA.add hB).eigenvalues₀ (Fin.ext (by simp [k_succ]))
 
   exact le_trans h_step1 h_rayleighSup_bound
 
@@ -459,7 +461,7 @@ omit [Nonempty n] in
 /-- `toEuclideanLin` is subtractive in the matrix: (A - B)x = Ax - Bx. -/
 lemma toEuclideanLin_sub (A B : Matrix n n ℂ) (x : EuclideanSpace ℂ n) :
     Matrix.toEuclideanLin (A - B) x = Matrix.toEuclideanLin A x - Matrix.toEuclideanLin B x := by
-  simp only [Matrix.toEuclideanLin_apply, Matrix.sub_mulVec]
+  simp only [Matrix.toLpLin_apply, Matrix.sub_mulVec]
   rfl
 
 /-- For unit x: ‖Ax‖ ≤ ‖Bx‖ + ‖(A-B)x‖ ≤ ‖Bx‖ + σ₁(A-B). -/
@@ -584,7 +586,7 @@ theorem weyl_singularValue_upper_aux (A B : Matrix n n ℂ) (k : Fin (Fintype.ca
   have h_rayleighSup_bound : CourantFischer.rayleighSup (Aᴴ * A) W ≤
       (Matrix.SVD.singularValues₀ B k + Matrix.SVD.singularValues₀ (A - B) 0)^2 := by
     unfold CourantFischer.rayleighSup CourantFischer.rayleighQuotient
-    haveI : Nonempty { x : W // x.val ≠ 0 } := by
+    have : Nonempty { x : W // x.val ≠ 0 } := by
       obtain ⟨x, hx⟩ := hW_nonempty
       exact ⟨⟨x, hx⟩⟩
     apply ciSup_le
@@ -710,7 +712,7 @@ theorem toEuclideanLin_eq_on_ker {m : Type*} [Fintype m]
     (A B : Matrix m n ℂ) (x : EuclideanSpace ℂ n)
     (hx : B.mulVec (WithLp.equiv 2 (n → ℂ) x) = 0) :
     Matrix.toEuclideanLin (A + B) x = Matrix.toEuclideanLin A x := by
-  simp only [Matrix.toEuclideanLin_apply, Matrix.add_mulVec]
+  simp only [Matrix.toLpLin_apply, Matrix.add_mulVec]
   -- WithLp.equiv 2 (n → ℂ) x = x.ofLp
   have h : B.mulVec x.ofLp = 0 := hx
   rw [h, add_zero]
@@ -907,7 +909,7 @@ theorem thompson_interlacing_eigenvalues {m : Type*} [Fintype m] [DecidableEq m]
     apply norm_add_eq_on_ker A B y
     -- Need: B · y = 0 in the form B.mulVec (WithLp.equiv 2 (n → ℂ)) y = 0
     have h_mem : y ∈ LinearMap.ker (Matrix.toEuclideanLin B) := hy_KerB
-    simp only [LinearMap.mem_ker, Matrix.toEuclideanLin_apply] at h_mem
+    simp only [LinearMap.mem_ker, Matrix.toLpLin_apply] at h_mem
     -- h_mem : WithLp.toLp 2 (B.mulVec y.ofLp) = 0 (in EuclideanSpace)
     -- Goal: B.mulVec ((WithLp.equiv 2 (n → ℂ)) y) = 0 (in n → ℂ)
     show B.mulVec ((WithLp.equiv 2 (n → ℂ)) y) = 0
@@ -942,6 +944,7 @@ theorem thompson_interlacing_eigenvalues {m : Type*} [Fintype m] [DecidableEq m]
     -- The index in rayleigh_ge_on_eigenvectorSpanHead is k-1 = (j+1)-1 = j
     -- h_ge : R(y) ≥ eigenvalues₀ ⟨(j+1) - 1, _⟩ = eigenvalues₀ j
     convert h_ge using 2
+    exact Fin.ext (by simp)
 
   -- For y ∈ TailAB (tail eigenspace of (A+B)^H(A+B)) with ‖y‖ = 1:
   -- The Rayleigh quotient R_{(A+B)^H(A+B)}(y) ≤ λ_i((A+B)^H(A+B)) = σ_i(A+B)²

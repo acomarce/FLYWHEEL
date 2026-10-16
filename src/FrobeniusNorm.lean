@@ -7,7 +7,7 @@ import Mathlib.Analysis.Matrix.Normed
 import Mathlib.Analysis.Complex.Order
 import Mathlib.LinearAlgebra.UnitaryGroup
 import Mathlib.LinearAlgebra.Matrix.Trace
-import Mathlib.Data.Real.Sqrt
+import Mathlib.Analysis.Real.Sqrt
 import Mathlib.Analysis.SpecialFunctions.Pow.Real
 import Mathlib.Analysis.Complex.Norm
 import SVD
@@ -408,7 +408,7 @@ lemma frobenius_sq_diagonal_minus_matrix (d : n → ℂ) (C : Matrix n n ℂ) :
           simp only [Finset.mem_filter, Finset.mem_univ, true_and, ne_eq] at hj
           -- hj : ¬j = i, we need to show (if i = j then d i else 0) = 0
           have hij : ¬i = j := fun h => hj h.symm
-          simp only [sub_apply, diagonal_apply, if_neg hij, zero_sub, norm_neg]
+          simp only [sub_apply, diagonal_apply, ite_eq_right hij, zero_sub, norm_neg]
       _ = ‖d i - C i i‖^2 + ∑ j, (if i ≠ j then ‖C i j‖^2 else 0) := by
           congr 1
           -- Need to show Σ_{j ≠ i} ‖C i j‖² = Σⱼ (if i ≠ j then ‖C i j‖² else 0)
@@ -820,7 +820,7 @@ theorem eckart_young_frobenius (A : Matrix n n ℂ) (k : ℕ)
       -- shift is injective on the filter
       have h_shift_inj : Set.InjOn shift (Finset.filter (fun j : Fin (Fintype.card n) => k ≤ j.val) Finset.univ : Set _) := by
         intro j₁ hj₁ j₂ hj₂ heq
-        simp only [Finset.coe_filter, Finset.mem_univ, true_and, Set.mem_setOf_eq] at hj₁ hj₂
+        simp only [Finset.coe_filter, Finset.mem_univ, true_and, Set.mem_ofPred_eq] at hj₁ hj₂
         simp only [shift] at heq
         simp only [hj₁, hj₂, dite_true] at heq
         have h_val_eq : j₁.val - k = j₂.val - k := Fin.mk.inj heq

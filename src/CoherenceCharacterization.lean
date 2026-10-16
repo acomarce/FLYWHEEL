@@ -123,7 +123,7 @@ theorem sum_singularValues_sq_le_rank_mul_max_sq (A : Matrix n n ℂ) :
   -- Sum over nonzero equals original sum (zero terms contribute 0)
   have h_sum_eq : ∑ i, SVD.singularValues A i ^ 2 = ∑ i ∈ S, SVD.singularValues A i ^ 2 := by
     rw [← Finset.sum_filter_add_sum_filter_not (s := Finset.univ) (p := fun i => i ∈ S)]
-    simp only [S, Set.mem_toFinset, Set.mem_setOf_eq]
+    simp only [S, Set.mem_toFinset, Set.mem_ofPred_eq]
     have h_zero_sum : ∑ i ∈ Finset.univ.filter (fun i => SVD.singularValues A i = 0),
         SVD.singularValues A i ^ 2 = 0 := by
       apply Finset.sum_eq_zero
@@ -135,7 +135,7 @@ theorem sum_singularValues_sq_le_rank_mul_max_sq (A : Matrix n n ℂ) :
     congr 1
     ext i
     simp only [Finset.mem_filter, Finset.mem_univ, true_and, ne_eq, Set.mem_toFinset,
-      Set.mem_setOf_eq]
+      Set.mem_ofPred_eq]
 
   calc ∑ i, SVD.singularValues A i ^ 2
       = ∑ i ∈ S, SVD.singularValues A i ^ 2 := h_sum_eq
@@ -312,7 +312,9 @@ theorem outerProduct_spectral_norm_ge [Nonempty m] [Nonempty n]
     ‖u‖ * ‖v‖ ≤ @Norm.norm _ Matrix.instL2OpNormedAddCommGroup.toNorm
       (KroneckerRearrangement.outerProduct u v) := by
   by_cases hu : u = 0
-  · simp only [hu, norm_zero, zero_mul, norm_nonneg]
+  · simp only [hu, norm_zero, zero_mul]
+    exact @norm_nonneg _
+      Matrix.instL2OpNormedAddCommGroup.toSeminormedAddCommGroup.toSeminormedAddGroup _
   · -- **Witness strategy using star(v)**
     -- Key insight: outerProduct u v = u_i * v_j (no conjugate in definition)
     -- So (A * star(v))_i = ∑_j u_i * v_j * star(v_j) = u_i * (∑_j v_j * star(v_j))
@@ -828,7 +830,7 @@ theorem effectiveRank_ge_one (E : Matrix n n ℂ) : 1 ≤ effectiveRank E := by
         apply one_div_pos.mpr
         exact Nat.cast_pos.mpr Fintype.card_pos
       · -- σᵢ²/‖E‖_F² > 0 when σᵢ ≠ 0
-        push_neg at hp
+        push Not at hp
         have h_frob_pos : 0 < frobeniusNorm' E := by
           have h_nonneg := frobeniusNorm'_nonneg E
           rcases h_nonneg.lt_or_eq with h_lt | h_eq
@@ -840,7 +842,7 @@ theorem effectiveRank_ge_one (E : Matrix n n ℂ) : 1 ≤ effectiveRank E := by
           · exact h_lt
           · exfalso
             apply hp
-            simp only [if_neg h_zero]
+            simp only [ite_eq_right h_zero]
             rw [← h_eq]
             simp
         exact div_pos (sq_pos_of_pos h_sv_pos) (sq_pos_of_pos h_frob_pos)
@@ -999,10 +1001,10 @@ theorem effectiveRank_eq_one_of_rank_one (E : Matrix n n ℂ)
     rw [← rank_eq_card_nonzero_singularValues E, h_rank]
 
   -- Step 4: Get the unique nonzero index
-  haveI : Nonempty {i : n // SVD.singularValues E i ≠ 0} := by
+  have : Nonempty {i : n // SVD.singularValues E i ≠ 0} := by
     rw [← Fintype.card_pos_iff, h_card_one]
     exact Nat.one_pos
-  haveI h_unique_inst : Unique {i : n // SVD.singularValues E i ≠ 0} :=
+  have h_unique_inst : Unique {i : n // SVD.singularValues E i ≠ 0} :=
     Fintype.card_eq_one_iff_nonempty_unique.mp h_card_one |>.some
   set i₀ := (default : {i : n // SVD.singularValues E i ≠ 0}).val with h_i0_def
   have hi₀ : SVD.singularValues E i₀ ≠ 0 := (default : {i : n // SVD.singularValues E i ≠ 0}).property
@@ -1022,7 +1024,7 @@ theorem effectiveRank_eq_one_of_rank_one (E : Matrix n n ℂ)
     have h_other_zero : ∀ j, j ≠ i₀ → normalizedSingularValueSq E j = 0 := by
       intro j hj
       show normalizedSingularValueSq E j = 0
-      simp only [normalizedSingularValueSq, if_neg h_frob_ne]
+      simp only [normalizedSingularValueSq, ite_eq_right h_frob_ne]
       rw [h_sv_zero j hj, sq, mul_zero, zero_div]
     have h_split := Fintype.sum_eq_single i₀ h_other_zero
     rw [h_split] at h_sum
@@ -1031,7 +1033,7 @@ theorem effectiveRank_eq_one_of_rank_one (E : Matrix n n ℂ)
   -- Step 7: For j ≠ i₀, pⱼ = 0
   have h_p_zero : ∀ j, j ≠ i₀ → normalizedSingularValueSq E j = 0 := by
     intro j hj
-    simp only [normalizedSingularValueSq, if_neg h_frob_ne]
+    simp only [normalizedSingularValueSq, ite_eq_right h_frob_ne]
     rw [h_sv_zero j hj, sq, mul_zero, zero_div]
 
   -- Step 8: The entropy sum equals 0
@@ -1104,7 +1106,7 @@ theorem effectiveRank_eq_rank_of_flat_spectrum (E : Matrix n n ℂ) (hE : E ≠ 
   -- Get a nonzero singular value
   have h_exists_nonzero : ∃ i₀, SVD.singularValues E i₀ ≠ 0 := by
     by_contra h_all_zero
-    push_neg at h_all_zero
+    push Not at h_all_zero
     have h_card_zero : Fintype.card {i : n // SVD.singularValues E i ≠ 0} = 0 := by
       simp only [Fintype.card_eq_zero_iff, isEmpty_subtype, not_not]
       exact h_all_zero
@@ -1165,7 +1167,7 @@ theorem effectiveRank_eq_rank_of_flat_spectrum (E : Matrix n n ℂ) (hE : E ≠ 
   have h_p_in_S : ∀ i ∈ S, normalizedSingularValueSq E i = 1 / S.card := by
     intro i hi
     have h_ne := (h_mem_S i).mp hi
-    simp only [normalizedSingularValueSq, if_neg h_frob_ne]
+    simp only [normalizedSingularValueSq, ite_eq_right h_frob_ne]
     rw [h_sv_eq i h_ne, h_frob_sq_eq_S]
     field_simp
 
@@ -1175,7 +1177,7 @@ theorem effectiveRank_eq_rank_of_flat_spectrum (E : Matrix n n ℂ) (hE : E ≠ 
     have h_eq : SVD.singularValues E i = 0 := by
       by_contra h_ne
       exact hi ((h_mem_S i).mpr h_ne)
-    simp only [normalizedSingularValueSq, if_neg h_frob_ne]
+    simp only [normalizedSingularValueSq, ite_eq_right h_frob_ne]
     rw [h_eq, sq, mul_zero, zero_div]
 
   -- Step 5: Compute entropy H = -∑ pᵢ·log(pᵢ) = -|S|·(1/|S|)·log(1/|S|) = log(|S|)
@@ -1266,7 +1268,7 @@ theorem stableRank_le_effectiveRank (E : Matrix n n ℂ) (hE : E ≠ 0) :
   have h_p_le : ∀ i, normalizedSingularValueSq E i ≤ ‖E‖ ^ 2 / frobeniusNorm' E ^ 2 := by
     intro i
     unfold normalizedSingularValueSq
-    rw [if_neg h_frob_pos.ne']
+    rw [ite_eq_right h_frob_pos.ne']
     exact div_le_div_of_nonneg_right
       (pow_le_pow_left₀ (SVD.singularValues_nonneg E i) (h_sv_le i) 2) (sq_nonneg _)
   -- Termwise, pᵢ log pᵢ ≤ pᵢ log pmax (both sides vanish when pᵢ = 0)
@@ -1277,7 +1279,7 @@ theorem stableRank_le_effectiveRank (E : Matrix n n ℂ) (hE : E ≠ 0) :
     intro i
     by_cases hp : normalizedSingularValueSq E i = 0
     · rw [hp, zero_mul, zero_mul]
-    · rw [if_neg hp]
+    · rw [ite_eq_right hp]
       have hp_pos : 0 < normalizedSingularValueSq E i :=
         lt_of_le_of_ne (normalizedSingularValueSq_nonneg E i) (Ne.symm hp)
       exact mul_le_mul_of_nonneg_left (Real.log_le_log hp_pos (h_p_le i)) hp_pos.le
@@ -1744,7 +1746,7 @@ theorem frobenius_spectral_distance_with_gap (A M : Matrix n n ℂ)
     have h_norm_eq : frobeniusNorm' (A - SVD.truncatedSVD A 1) ^ 2 =
                      ∑ i : n, (SVD.truncatedSingularValues_tail A 1 i)^2 := by
       -- The two norms are definitionally equal
-      convert h_frob_error using 1
+      exact h_frob_error
     rw [h_norm_eq]
     -- Step 2: Reindex from n to Fin (Fintype.card n)
     -- truncatedSingularValues_tail A 1 i = if 1 ≤ (e.symm i).val then singularValues₀ A (e.symm i) else 0

@@ -7,9 +7,10 @@ There are no `sorry`/`axiom`/`admit`, and it must stay that way.
 ## Layout
 
 - Lake project at the repo root:
-  - `lakefile.toml` sets `srcDir = "src"`.
-  - `lean-toolchain` pins `leanprover/lean4:v4.26.0-rc2`.
-  - `lake-manifest.json` pins Mathlib at `dc19f2a6…`.
+  - `lakefile.toml` sets `srcDir = "src"` and `allowNonModules = true` (Mathlib uses the module
+    system and these files do not; without it Lake warns on every Mathlib import).
+  - `lean-toolchain` pins `leanprover/lean4:v4.35.0`.
+  - `lake-manifest.json` pins Mathlib at `ccbef15e…`.
 - All Lean sources are flat in `src/`. Each file is its own `lean_lib` of the same name (module
   `SVD` = `src/SVD.lean`).
 - To add a file: add a `[[lean_lib]]` and put it in `defaultTargets`. The index check fails
@@ -38,8 +39,9 @@ python3 -I scripts/gen_index.py   # regenerate docs/INDEX.md after editing any .
 
 ### Cloud sessions (claude.ai/code)
 
-- The network policy blocks the Mathlib cache hosts (`lakecache.blob.core.windows.net`,
-  `mathlib4.lean-cache.cloud`) and `releases.lean-lang.org`.
+- The network policy blocks the Mathlib cache hosts (`cache.mathlib.org`, which `lake exe cache
+  get` reads from, and the Azure account behind it, `lakecache.blob.core.windows.net`) and
+  `releases.lean-lang.org`.
 - The SessionStart hook installs elan and the pinned toolchain from GitHub release assets, then
   clones Mathlib. It runs `lake exe cache get` only if a cache host answers, and otherwise
   prints a warning.
@@ -49,11 +51,13 @@ python3 -I scripts/gen_index.py   # regenerate docs/INDEX.md after editing any .
   - Run `python3 -I scripts/gen_index.py --check` (fast; catches lakefile and comment/scope
     damage).
   - Push and read the CI job log (GitHub MCP `get_job_logs`). A run takes about 4 minutes.
-- If the owner adds the cache hosts to the environment's allowed domains, local builds work.
+    Pushes to a branch without a PR do not start CI; start it with the GitHub MCP
+    `actions_run_trigger` (`run_workflow`, workflow `lean.yml`, `ref` = the branch).
+- If the owner adds `cache.mathlib.org` to the environment's allowed domains, local builds work.
 - Manual toolchain install, if the hook didn't run:
-  - Download `lean-4.26.0-rc2-linux.tar.zst` from the `leanprover/lean4` GitHub release.
+  - Download `lean-4.35.0-linux.tar.zst` from the `leanprover/lean4` GitHub release.
   - Decompress it with `zstd`, or with python `zstandard` if `zstd` is missing.
-  - Extract it to `~/.elan/toolchains/leanprover--lean4---v4.26.0-rc2`.
+  - Extract it to `~/.elan/toolchains/leanprover--lean4---v4.35.0`.
 
 ## Import graph (project-internal)
 
@@ -194,6 +198,24 @@ Traps:
   - `@[deprecated]` sits on the line above the declaration, so grep Mathlib and the toolchain's
     `Init` with `-B1` (e.g. `Fin.lt_iff_val_lt_val` is deprecated for `Fin.lt_def`). A deprecated
     name only warns.
+- **Toolchain traps** (met moving from Lean v4.26 / Mathlib dc19f2a to v4.35 / ccbef15):
+  - `if_pos`/`if_neg`/`dif_pos`/`dif_neg` are deprecated in core: use `ite_eq_left`/`ite_eq_right`/
+    `dite_eq_left`/`dite_eq_right` (same arguments). `push_neg` is deprecated: use `push Not`.
+  - Renamed Mathlib API: `Set.mem_setOf_eq` → `Set.mem_ofPred_eq`, `Set.restrict` →
+    `Set.domRestrict`, `Fin.coe_castLE` → `Fin.val_castLE`, `List.Sorted` → `List.Pairwise` /
+    `SortedGE` (`Antitone.sortedGE_ofFn`), `isHermitian_iff_isSymmetric` →
+    `isSymmetric_toEuclideanLin_iff` (direction flipped). `Matrix.toEuclideanLin` is now an abbrev
+    for `Matrix.toLpLin 2 2`, so rewrite with `Matrix.toLpLin_apply`. `spectralRadius` is a
+    supremum over the quasispectrum; use `spectralRadius_eq_of_unital` to get the spectrum.
+  - Defeq checks respect transparency more strictly. `convert … using k` may leave goals it
+    used to close, e.g. `k = ⟨↑k_succ - 1, _⟩` through a `let`, or `0 = ⟨0, _⟩`; finish them
+    with `Fin.ext (by simp [k_succ])`. `simpa using h` closes at reducible transparency
+    (`simpa using! h` is the old behaviour). `simp [norm_nonneg]` may not fire on an explicitly
+    instanced norm: use `@norm_nonneg _ inst _`. `unfold f` on the goal leaves hypotheses that
+    mention `f` ill-typed against it; rewrite without unfolding.
+  - Linters: `haveI` on a Prop goal must be `have`; a `def` of class type needs
+    `@[instance_reducible]`; a computable `def` that uses `Complex.instRCLike` needs
+    `noncomputable`.
 - **Corruption history:** main once had duplicated `section` lines, truncated and duplicated
   comment openers (Lean block comments nest, so a stray `/-` silently comments out the rest of
   the file) and a bogus proof step. If you see odd duplicated lines, suspect this. The index

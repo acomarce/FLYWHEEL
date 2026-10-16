@@ -97,76 +97,76 @@ rather than reading it whole. Files are listed so each comes after its imports.
 | `Matrix.SVD.eigenvalues_sq_multiset` | private lemma | [SVD.lean:645](../src/SVD.lean#L645) | Eigenvalues of A² equal (λᵢ)² as multisets (Hermitian A). |
 | `Matrix.SVD.singularValues_hermitian_multiset` | theorem | [SVD.lean:719](../src/SVD.lean#L719) | For a Hermitian matrix, the multiset of singular values equals the multiset of absolute values of eigenvalues. |
 | `Matrix.SVD.eigenvalues_diagonal_of_sorted` | private lemma | [SVD.lean:764](../src/SVD.lean#L764) | For a diagonal matrix with real entries sorted decreasingly, eigenvalues equal the entries. |
-| `Matrix.SVD.eigenvalues_sq` | lemma | [SVD.lean:830](../src/SVD.lean#L830) | For PSD A, the i-th eigenvalue of A² is the square of the i-th eigenvalue of A (same unsorted indexing). |
-| `Matrix.SVD.singularValues_posSemidef` | theorem | [SVD.lean:977](../src/SVD.lean#L977) | For a positive semidefinite matrix, singular values equal eigenvalues. |
-| `Matrix.SVD.sqrtConjTransposeMulSelf_eigenvalues` | theorem | [SVD.lean:1005](../src/SVD.lean#L1005) | The eigenvalues of √(Aᴴ*A) are the singular values of A. |
-| `Matrix.SVD.prod_sqrt_eq_sqrt_prod` | private lemma | [SVD.lean:1039](../src/SVD.lean#L1039) | Product of square roots equals square root of product for nonnegative functions. |
-| `Matrix.SVD.det_conjTranspose_mul_self` | private lemma | [SVD.lean:1052](../src/SVD.lean#L1052) | The determinant of Aᴴ * A equals the squared norm of det A. |
-| `Matrix.SVD.prod_singularValues_eq_abs_det` | theorem | [SVD.lean:1059](../src/SVD.lean#L1059) | The product of singular values equals the absolute value of the determinant. |
-| `Matrix.SVD.sum_sq_singularValues_eq_trace` | theorem | [SVD.lean:1085](../src/SVD.lean#L1085) | The sum of squared singular values equals Re trace(Aᴴ * A), which is the squared Frobenius norm. |
-| `Matrix.SVD.truncatedSingularValues` | def | [SVD.lean:1104](../src/SVD.lean#L1104) | Truncated singular values: keep first k (largest) singular values, zero the rest. |
-| `Matrix.SVD.truncatedSingularValues_nonneg` | theorem | [SVD.lean:1110](../src/SVD.lean#L1110) | Truncated singular values are non-negative. |
-| `Matrix.SVD.truncatedSingularValues_eq_of_lt` | theorem | [SVD.lean:1119](../src/SVD.lean#L1119) | Truncated singular values equal regular singular values for indices < k. |
-| `Matrix.SVD.truncatedSingularValues_eq_zero_of_ge` | theorem | [SVD.lean:1126](../src/SVD.lean#L1126) | Truncated singular values are zero for indices ≥ k. |
-| `Matrix.SVD.card_truncatedSingularValues_nonzero_le` | theorem | [SVD.lean:1135](../src/SVD.lean#L1135) | The number of nonzero truncated singular values is at most k. |
-| `Matrix.SVD.truncatedSVD` | def | [SVD.lean:1161](../src/SVD.lean#L1161) | The truncated SVD of rank k: Aₖ = U * Σₖ * Vᴴ where Σₖ keeps only the k largest singular values. |
-| `Matrix.SVD.truncatedSVD_zero` | theorem | [SVD.lean:1167](../src/SVD.lean#L1167) | The truncated SVD with k = 0 is the zero matrix. |
-| `Matrix.SVD.truncatedSVD_full` | theorem | [SVD.lean:1177](../src/SVD.lean#L1177) | The truncated SVD with k ≥ card n equals the original SVD (hence equals A). |
-| `Matrix.SVD.truncatedSVD_rank_le` | theorem | [SVD.lean:1216](../src/SVD.lean#L1216) | The rank of the truncated SVD is at most k. |
-| `Matrix.SVD.truncatedSingularValues_tail` | def | [SVD.lean:1250](../src/SVD.lean#L1250) | The tail of the SVD: singular values beyond the k-th. |
-| `Matrix.SVD.truncatedSingularValues_add_tail` | theorem | [SVD.lean:1256](../src/SVD.lean#L1256) | The truncated and tail singular values sum to the original. |
-| `Matrix.SVD.truncatedSVD_tail` | def | [SVD.lean:1271](../src/SVD.lean#L1271) | The tail of the truncated SVD. |
-| `Matrix.SVD.truncatedSVD_add_tail` | theorem | [SVD.lean:1277](../src/SVD.lean#L1277) | The original matrix equals the truncated SVD plus its tail: A = Aₖ + A_tail. |
-| `Matrix.SVD.Real.real_matrix_conjTranspose_eq_transpose` | lemma | [SVD.lean:1324](../src/SVD.lean#L1324) | A real matrix mapped to ℂ has Hermitian = Symmetric (transpose equals conjTranspose). |
-| `Matrix.SVD.Real.real_conjTranspose_mul_self` | lemma | [SVD.lean:1332](../src/SVD.lean#L1332) | For real A, Aᴴ * A = Aᵀ * A (as complex matrices). |
-| `Matrix.SVD.Real.real_symmetric_isHermitian` | lemma | [SVD.lean:1345](../src/SVD.lean#L1345) | A real symmetric matrix is Hermitian when viewed as complex. |
-| `Matrix.SVD.Real.transpose_mul_self_isSymm` | lemma | [SVD.lean:1356](../src/SVD.lean#L1356) | Aᵀ * A is symmetric for any real matrix A. |
-| `Matrix.SVD.Real.transpose_eq_conjTranspose` | private lemma | [SVD.lean:1361](../src/SVD.lean#L1361) | For real matrices, transpose = conjTranspose. |
-| `Matrix.SVD.Real.transpose_mul_self_isHermitian'` | private lemma | [SVD.lean:1369](../src/SVD.lean#L1369) | Aᵀ * A is Hermitian for real A (since transpose = conjTranspose). |
-| `Matrix.SVD.Real.eigenvalues_transpose_mul_self_nonneg` | lemma | [SVD.lean:1375](../src/SVD.lean#L1375) | Eigenvalues of Aᵀ*A are nonnegative for real A. |
-| `Matrix.SVD.Real.real_spectral_theorem` | private lemma | [SVD.lean:1390](../src/SVD.lean#L1390) | Spectral theorem for real Hermitian matrices in direct form: A = V * Λ * Vᵀ where V is orthogonal. |
-| `Matrix.SVD.Real.rightOrthogonal` | def | [SVD.lean:1413](../src/SVD.lean#L1413) | The right orthogonal matrix V for SVD, obtained from eigenvectors of Aᵀ * A. |
-| `Matrix.SVD.Real.realAV` | def | [SVD.lean:1418](../src/SVD.lean#L1418) | A * V, the key intermediate matrix for SVD construction. |
-| `Matrix.SVD.Real.singularValues` | def | [SVD.lean:1423](../src/SVD.lean#L1423) | The singular values of a real matrix: σᵢ = √λᵢ(Aᵀ A), with the unsorted eigenvalue indexing. |
-| `Matrix.SVD.Real.singularValues_nonneg` | theorem | [SVD.lean:1428](../src/SVD.lean#L1428) | Real singular values are nonnegative. |
-| `Matrix.SVD.Real.transpose_realAV_mul_realAV` | lemma | [SVD.lean:1432](../src/SVD.lean#L1432) | Key property: (A*V)ᵀ * (A*V) = diagonal of eigenvalues of Aᵀ*A. |
-| `Matrix.SVD.Real.realAV_columns_orthogonal` | lemma | [SVD.lean:1463](../src/SVD.lean#L1463) | Columns of A*V are orthogonal. |
-| `Matrix.SVD.Real.realAV_column_norm_sq` | lemma | [SVD.lean:1473](../src/SVD.lean#L1473) | Squared norm of column i of A*V equals σᵢ². |
-| `Matrix.SVD.Real.leftSingularVectorNonzero_real` | def | [SVD.lean:1484](../src/SVD.lean#L1484) | Left singular vector for nonzero σᵢ: uᵢ = (1/σᵢ) * (A*V)[:,i]. |
-| `Matrix.SVD.Real.leftSingularVectorEuclidean_real` | def | [SVD.lean:1489](../src/SVD.lean#L1489) | Left singular vector as EuclideanSpace element. |
-| `Matrix.SVD.Real.leftSingularVectorExtended_real` | def | [SVD.lean:1494](../src/SVD.lean#L1494) | Extended function: left singular vector for nonzero σ, 0 for zero σ. |
-| `Matrix.SVD.Real.nonzeroSingularIndices_real` | def | [SVD.lean:1500](../src/SVD.lean#L1500) | Set of indices with nonzero singular values. |
-| `Matrix.SVD.Real.inner_euclidean_eq_sum_real` | private lemma | [SVD.lean:1505](../src/SVD.lean#L1505) | Inner product on EuclideanSpace ℝ n equals sum formula. |
-| `Matrix.SVD.Real.leftSingularVectorExtended_orthonormal_on_nonzero_real` | theorem | [SVD.lean:1512](../src/SVD.lean#L1512) | Left singular vectors (on nonzero singular value indices) are orthonormal. |
-| `Matrix.SVD.Real.extendedONB_real` | def | [SVD.lean:1549](../src/SVD.lean#L1549) | Extend orthonormal left singular vectors to a full orthonormal basis. |
-| `Matrix.SVD.Real.extendedONB_real_spec` | theorem | [SVD.lean:1555](../src/SVD.lean#L1555) | The extended ONB agrees with left singular vectors on nonzero singular value indices. |
-| `Matrix.SVD.Real.onbToMatrix_real` | def | [SVD.lean:1561](../src/SVD.lean#L1561) | Convert an orthonormal basis of EuclideanSpace ℝ n to a matrix (column j = basis vector j). |
-| `Matrix.SVD.Real.onbToMatrix_real_mem_orthogonalGroup` | theorem | [SVD.lean:1565](../src/SVD.lean#L1565) | A matrix built from an orthonormal basis is orthogonal. |
-| `Matrix.SVD.Real.constructedU_real` | def | [SVD.lean:1577](../src/SVD.lean#L1577) | The constructed orthogonal matrix U for real SVD. |
-| `Matrix.SVD.Real.constructedU_real_column_eq` | theorem | [SVD.lean:1581](../src/SVD.lean#L1581) | Column j of constructed U equals the left singular vector when σⱼ ≠ 0. |
-| `Matrix.SVD.Real.realAV_column_zero_of_singularValue_zero` | lemma | [SVD.lean:1593](../src/SVD.lean#L1593) | When σᵢ = 0, column i of A*V is zero. |
-| `Matrix.SVD.Real.realAV_eq_constructedU_real_mul_sigma` | theorem | [SVD.lean:1608](../src/SVD.lean#L1608) | Key relationship: A * V = U * Σ for real matrices. |
-| `Matrix.SVD.Real.svd_decomposition` | theorem | [SVD.lean:1645](../src/SVD.lean#L1645) | **Real SVD Theorem**: Any square real matrix A can be decomposed as A = U * Σ * Vᵀ where U and V are orthogon… |
-| `PosSemidef_eigenvalues₀_nonneg` | lemma | [SVD.lean:1680](../src/SVD.lean#L1680) | eigenvalues₀ are nonneg for PosSemidef matrices. |
-| `antitone_nonneg_zeros_after_rank` | lemma | [SVD.lean:1691](../src/SVD.lean#L1691) | For an antitone nonneg function on Fin n, if only the first k values can be nonzero, then values at indices ≥… |
-| `Matrix.SVD.Rectangular.card_nonzero_eigenvalues₀_eq_card_nonzero_eigenvalues` | lemma | [SVD.lean:1748](../src/SVD.lean#L1748) | Card of nonzero eigenvalues equals card of nonzero eigenvalues₀ via bijection. |
-| `Matrix.SVD.Rectangular.eigenvalues₀_zero_beyond_rank` | lemma | [SVD.lean:1779](../src/SVD.lean#L1779) | Eigenvalues₀ of Aᴴ*A at indices ≥ rank(A) are zero. |
-| `Matrix.SVD.Rectangular.singularValues` | def | [SVD.lean:1824](../src/SVD.lean#L1824) | Singular values for rectangular m × n matrices, indexed by `Fin (min (#m) (#n))`. |
-| `Matrix.SVD.Rectangular.singularValues_nonneg` | theorem | [SVD.lean:1833](../src/SVD.lean#L1833) | Singular values are non-negative. |
-| `Matrix.SVD.Rectangular.rightUnitary` | def | [SVD.lean:1846](../src/SVD.lean#L1846) | Right singular vectors V: the eigenvector unitary of Aᴴ*A (n×n matrix). |
-| `Matrix.SVD.Rectangular.eigenvaluesBijection` | def | [SVD.lean:1853](../src/SVD.lean#L1853) | The bijection used by eigenvalues to map a Fintype to `Fin (card α)`. |
-| `Matrix.SVD.Rectangular.rectDiagonal` | def | [SVD.lean:1868](../src/SVD.lean#L1868) | The rectangular "diagonal" matrix `Matrix m n ℂ` with diagonal entries `σ : Fin (min #m #n) → ℝ`. |
-| `Matrix.SVD.Rectangular.singularDiagonal` | def | [SVD.lean:1887](../src/SVD.lean#L1887) | The rectangular "diagonal" matrix S : Matrix m n ℂ containing singular values. |
-| `Matrix.SVD.Rectangular.singularDiagonal_eq_rectDiagonal` | theorem | [SVD.lean:1897](../src/SVD.lean#L1897) | `singularDiagonal A` is the rectangular diagonal matrix of the singular values of `A`. |
-| `Matrix.SVD.Rectangular.embedMinToM` | def | [SVD.lean:1915](../src/SVD.lean#L1915) | Embed an index from `Fin (min #m #n)` into the type `m`. |
-| `Matrix.SVD.Rectangular.embedMinToN` | def | [SVD.lean:1920](../src/SVD.lean#L1920) | Embed an index from `Fin (min #m #n)` into the type `n`. |
-| `Matrix.SVD.Rectangular.embedMinToM_injective` | theorem | [SVD.lean:1925](../src/SVD.lean#L1925) | The embedding `embedMinToM` is injective. |
-| `Matrix.SVD.Rectangular.embedMinToN_injective` | theorem | [SVD.lean:1935](../src/SVD.lean#L1935) | The embedding `embedMinToN` is injective. |
-| `Matrix.SVD.Rectangular.eigenvaluesBijection_embedMinToN` | theorem | [SVD.lean:1949](../src/SVD.lean#L1949) | The eigenvalues bijection composed with embedMinToN recovers castLE. |
-| `Matrix.SVD.Rectangular.embedMinToN_eigenvaluesBijection_inverse` | theorem | [SVD.lean:1957](../src/SVD.lean#L1957) | Inverse direction: from a Fin index in range, we can find the corresponding element of n that maps back to it. |
-| `Matrix.SVD.Rectangular.eigenvalues_at_embedMinToN_eq_eigenvalues₀_castLE` | theorem | [SVD.lean:1967](../src/SVD.lean#L1967) | The eigenvalue at embedMinToN(k) equals the eigenvalue at castLE(k). |
-| `Matrix.SVD.Rectangular.finMinOfAbstract` | def | [SVD.lean:1981](../src/SVD.lean#L1981) | For j : n with eigenvaluesBijection(j).val < min, we can convert j to a Fin min index. |
-| `Matrix.SVD.Rectangular.embedMinToN_finMinOfAbstract` | theorem | [SVD.lean:1988](../src/SVD.lean#L1988) | The conversion finMinOfAbstract is inverse to embedMinToN when applied appropriately. |
+| `Matrix.SVD.eigenvalues_sq` | lemma | [SVD.lean:831](../src/SVD.lean#L831) | For PSD A, the i-th eigenvalue of A² is the square of the i-th eigenvalue of A (same unsorted indexing). |
+| `Matrix.SVD.singularValues_posSemidef` | theorem | [SVD.lean:978](../src/SVD.lean#L978) | For a positive semidefinite matrix, singular values equal eigenvalues. |
+| `Matrix.SVD.sqrtConjTransposeMulSelf_eigenvalues` | theorem | [SVD.lean:1006](../src/SVD.lean#L1006) | The eigenvalues of √(Aᴴ*A) are the singular values of A. |
+| `Matrix.SVD.prod_sqrt_eq_sqrt_prod` | private lemma | [SVD.lean:1040](../src/SVD.lean#L1040) | Product of square roots equals square root of product for nonnegative functions. |
+| `Matrix.SVD.det_conjTranspose_mul_self` | private lemma | [SVD.lean:1053](../src/SVD.lean#L1053) | The determinant of Aᴴ * A equals the squared norm of det A. |
+| `Matrix.SVD.prod_singularValues_eq_abs_det` | theorem | [SVD.lean:1060](../src/SVD.lean#L1060) | The product of singular values equals the absolute value of the determinant. |
+| `Matrix.SVD.sum_sq_singularValues_eq_trace` | theorem | [SVD.lean:1086](../src/SVD.lean#L1086) | The sum of squared singular values equals Re trace(Aᴴ * A), which is the squared Frobenius norm. |
+| `Matrix.SVD.truncatedSingularValues` | def | [SVD.lean:1105](../src/SVD.lean#L1105) | Truncated singular values: keep first k (largest) singular values, zero the rest. |
+| `Matrix.SVD.truncatedSingularValues_nonneg` | theorem | [SVD.lean:1111](../src/SVD.lean#L1111) | Truncated singular values are non-negative. |
+| `Matrix.SVD.truncatedSingularValues_eq_of_lt` | theorem | [SVD.lean:1120](../src/SVD.lean#L1120) | Truncated singular values equal regular singular values for indices < k. |
+| `Matrix.SVD.truncatedSingularValues_eq_zero_of_ge` | theorem | [SVD.lean:1127](../src/SVD.lean#L1127) | Truncated singular values are zero for indices ≥ k. |
+| `Matrix.SVD.card_truncatedSingularValues_nonzero_le` | theorem | [SVD.lean:1136](../src/SVD.lean#L1136) | The number of nonzero truncated singular values is at most k. |
+| `Matrix.SVD.truncatedSVD` | def | [SVD.lean:1162](../src/SVD.lean#L1162) | The truncated SVD of rank k: Aₖ = U * Σₖ * Vᴴ where Σₖ keeps only the k largest singular values. |
+| `Matrix.SVD.truncatedSVD_zero` | theorem | [SVD.lean:1168](../src/SVD.lean#L1168) | The truncated SVD with k = 0 is the zero matrix. |
+| `Matrix.SVD.truncatedSVD_full` | theorem | [SVD.lean:1178](../src/SVD.lean#L1178) | The truncated SVD with k ≥ card n equals the original SVD (hence equals A). |
+| `Matrix.SVD.truncatedSVD_rank_le` | theorem | [SVD.lean:1217](../src/SVD.lean#L1217) | The rank of the truncated SVD is at most k. |
+| `Matrix.SVD.truncatedSingularValues_tail` | def | [SVD.lean:1251](../src/SVD.lean#L1251) | The tail of the SVD: singular values beyond the k-th. |
+| `Matrix.SVD.truncatedSingularValues_add_tail` | theorem | [SVD.lean:1257](../src/SVD.lean#L1257) | The truncated and tail singular values sum to the original. |
+| `Matrix.SVD.truncatedSVD_tail` | def | [SVD.lean:1272](../src/SVD.lean#L1272) | The tail of the truncated SVD. |
+| `Matrix.SVD.truncatedSVD_add_tail` | theorem | [SVD.lean:1278](../src/SVD.lean#L1278) | The original matrix equals the truncated SVD plus its tail: A = Aₖ + A_tail. |
+| `Matrix.SVD.Real.real_matrix_conjTranspose_eq_transpose` | lemma | [SVD.lean:1325](../src/SVD.lean#L1325) | A real matrix mapped to ℂ has Hermitian = Symmetric (transpose equals conjTranspose). |
+| `Matrix.SVD.Real.real_conjTranspose_mul_self` | lemma | [SVD.lean:1333](../src/SVD.lean#L1333) | For real A, Aᴴ * A = Aᵀ * A (as complex matrices). |
+| `Matrix.SVD.Real.real_symmetric_isHermitian` | lemma | [SVD.lean:1346](../src/SVD.lean#L1346) | A real symmetric matrix is Hermitian when viewed as complex. |
+| `Matrix.SVD.Real.transpose_mul_self_isSymm` | lemma | [SVD.lean:1357](../src/SVD.lean#L1357) | Aᵀ * A is symmetric for any real matrix A. |
+| `Matrix.SVD.Real.transpose_eq_conjTranspose` | private lemma | [SVD.lean:1362](../src/SVD.lean#L1362) | For real matrices, transpose = conjTranspose. |
+| `Matrix.SVD.Real.transpose_mul_self_isHermitian'` | private lemma | [SVD.lean:1370](../src/SVD.lean#L1370) | Aᵀ * A is Hermitian for real A (since transpose = conjTranspose). |
+| `Matrix.SVD.Real.eigenvalues_transpose_mul_self_nonneg` | lemma | [SVD.lean:1376](../src/SVD.lean#L1376) | Eigenvalues of Aᵀ*A are nonnegative for real A. |
+| `Matrix.SVD.Real.real_spectral_theorem` | private lemma | [SVD.lean:1391](../src/SVD.lean#L1391) | Spectral theorem for real Hermitian matrices in direct form: A = V * Λ * Vᵀ where V is orthogonal. |
+| `Matrix.SVD.Real.rightOrthogonal` | def | [SVD.lean:1414](../src/SVD.lean#L1414) | The right orthogonal matrix V for SVD, obtained from eigenvectors of Aᵀ * A. |
+| `Matrix.SVD.Real.realAV` | def | [SVD.lean:1419](../src/SVD.lean#L1419) | A * V, the key intermediate matrix for SVD construction. |
+| `Matrix.SVD.Real.singularValues` | def | [SVD.lean:1424](../src/SVD.lean#L1424) | The singular values of a real matrix: σᵢ = √λᵢ(Aᵀ A), with the unsorted eigenvalue indexing. |
+| `Matrix.SVD.Real.singularValues_nonneg` | theorem | [SVD.lean:1429](../src/SVD.lean#L1429) | Real singular values are nonnegative. |
+| `Matrix.SVD.Real.transpose_realAV_mul_realAV` | lemma | [SVD.lean:1433](../src/SVD.lean#L1433) | Key property: (A*V)ᵀ * (A*V) = diagonal of eigenvalues of Aᵀ*A. |
+| `Matrix.SVD.Real.realAV_columns_orthogonal` | lemma | [SVD.lean:1464](../src/SVD.lean#L1464) | Columns of A*V are orthogonal. |
+| `Matrix.SVD.Real.realAV_column_norm_sq` | lemma | [SVD.lean:1474](../src/SVD.lean#L1474) | Squared norm of column i of A*V equals σᵢ². |
+| `Matrix.SVD.Real.leftSingularVectorNonzero_real` | def | [SVD.lean:1485](../src/SVD.lean#L1485) | Left singular vector for nonzero σᵢ: uᵢ = (1/σᵢ) * (A*V)[:,i]. |
+| `Matrix.SVD.Real.leftSingularVectorEuclidean_real` | def | [SVD.lean:1490](../src/SVD.lean#L1490) | Left singular vector as EuclideanSpace element. |
+| `Matrix.SVD.Real.leftSingularVectorExtended_real` | def | [SVD.lean:1495](../src/SVD.lean#L1495) | Extended function: left singular vector for nonzero σ, 0 for zero σ. |
+| `Matrix.SVD.Real.nonzeroSingularIndices_real` | def | [SVD.lean:1501](../src/SVD.lean#L1501) | Set of indices with nonzero singular values. |
+| `Matrix.SVD.Real.inner_euclidean_eq_sum_real` | private lemma | [SVD.lean:1506](../src/SVD.lean#L1506) | Inner product on EuclideanSpace ℝ n equals sum formula. |
+| `Matrix.SVD.Real.leftSingularVectorExtended_orthonormal_on_nonzero_real` | theorem | [SVD.lean:1513](../src/SVD.lean#L1513) | Left singular vectors (on nonzero singular value indices) are orthonormal. |
+| `Matrix.SVD.Real.extendedONB_real` | def | [SVD.lean:1550](../src/SVD.lean#L1550) | Extend orthonormal left singular vectors to a full orthonormal basis. |
+| `Matrix.SVD.Real.extendedONB_real_spec` | theorem | [SVD.lean:1556](../src/SVD.lean#L1556) | The extended ONB agrees with left singular vectors on nonzero singular value indices. |
+| `Matrix.SVD.Real.onbToMatrix_real` | def | [SVD.lean:1562](../src/SVD.lean#L1562) | Convert an orthonormal basis of EuclideanSpace ℝ n to a matrix (column j = basis vector j). |
+| `Matrix.SVD.Real.onbToMatrix_real_mem_orthogonalGroup` | theorem | [SVD.lean:1566](../src/SVD.lean#L1566) | A matrix built from an orthonormal basis is orthogonal. |
+| `Matrix.SVD.Real.constructedU_real` | def | [SVD.lean:1578](../src/SVD.lean#L1578) | The constructed orthogonal matrix U for real SVD. |
+| `Matrix.SVD.Real.constructedU_real_column_eq` | theorem | [SVD.lean:1582](../src/SVD.lean#L1582) | Column j of constructed U equals the left singular vector when σⱼ ≠ 0. |
+| `Matrix.SVD.Real.realAV_column_zero_of_singularValue_zero` | lemma | [SVD.lean:1594](../src/SVD.lean#L1594) | When σᵢ = 0, column i of A*V is zero. |
+| `Matrix.SVD.Real.realAV_eq_constructedU_real_mul_sigma` | theorem | [SVD.lean:1609](../src/SVD.lean#L1609) | Key relationship: A * V = U * Σ for real matrices. |
+| `Matrix.SVD.Real.svd_decomposition` | theorem | [SVD.lean:1646](../src/SVD.lean#L1646) | **Real SVD Theorem**: Any square real matrix A can be decomposed as A = U * Σ * Vᵀ where U and V are orthogon… |
+| `PosSemidef_eigenvalues₀_nonneg` | lemma | [SVD.lean:1681](../src/SVD.lean#L1681) | eigenvalues₀ are nonneg for PosSemidef matrices. |
+| `antitone_nonneg_zeros_after_rank` | lemma | [SVD.lean:1692](../src/SVD.lean#L1692) | For an antitone nonneg function on Fin n, if only the first k values can be nonzero, then values at indices ≥… |
+| `Matrix.SVD.Rectangular.card_nonzero_eigenvalues₀_eq_card_nonzero_eigenvalues` | lemma | [SVD.lean:1749](../src/SVD.lean#L1749) | Card of nonzero eigenvalues equals card of nonzero eigenvalues₀ via bijection. |
+| `Matrix.SVD.Rectangular.eigenvalues₀_zero_beyond_rank` | lemma | [SVD.lean:1780](../src/SVD.lean#L1780) | Eigenvalues₀ of Aᴴ*A at indices ≥ rank(A) are zero. |
+| `Matrix.SVD.Rectangular.singularValues` | def | [SVD.lean:1825](../src/SVD.lean#L1825) | Singular values for rectangular m × n matrices, indexed by `Fin (min (#m) (#n))`. |
+| `Matrix.SVD.Rectangular.singularValues_nonneg` | theorem | [SVD.lean:1834](../src/SVD.lean#L1834) | Singular values are non-negative. |
+| `Matrix.SVD.Rectangular.rightUnitary` | def | [SVD.lean:1847](../src/SVD.lean#L1847) | Right singular vectors V: the eigenvector unitary of Aᴴ*A (n×n matrix). |
+| `Matrix.SVD.Rectangular.eigenvaluesBijection` | def | [SVD.lean:1854](../src/SVD.lean#L1854) | The bijection used by eigenvalues to map a Fintype to `Fin (card α)`. |
+| `Matrix.SVD.Rectangular.rectDiagonal` | def | [SVD.lean:1869](../src/SVD.lean#L1869) | The rectangular "diagonal" matrix `Matrix m n ℂ` with diagonal entries `σ : Fin (min #m #n) → ℝ`. |
+| `Matrix.SVD.Rectangular.singularDiagonal` | def | [SVD.lean:1888](../src/SVD.lean#L1888) | The rectangular "diagonal" matrix S : Matrix m n ℂ containing singular values. |
+| `Matrix.SVD.Rectangular.singularDiagonal_eq_rectDiagonal` | theorem | [SVD.lean:1898](../src/SVD.lean#L1898) | `singularDiagonal A` is the rectangular diagonal matrix of the singular values of `A`. |
+| `Matrix.SVD.Rectangular.embedMinToM` | def | [SVD.lean:1916](../src/SVD.lean#L1916) | Embed an index from `Fin (min #m #n)` into the type `m`. |
+| `Matrix.SVD.Rectangular.embedMinToN` | def | [SVD.lean:1921](../src/SVD.lean#L1921) | Embed an index from `Fin (min #m #n)` into the type `n`. |
+| `Matrix.SVD.Rectangular.embedMinToM_injective` | theorem | [SVD.lean:1926](../src/SVD.lean#L1926) | The embedding `embedMinToM` is injective. |
+| `Matrix.SVD.Rectangular.embedMinToN_injective` | theorem | [SVD.lean:1936](../src/SVD.lean#L1936) | The embedding `embedMinToN` is injective. |
+| `Matrix.SVD.Rectangular.eigenvaluesBijection_embedMinToN` | theorem | [SVD.lean:1950](../src/SVD.lean#L1950) | The eigenvalues bijection composed with embedMinToN recovers castLE. |
+| `Matrix.SVD.Rectangular.embedMinToN_eigenvaluesBijection_inverse` | theorem | [SVD.lean:1958](../src/SVD.lean#L1958) | Inverse direction: from a Fin index in range, we can find the corresponding element of n that maps back to it. |
+| `Matrix.SVD.Rectangular.eigenvalues_at_embedMinToN_eq_eigenvalues₀_castLE` | theorem | [SVD.lean:1968](../src/SVD.lean#L1968) | The eigenvalue at embedMinToN(k) equals the eigenvalue at castLE(k). |
+| `Matrix.SVD.Rectangular.finMinOfAbstract` | def | [SVD.lean:1982](../src/SVD.lean#L1982) | For j : n with eigenvaluesBijection(j).val < min, we can convert j to a Fin min index. |
+| `Matrix.SVD.Rectangular.embedMinToN_finMinOfAbstract` | theorem | [SVD.lean:1989](../src/SVD.lean#L1989) | The conversion finMinOfAbstract is inverse to embedMinToN when applied appropriately. |
 | `Matrix.SVD.Rectangular.singularValues_eq_sqrt_eigenvalues_at_embedMinToN` | theorem | [SVD.lean:2000](../src/SVD.lean#L2000) | Key bridge for proofs: singularValues at k equals sqrt of eigenvalue at embedMinToN k. |
 | `Matrix.SVD.Rectangular.X_pow_mul_ne_zero` | private lemma | [SVD.lean:2012](../src/SVD.lean#L2012) | Helper: X^k * p ≠ 0 when p ≠ 0 over ℂ[X]. |
 | `Matrix.SVD.Rectangular.mem_roots_X_pow_mul_iff_of_ne_zero` | private lemma | [SVD.lean:2017](../src/SVD.lean#L2017) | Helper: For μ ≠ 0, μ ∈ roots(X^k * p) ↔ μ ∈ roots(p). |
@@ -189,8 +189,8 @@ rather than reading it whole. Files are listed so each comes after its imports.
 | `Matrix.SVD.Rectangular.frobeniusNorm_sq_eq_sum_singularValues_sq_rect` | theorem | [SVD.lean:2565](../src/SVD.lean#L2565) | **Frobenius norm squared equals sum of squared singular values** for rectangular matrices. |
 | `Matrix.SVD.Rectangular.frobeniusNorm_eq_sqrt_sum_singularValues_sq_rect` | theorem | [SVD.lean:2597](../src/SVD.lean#L2597) | **Frobenius norm equals square root of sum of squared singular values** for rectangular matrices. |
 | `Finset.sup'_sq_eq_sq_sup'` | theorem | [SVD.lean:2613](../src/SVD.lean#L2613) | For nonnegative values, the supremum of the squares is the square of the supremum: sup(f²) = (sup f)². |
-| `instCStarAlgebraMatrixLocal` | private def | [SVD.lean:2659](../src/SVD.lean#L2659) | The CStarAlgebra instance for complex matrices with L2 operator norm. |
-| `Matrix.SpectralNorm.hermitian_spectralRadius_eq_sup_abs_eigenvalues` | theorem | [SVD.lean:2672](../src/SVD.lean#L2672) | The spectral radius of a Hermitian matrix equals the supremum of absolute eigenvalues. |
+| `instCStarAlgebraMatrixLocal` | private def | [SVD.lean:2660](../src/SVD.lean#L2660) | The CStarAlgebra instance for complex matrices with L2 operator norm. |
+| `Matrix.SpectralNorm.hermitian_spectralRadius_eq_sup_abs_eigenvalues` | theorem | [SVD.lean:2673](../src/SVD.lean#L2673) | The spectral radius of a Hermitian matrix equals the supremum of absolute eigenvalues. |
 | `Matrix.SpectralNorm.l2_opNorm_hermitian_eq_sup_abs_eigenvalues` | theorem | [SVD.lean:2692](../src/SVD.lean#L2692) | For a Hermitian matrix, ‖H‖₂ = max \|λᵢ\| where λᵢ are eigenvalues. |
 | `Matrix.SVD.Rectangular.maxSingularValue` | def | [SVD.lean:2703](../src/SVD.lean#L2703) | The largest singular value of a rectangular matrix. |
 | `Matrix.SVD.Rectangular.spectral_norm_sq_eq_max_eigenvalue_rect` | theorem | [SVD.lean:2710](../src/SVD.lean#L2710) | **Spectral norm squared equals max eigenvalue of Aᴴ*A** for rectangular matrices. |
@@ -316,26 +316,26 @@ rather than reading it whole. Files are listed so each comes after its imports.
 | `Matrix.WeylInequality.rayleigh_add` | theorem | [WeylInequality.lean:50](../src/WeylInequality.lean#L50) | The real part of the Rayleigh quotient is additive in the matrix. |
 | `Matrix.WeylInequality.minEigenvalueIdx` | def | [WeylInequality.lean:81](../src/WeylInequality.lean#L81) | The minimum eigenvalue index (last index in sorted order). |
 | `Matrix.WeylInequality.weyl_eigenvalue_lower_bound` | theorem | [WeylInequality.lean:88](../src/WeylInequality.lean#L88) | **Weyl's Lower Bound**: For Hermitian A, B: λₖ(A+B) ≥ λₖ(A) + λₙ₋₁(B) |
-| `Matrix.WeylInequality.weyl_eigenvalue_upper_bound` | theorem | [WeylInequality.lean:244](../src/WeylInequality.lean#L244) | **Weyl's Upper Bound**: For Hermitian A, B: λₖ(A+B) ≤ λₖ(A) + λ₀(B) |
-| `Matrix.WeylInequality.weyl_eigenvalue_bounds` | theorem | [WeylInequality.lean:370](../src/WeylInequality.lean#L370) | **Weyl's Combined Bounds**: For Hermitian A, B: λₖ(A) + λₙ₋₁(B) ≤ λₖ(A+B) ≤ λₖ(A) + λ₀(B) |
-| `Matrix.WeylInequality.eigenvalues₀_zero_from_rank_bound` | lemma | [WeylInequality.lean:397](../src/WeylInequality.lean#L397) | eigenvalues₀ at index ≥ rank are zero for square Hermitian PSD matrices. |
-| `Matrix.WeylInequality.norm_toEuclideanLin_sq_le_singularValue₀_sq` | lemma | [WeylInequality.lean:432](../src/WeylInequality.lean#L432) | For a unit vector x, ‖Mx‖² ≤ σ₁(M)² = λ₁(MᴴM). |
-| `Matrix.WeylInequality.norm_toEuclideanLin_le_singularValue₀` | lemma | [WeylInequality.lean:449](../src/WeylInequality.lean#L449) | For a unit vector x, ‖Mx‖ ≤ σ₁(M). |
-| `Matrix.WeylInequality.toEuclideanLin_sub` | lemma | [WeylInequality.lean:460](../src/WeylInequality.lean#L460) | `toEuclideanLin` is subtractive in the matrix: (A - B)x = Ax - Bx. |
-| `Matrix.WeylInequality.norm_toEuclideanLin_le_add_singularValue₀` | lemma | [WeylInequality.lean:466](../src/WeylInequality.lean#L466) | For unit x: ‖Ax‖ ≤ ‖Bx‖ + ‖(A-B)x‖ ≤ ‖Bx‖ + σ₁(A-B). |
-| `Matrix.WeylInequality.weyl_singularValue_upper_aux` | theorem | [WeylInequality.lean:484](../src/WeylInequality.lean#L484) | **Weyl's Singular Value Perturbation** (one direction): σₖ(A) ≤ σₖ(B) + σ₁(A - B) |
-| `Matrix.WeylInequality.singularValues₀_neg` | theorem | [WeylInequality.lean:652](../src/WeylInequality.lean#L652) | Singular values of -M equal those of M: σₖ(-M) = σₖ(M). |
-| `Matrix.WeylInequality.weyl_singularValue_perturbation` | theorem | [WeylInequality.lean:669](../src/WeylInequality.lean#L669) | **Weyl's Singular Value Perturbation Bound**: \|σₖ(A) - σₖ(B)\| ≤ σ₁(A - B) |
-| `Matrix.WeylInequality.singularValue_perturbation_zero_at_j` | theorem | [WeylInequality.lean:691](../src/WeylInequality.lean#L691) | If σⱼ(C) = 0 (for instance rank C ≤ j), then σⱼ(A) ≤ σ₀(A - C), by Weyl's perturbation bound. |
-| `Matrix.WeylInequality.toEuclideanLin_eq_on_ker` | theorem | [WeylInequality.lean:709](../src/WeylInequality.lean#L709) | Helper: On the kernel of B, the linear maps of A and A + B coincide (rectangular A, B). |
-| `Matrix.WeylInequality.norm_add_eq_on_ker` | theorem | [WeylInequality.lean:720](../src/WeylInequality.lean#L720) | Helper: The norm of (A + B)x equals ‖Ax‖ when Bx = 0 (rectangular A, B). |
-| `Matrix.WeylInequality.finrank_ker_toEuclideanLin_ge'` | lemma | [WeylInequality.lean:729](../src/WeylInequality.lean#L729) | The kernel of toEuclideanLin C has dimension at least n - rank(C), for rectangular C. |
-| `Matrix.WeylInequality.thompson_interlacing_eigenvalues` | theorem | [WeylInequality.lean:763](../src/WeylInequality.lean#L763) | **Thompson interlacing, eigenvalue form (rectangular).** For A, B : Matrix m n ℂ with rank(B) ≤ r and i + r <… |
-| `Matrix.WeylInequality.thompson_interlacing` | theorem | [WeylInequality.lean:970](../src/WeylInequality.lean#L970) | **Thompson's Singular Value Interlacing Inequality** |
-| `Matrix.WeylInequality.thompson_interlacing_rect` | theorem | [WeylInequality.lean:982](../src/WeylInequality.lean#L982) | **Thompson interlacing for rectangular matrices:** if rank(B) ≤ r and i + r < min(#m, #n), then σ_{i+r}(A) ≤… |
-| `Matrix.WeylInequality.interlacing_low_rank_subtraction_rect` | theorem | [WeylInequality.lean:1004](../src/WeylInequality.lean#L1004) | **Low-rank interlacing for rectangular matrices:** if rank(C) ≤ k and k ≤ j, then σⱼ(A) ≤ σ_{j-k}(A - C) for… |
-| `Matrix.WeylInequality.interlacing_low_rank_subtraction` | theorem | [WeylInequality.lean:1043](../src/WeylInequality.lean#L1043) | **Thompson Interlacing for Low-Rank Subtraction** |
-| `Matrix.WeylInequality.interlacing_for_eckart_young` | theorem | [WeylInequality.lean:1076](../src/WeylInequality.lean#L1076) | `interlacing_low_rank_subtraction` with the index j given as a natural number: rank C ≤ k ≤ j < n gives σⱼ(A)… |
+| `Matrix.WeylInequality.weyl_eigenvalue_upper_bound` | theorem | [WeylInequality.lean:245](../src/WeylInequality.lean#L245) | **Weyl's Upper Bound**: For Hermitian A, B: λₖ(A+B) ≤ λₖ(A) + λ₀(B) |
+| `Matrix.WeylInequality.weyl_eigenvalue_bounds` | theorem | [WeylInequality.lean:372](../src/WeylInequality.lean#L372) | **Weyl's Combined Bounds**: For Hermitian A, B: λₖ(A) + λₙ₋₁(B) ≤ λₖ(A+B) ≤ λₖ(A) + λ₀(B) |
+| `Matrix.WeylInequality.eigenvalues₀_zero_from_rank_bound` | lemma | [WeylInequality.lean:399](../src/WeylInequality.lean#L399) | eigenvalues₀ at index ≥ rank are zero for square Hermitian PSD matrices. |
+| `Matrix.WeylInequality.norm_toEuclideanLin_sq_le_singularValue₀_sq` | lemma | [WeylInequality.lean:434](../src/WeylInequality.lean#L434) | For a unit vector x, ‖Mx‖² ≤ σ₁(M)² = λ₁(MᴴM). |
+| `Matrix.WeylInequality.norm_toEuclideanLin_le_singularValue₀` | lemma | [WeylInequality.lean:451](../src/WeylInequality.lean#L451) | For a unit vector x, ‖Mx‖ ≤ σ₁(M). |
+| `Matrix.WeylInequality.toEuclideanLin_sub` | lemma | [WeylInequality.lean:462](../src/WeylInequality.lean#L462) | `toEuclideanLin` is subtractive in the matrix: (A - B)x = Ax - Bx. |
+| `Matrix.WeylInequality.norm_toEuclideanLin_le_add_singularValue₀` | lemma | [WeylInequality.lean:468](../src/WeylInequality.lean#L468) | For unit x: ‖Ax‖ ≤ ‖Bx‖ + ‖(A-B)x‖ ≤ ‖Bx‖ + σ₁(A-B). |
+| `Matrix.WeylInequality.weyl_singularValue_upper_aux` | theorem | [WeylInequality.lean:486](../src/WeylInequality.lean#L486) | **Weyl's Singular Value Perturbation** (one direction): σₖ(A) ≤ σₖ(B) + σ₁(A - B) |
+| `Matrix.WeylInequality.singularValues₀_neg` | theorem | [WeylInequality.lean:654](../src/WeylInequality.lean#L654) | Singular values of -M equal those of M: σₖ(-M) = σₖ(M). |
+| `Matrix.WeylInequality.weyl_singularValue_perturbation` | theorem | [WeylInequality.lean:671](../src/WeylInequality.lean#L671) | **Weyl's Singular Value Perturbation Bound**: \|σₖ(A) - σₖ(B)\| ≤ σ₁(A - B) |
+| `Matrix.WeylInequality.singularValue_perturbation_zero_at_j` | theorem | [WeylInequality.lean:693](../src/WeylInequality.lean#L693) | If σⱼ(C) = 0 (for instance rank C ≤ j), then σⱼ(A) ≤ σ₀(A - C), by Weyl's perturbation bound. |
+| `Matrix.WeylInequality.toEuclideanLin_eq_on_ker` | theorem | [WeylInequality.lean:711](../src/WeylInequality.lean#L711) | Helper: On the kernel of B, the linear maps of A and A + B coincide (rectangular A, B). |
+| `Matrix.WeylInequality.norm_add_eq_on_ker` | theorem | [WeylInequality.lean:722](../src/WeylInequality.lean#L722) | Helper: The norm of (A + B)x equals ‖Ax‖ when Bx = 0 (rectangular A, B). |
+| `Matrix.WeylInequality.finrank_ker_toEuclideanLin_ge'` | lemma | [WeylInequality.lean:731](../src/WeylInequality.lean#L731) | The kernel of toEuclideanLin C has dimension at least n - rank(C), for rectangular C. |
+| `Matrix.WeylInequality.thompson_interlacing_eigenvalues` | theorem | [WeylInequality.lean:765](../src/WeylInequality.lean#L765) | **Thompson interlacing, eigenvalue form (rectangular).** For A, B : Matrix m n ℂ with rank(B) ≤ r and i + r <… |
+| `Matrix.WeylInequality.thompson_interlacing` | theorem | [WeylInequality.lean:973](../src/WeylInequality.lean#L973) | **Thompson's Singular Value Interlacing Inequality** |
+| `Matrix.WeylInequality.thompson_interlacing_rect` | theorem | [WeylInequality.lean:985](../src/WeylInequality.lean#L985) | **Thompson interlacing for rectangular matrices:** if rank(B) ≤ r and i + r < min(#m, #n), then σ_{i+r}(A) ≤… |
+| `Matrix.WeylInequality.interlacing_low_rank_subtraction_rect` | theorem | [WeylInequality.lean:1007](../src/WeylInequality.lean#L1007) | **Low-rank interlacing for rectangular matrices:** if rank(C) ≤ k and k ≤ j, then σⱼ(A) ≤ σ_{j-k}(A - C) for… |
+| `Matrix.WeylInequality.interlacing_low_rank_subtraction` | theorem | [WeylInequality.lean:1046](../src/WeylInequality.lean#L1046) | **Thompson Interlacing for Low-Rank Subtraction** |
+| `Matrix.WeylInequality.interlacing_for_eckart_young` | theorem | [WeylInequality.lean:1079](../src/WeylInequality.lean#L1079) | `interlacing_low_rank_subtraction` with the index j given as a natural number: rank C ≤ k ≤ j < n gives σⱼ(A)… |
 
 ## FrobeniusNorm.lean
 
@@ -386,28 +386,28 @@ rather than reading it whole. Files are listed so each comes after its imports.
 | `Matrix.SVD.spectral_norm_eq_singularValues₀_zero` | lemma | [MatrixNormRelations.lean:435](../src/MatrixNormRelations.lean#L435) | The spectral norm equals the maximum singular value, which is singularValues₀ at index 0. |
 | `Matrix.SVD.spectral_error_truncatedSVD` | theorem | [MatrixNormRelations.lean:463](../src/MatrixNormRelations.lean#L463) | **The spectral error of truncated SVD equals the (k+1)-th singular value.** ‖A - Aₖ‖₂ = σₖ (using 0-indexed s… |
 | `Matrix.SVD.eckart_young_spectral` | theorem | [MatrixNormRelations.lean:497](../src/MatrixNormRelations.lean#L497) | **Eckart-Young Theorem (Spectral norm):** The truncated SVD is also optimal in spectral norm. |
-| `Matrix.SVD.l2_opNorm_diagonal_le` | theorem | [MatrixNormRelations.lean:549](../src/MatrixNormRelations.lean#L549) | The L2 norm of a diagonal matrix is at most `c` when every entry has modulus at most `c` (`Matrix.l2_opNorm_d… |
-| `Matrix.SVD.le_l2_opNorm_diagonal_sub_of_det_eq_zero` | theorem | [MatrixNormRelations.lean:558](../src/MatrixNormRelations.lean#L558) | A singular matrix is at L2 distance at least `c` from a diagonal matrix whose entries all have modulus at lea… |
-| `Matrix.SVD.one_le_norm_diag_two_one_sub_of_rank_le_one` | theorem | [MatrixNormRelations.lean:588](../src/MatrixNormRelations.lean#L588) | Every matrix of rank at most 1 is at spectral distance at least 1 = σ₁ from diag(2, 1). |
-| `Matrix.SVD.rank_diag_cons_zero_le_one` | theorem | [MatrixNormRelations.lean:600](../src/MatrixNormRelations.lean#L600) | diag(t, 0) has rank at most 1. |
-| `Matrix.SVD.diag_two_one_spectral_optimal_family` | theorem | [MatrixNormRelations.lean:610](../src/MatrixNormRelations.lean#L610) | **A continuum of best rank-1 spectral approximations.** For A = diag(2, 1) and every real t ∈ [1, 3], the ran… |
-| `Matrix.SVD.spectral_best_rank_one_not_unique` | theorem | [MatrixNormRelations.lean:625](../src/MatrixNormRelations.lean#L625) | **Best rank-1 spectral approximations are not unique.** For A = diag(2, 1), the distinct matrices B = diag(2,… |
-| `Matrix.KroneckerRearrangement.kronecker_approx_frobenius_error` | theorem | [MatrixNormRelations.lean:663](../src/MatrixNormRelations.lean#L663) | **Kronecker Approximation Frobenius Error:** ‖C - A ⊗ B‖_F = ‖R(C) - vec(A) ⬝ vec(B)ᵀ‖_F via R being a Froben… |
-| `Matrix.KroneckerRearrangement.conjTranspose_mul_kronecker` | private lemma | [MatrixNormRelations.lean:695](../src/MatrixNormRelations.lean#L695) | Key lemma: (A ⊗ B)ᴴ * (A ⊗ B) = (Aᴴ * A) ⊗ (Bᴴ * B). |
-| `Matrix.KroneckerRearrangement.isHermitian_kronecker` | theorem | [MatrixNormRelations.lean:706](../src/MatrixNormRelations.lean#L706) | The Kronecker product of Hermitian matrices is Hermitian. |
-| `Matrix.KroneckerRearrangement.l2_opNorm_posSemidef_eq_sup_eigenvalues` | lemma | [MatrixNormRelations.lean:717](../src/MatrixNormRelations.lean#L717) | For PSD H, ‖H‖₂ is the largest eigenvalue: the Hermitian formula ‖H‖₂ = maxᵢ \|λᵢ\| with \|λᵢ\| = λᵢ. |
-| `Matrix.KroneckerRearrangement.sup_eigenvalues_kronecker_eq_mul` | lemma | [MatrixNormRelations.lean:739](../src/MatrixNormRelations.lean#L739) | **Eigenvalue Product Theorem for Kronecker Products of PSD Matrices.** The supremum of eigenvalues of H₁ ⊗ H₂… |
-| `Matrix.KroneckerRearrangement.l2_opNorm_kronecker_psd` | private lemma | [MatrixNormRelations.lean:900](../src/MatrixNormRelations.lean#L900) | **L2 operator norm of Kronecker product of PSD Hermitian matrices.** For positive semidefinite Hermitian matr… |
-| `Matrix.KroneckerRearrangement.l2_opNorm_kronecker` | theorem | [MatrixNormRelations.lean:937](../src/MatrixNormRelations.lean#L937) | **The L2 operator norm of a Kronecker product equals the product of operator norms.** ‖A ⊗ B‖₂ = ‖A‖₂ · ‖B‖₂ |
-| `Matrix.KroneckerPerturbation.kronecker_sub_decomposition` | theorem | [MatrixNormRelations.lean:992](../src/MatrixNormRelations.lean#L992) | Kronecker subtraction decomposition: B ⊗ C - B′ ⊗ C′ = (B - B′) ⊗ C + B′ ⊗ (C - C′) |
-| `Matrix.KroneckerPerturbation.kronecker_sub_decomposition'` | theorem | [MatrixNormRelations.lean:1005](../src/MatrixNormRelations.lean#L1005) | Alternative form: B ⊗ C - B' ⊗ C' = (B - B') ⊗ C' + B ⊗ (C - C') This equivalent decomposition uses B on the… |
-| `Matrix.KroneckerPerturbation.kronecker_sub_spectral_norm_bound` | theorem | [MatrixNormRelations.lean:1040](../src/MatrixNormRelations.lean#L1040) | **Kronecker Difference Spectral Norm Bound:** The spectral norm of a Kronecker product difference satisfies:… |
-| `Matrix.KroneckerPerturbation.kronecker_sub_spectral_norm_bound'` | theorem | [MatrixNormRelations.lean:1057](../src/MatrixNormRelations.lean#L1057) | **Symmetric Kronecker Difference Bound:** Alternative bound using B instead of B': ‖B ⊗ C - B' ⊗ C'‖₂ ≤ ‖B -… |
-| `Matrix.KroneckerPerturbation.kronecker_sub_spectral_norm_bound_cross` | theorem | [MatrixNormRelations.lean:1087](../src/MatrixNormRelations.lean#L1087) | **Kronecker difference bound in terms of the unperturbed factors:** ‖B ⊗ C - B' ⊗ C'‖₂ ≤ ‖B - B'‖·‖C‖ + ‖B‖·‖… |
-| `Matrix.KroneckerPerturbation.kronecker_relative_perturbation` | theorem | [MatrixNormRelations.lean:1115](../src/MatrixNormRelations.lean#L1115) | **Relative Kronecker Perturbation Bound:** for B ≠ 0 and C ≠ 0, with relative errors εB = ‖B - B'‖ / ‖B‖ and… |
-| `Matrix.KroneckerPerturbation.kronecker_perturbation_single_factor_B` | theorem | [MatrixNormRelations.lean:1136](../src/MatrixNormRelations.lean#L1136) | **Single-factor perturbation in B:** when C is unchanged, ‖B ⊗ C - B' ⊗ C‖₂ = ‖B - B'‖ · ‖C‖. |
-| `Matrix.KroneckerPerturbation.kronecker_perturbation_single_factor_C` | theorem | [MatrixNormRelations.lean:1148](../src/MatrixNormRelations.lean#L1148) | Single-factor perturbation in C. |
-| `Matrix.KroneckerPerturbation.kronecker_singularValue_perturbation` | theorem | [MatrixNormRelations.lean:1180](../src/MatrixNormRelations.lean#L1180) | **Kronecker Product Singular Value Perturbation:** for square factors B, B' : Matrix r r ℂ and C, C' : Matrix… |
+| `Matrix.SVD.l2_opNorm_diagonal_le` | theorem | [MatrixNormRelations.lean:550](../src/MatrixNormRelations.lean#L550) | The L2 norm of a diagonal matrix is at most `c` when every entry has modulus at most `c` (`Matrix.l2_opNorm_d… |
+| `Matrix.SVD.le_l2_opNorm_diagonal_sub_of_det_eq_zero` | theorem | [MatrixNormRelations.lean:559](../src/MatrixNormRelations.lean#L559) | A singular matrix is at L2 distance at least `c` from a diagonal matrix whose entries all have modulus at lea… |
+| `Matrix.SVD.one_le_norm_diag_two_one_sub_of_rank_le_one` | theorem | [MatrixNormRelations.lean:589](../src/MatrixNormRelations.lean#L589) | Every matrix of rank at most 1 is at spectral distance at least 1 = σ₁ from diag(2, 1). |
+| `Matrix.SVD.rank_diag_cons_zero_le_one` | theorem | [MatrixNormRelations.lean:601](../src/MatrixNormRelations.lean#L601) | diag(t, 0) has rank at most 1. |
+| `Matrix.SVD.diag_two_one_spectral_optimal_family` | theorem | [MatrixNormRelations.lean:611](../src/MatrixNormRelations.lean#L611) | **A continuum of best rank-1 spectral approximations.** For A = diag(2, 1) and every real t ∈ [1, 3], the ran… |
+| `Matrix.SVD.spectral_best_rank_one_not_unique` | theorem | [MatrixNormRelations.lean:626](../src/MatrixNormRelations.lean#L626) | **Best rank-1 spectral approximations are not unique.** For A = diag(2, 1), the distinct matrices B = diag(2,… |
+| `Matrix.KroneckerRearrangement.kronecker_approx_frobenius_error` | theorem | [MatrixNormRelations.lean:664](../src/MatrixNormRelations.lean#L664) | **Kronecker Approximation Frobenius Error:** ‖C - A ⊗ B‖_F = ‖R(C) - vec(A) ⬝ vec(B)ᵀ‖_F via R being a Froben… |
+| `Matrix.KroneckerRearrangement.conjTranspose_mul_kronecker` | private lemma | [MatrixNormRelations.lean:696](../src/MatrixNormRelations.lean#L696) | Key lemma: (A ⊗ B)ᴴ * (A ⊗ B) = (Aᴴ * A) ⊗ (Bᴴ * B). |
+| `Matrix.KroneckerRearrangement.isHermitian_kronecker` | theorem | [MatrixNormRelations.lean:707](../src/MatrixNormRelations.lean#L707) | The Kronecker product of Hermitian matrices is Hermitian. |
+| `Matrix.KroneckerRearrangement.l2_opNorm_posSemidef_eq_sup_eigenvalues` | lemma | [MatrixNormRelations.lean:718](../src/MatrixNormRelations.lean#L718) | For PSD H, ‖H‖₂ is the largest eigenvalue: the Hermitian formula ‖H‖₂ = maxᵢ \|λᵢ\| with \|λᵢ\| = λᵢ. |
+| `Matrix.KroneckerRearrangement.sup_eigenvalues_kronecker_eq_mul` | lemma | [MatrixNormRelations.lean:740](../src/MatrixNormRelations.lean#L740) | **Eigenvalue Product Theorem for Kronecker Products of PSD Matrices.** The supremum of eigenvalues of H₁ ⊗ H₂… |
+| `Matrix.KroneckerRearrangement.l2_opNorm_kronecker_psd` | private lemma | [MatrixNormRelations.lean:899](../src/MatrixNormRelations.lean#L899) | **L2 operator norm of Kronecker product of PSD Hermitian matrices.** For positive semidefinite Hermitian matr… |
+| `Matrix.KroneckerRearrangement.l2_opNorm_kronecker` | theorem | [MatrixNormRelations.lean:936](../src/MatrixNormRelations.lean#L936) | **The L2 operator norm of a Kronecker product equals the product of operator norms.** ‖A ⊗ B‖₂ = ‖A‖₂ · ‖B‖₂ |
+| `Matrix.KroneckerPerturbation.kronecker_sub_decomposition` | theorem | [MatrixNormRelations.lean:991](../src/MatrixNormRelations.lean#L991) | Kronecker subtraction decomposition: B ⊗ C - B′ ⊗ C′ = (B - B′) ⊗ C + B′ ⊗ (C - C′) |
+| `Matrix.KroneckerPerturbation.kronecker_sub_decomposition'` | theorem | [MatrixNormRelations.lean:1004](../src/MatrixNormRelations.lean#L1004) | Alternative form: B ⊗ C - B' ⊗ C' = (B - B') ⊗ C' + B ⊗ (C - C') This equivalent decomposition uses B on the… |
+| `Matrix.KroneckerPerturbation.kronecker_sub_spectral_norm_bound` | theorem | [MatrixNormRelations.lean:1039](../src/MatrixNormRelations.lean#L1039) | **Kronecker Difference Spectral Norm Bound:** The spectral norm of a Kronecker product difference satisfies:… |
+| `Matrix.KroneckerPerturbation.kronecker_sub_spectral_norm_bound'` | theorem | [MatrixNormRelations.lean:1056](../src/MatrixNormRelations.lean#L1056) | **Symmetric Kronecker Difference Bound:** Alternative bound using B instead of B': ‖B ⊗ C - B' ⊗ C'‖₂ ≤ ‖B -… |
+| `Matrix.KroneckerPerturbation.kronecker_sub_spectral_norm_bound_cross` | theorem | [MatrixNormRelations.lean:1086](../src/MatrixNormRelations.lean#L1086) | **Kronecker difference bound in terms of the unperturbed factors:** ‖B ⊗ C - B' ⊗ C'‖₂ ≤ ‖B - B'‖·‖C‖ + ‖B‖·‖… |
+| `Matrix.KroneckerPerturbation.kronecker_relative_perturbation` | theorem | [MatrixNormRelations.lean:1114](../src/MatrixNormRelations.lean#L1114) | **Relative Kronecker Perturbation Bound:** for B ≠ 0 and C ≠ 0, with relative errors εB = ‖B - B'‖ / ‖B‖ and… |
+| `Matrix.KroneckerPerturbation.kronecker_perturbation_single_factor_B` | theorem | [MatrixNormRelations.lean:1135](../src/MatrixNormRelations.lean#L1135) | **Single-factor perturbation in B:** when C is unchanged, ‖B ⊗ C - B' ⊗ C‖₂ = ‖B - B'‖ · ‖C‖. |
+| `Matrix.KroneckerPerturbation.kronecker_perturbation_single_factor_C` | theorem | [MatrixNormRelations.lean:1147](../src/MatrixNormRelations.lean#L1147) | Single-factor perturbation in C. |
+| `Matrix.KroneckerPerturbation.kronecker_singularValue_perturbation` | theorem | [MatrixNormRelations.lean:1179](../src/MatrixNormRelations.lean#L1179) | **Kronecker Product Singular Value Perturbation:** for square factors B, B' : Matrix r r ℂ and C, C' : Matrix… |
 
 ## SpectralNormGap.lean
 
@@ -451,56 +451,56 @@ rather than reading it whole. Files are listed so each comes after its imports.
 | `Matrix.Coherence.coherenceFactor_bounds` | theorem | [CoherenceCharacterization.lean:270](../src/CoherenceCharacterization.lean#L270) | The coherence factor is bounded: 1/√rank(E) ≤ μ(E) ≤ 1 |
 | `Matrix.Coherence.spectral_norm_eq_frobenius_div_coherence` | theorem | [CoherenceCharacterization.lean:284](../src/CoherenceCharacterization.lean#L284) | The spectral norm in terms of the coherence factor, for E ≠ 0: ‖E‖₂ = frobeniusNorm' E / (√rank(E) · μ(E)). |
 | `Matrix.Coherence.outerProduct_spectral_norm_ge` | theorem | [CoherenceCharacterization.lean:310](../src/CoherenceCharacterization.lean#L310) | Lower bound via witness: ‖u vᵀ‖₂ ≥ ‖u‖·‖v‖ when v ≠ 0. |
-| `Matrix.Coherence.outerProduct_spectral_norm_eq` | theorem | [CoherenceCharacterization.lean:426](../src/CoherenceCharacterization.lean#L426) | **Main theorem**: The spectral norm of an outer product equals the product of vector norms. |
-| `Matrix.Coherence.rank_one_spectral_eq_frobenius` | theorem | [CoherenceCharacterization.lean:454](../src/CoherenceCharacterization.lean#L454) | For any vectors, the spectral and Frobenius norms of their outer product are equal. |
-| `Matrix.Coherence.nearly_coherent_iff` | theorem | [CoherenceCharacterization.lean:473](../src/CoherenceCharacterization.lean#L473) | **Near coherence in norm form:** for E ≠ 0 and ε < 1, μ(E) ≤ 1 / ((1 - ε) · √rank(E)) ↔ (1 - ε) · ‖E‖_F ≤ ‖E‖… |
-| `Matrix.Coherence.nearly_coherent_bound` | theorem | [CoherenceCharacterization.lean:498](../src/CoherenceCharacterization.lean#L498) | **Nearly coherent bound:** if μ(E) ≤ 1 / ((1 - ε) · √rank(E)) with ε < 1 and E ≠ 0, then ‖E‖_F ≤ ‖E‖₂ / (1 -… |
-| `Matrix.Coherence.nearly_coherent_spectral_lower_bound` | theorem | [CoherenceCharacterization.lean:512](../src/CoherenceCharacterization.lean#L512) | **Nearly coherent spectral lower bound:** if μ(E) ≤ 1 / ((1 - ε) · √rank(E)) with ε < 1 and E ≠ 0, then (1 -… |
-| `Matrix.Coherence.incoherent_improved_bound` | theorem | [CoherenceCharacterization.lean:545](../src/CoherenceCharacterization.lean#L545) | **Incoherent improved bound**: When coherence factor is at least α, we get ‖E‖ ≤ ‖E‖_F / (α · √rank). |
-| `Matrix.Coherence.incoherent_bound_eq_of_coherence_one` | theorem | [CoherenceCharacterization.lean:557](../src/CoherenceCharacterization.lean#L557) | The incoherent bound holds when coherence factor equals 1. |
-| `Matrix.Coherence.flat_spectrum_coherence_eq_one` | theorem | [CoherenceCharacterization.lean:584](../src/CoherenceCharacterization.lean#L584) | For a flat spectrum (all nonzero singular values equal), coherence = 1. |
-| `Matrix.Coherence.kl_divergence_nonneg` | theorem | [CoherenceCharacterization.lean:686](../src/CoherenceCharacterization.lean#L686) | KL divergence is nonnegative: For positive probability distributions p on a finite set S, ∑_{i∈S} pᵢ log(pᵢ\|S… |
-| `Matrix.Coherence.entropy_le_log_support` | theorem | [CoherenceCharacterization.lean:714](../src/CoherenceCharacterization.lean#L714) | Shannon entropy bound: For a probability distribution p with support S, the entropy H = ∑ negMulLog(pᵢ) ≤ log… |
-| `Matrix.Coherence.normalizedSingularValueSq` | def | [CoherenceCharacterization.lean:759](../src/CoherenceCharacterization.lean#L759) | Normalized singular value squared: pᵢ = σᵢ² / ‖E‖_F² Forms a probability distribution over indices. |
-| `Matrix.Coherence.normalizedSingularValueSq_nonneg` | theorem | [CoherenceCharacterization.lean:765](../src/CoherenceCharacterization.lean#L765) | The normalized singular values are nonnegative. |
-| `Matrix.Coherence.normalizedSingularValueSq_sum_eq_one` | theorem | [CoherenceCharacterization.lean:773](../src/CoherenceCharacterization.lean#L773) | The normalized singular values sum to 1 (form a probability distribution). |
-| `Matrix.Coherence.effectiveRank` | def | [CoherenceCharacterization.lean:803](../src/CoherenceCharacterization.lean#L803) | Effective rank via entropy: erank(E) = exp(-∑ᵢ pᵢ log pᵢ) where pᵢ = σᵢ²/‖E‖_F² is the normalized singular va… |
-| `Matrix.Coherence.effectiveRank_ge_one` | theorem | [CoherenceCharacterization.lean:812](../src/CoherenceCharacterization.lean#L812) | The effective rank is at least 1. |
-| `Matrix.Coherence.effectiveRank_le_rank` | theorem | [CoherenceCharacterization.lean:867](../src/CoherenceCharacterization.lean#L867) | The effective rank is at most the matrix rank. |
-| `Matrix.Coherence.effectiveRank_bounds` | theorem | [CoherenceCharacterization.lean:955](../src/CoherenceCharacterization.lean#L955) | Combined bounds for effective rank. |
-| `Matrix.Coherence.effectiveRank_eq_one_of_rank_one` | theorem | [CoherenceCharacterization.lean:962](../src/CoherenceCharacterization.lean#L962) | Effective rank equals 1 for rank-1 matrices (maximally coherent). |
-| `Matrix.Coherence.effectiveRank_eq_rank_of_flat_spectrum` | theorem | [CoherenceCharacterization.lean:1056](../src/CoherenceCharacterization.lean#L1056) | Effective rank equals rank for flat spectrum (maximally incoherent). |
-| `Matrix.Coherence.coherenceFactor_sq_mul_rank_eq` | theorem | [CoherenceCharacterization.lean:1235](../src/CoherenceCharacterization.lean#L1235) | **Coherence and stable rank:** μ(E)² · rank(E) = (‖E‖_F / ‖E‖₂)², the stable rank of E, for E ≠ 0. |
-| `Matrix.Coherence.stableRank_le_effectiveRank` | theorem | [CoherenceCharacterization.lean:1253](../src/CoherenceCharacterization.lean#L1253) | **Stable rank is at most effective rank:** (‖E‖_F / ‖E‖₂)² ≤ effectiveRank E for E ≠ 0. |
-| `Matrix.Coherence.coherenceFactor_sq_mul_rank_le_effectiveRank` | theorem | [CoherenceCharacterization.lean:1306](../src/CoherenceCharacterization.lean#L1306) | **Coherence bounds effective rank:** μ(E)² · rank(E) ≤ effectiveRank E for E ≠ 0. |
-| `Matrix.Coherence.singularValues_le_norm` | theorem | [CoherenceCharacterization.lean:1318](../src/CoherenceCharacterization.lean#L1318) | Every singular value is at most the spectral norm. |
-| `Matrix.Coherence.frobeniusNorm'_sq_eq_sum_nonzero` | theorem | [CoherenceCharacterization.lean:1324](../src/CoherenceCharacterization.lean#L1324) | ‖E‖_F² is the sum of the squared nonzero singular values. |
-| `Matrix.Coherence.card_filter_singularValues_ne_zero` | theorem | [CoherenceCharacterization.lean:1344](../src/CoherenceCharacterization.lean#L1344) | The number of nonzero singular values, as a `Finset` filter, is the rank. |
-| `Matrix.Coherence.coherenceFactor_eq_one_iff` | theorem | [CoherenceCharacterization.lean:1353](../src/CoherenceCharacterization.lean#L1353) | **Coherence factor one iff flat spectrum:** for E ≠ 0, μ(E) = 1 exactly when every nonzero singular value equ… |
-| `Matrix.Coherence.norm_eq_frobeniusNorm'_iff_rank_le_one` | theorem | [CoherenceCharacterization.lean:1385](../src/CoherenceCharacterization.lean#L1385) | **Spectral equals Frobenius iff rank at most one:** ‖E‖₂ = ‖E‖_F exactly when rank E ≤ 1. |
-| `Matrix.Coherence.kroneckerCoherence` | def | [CoherenceCharacterization.lean:1488](../src/CoherenceCharacterization.lean#L1488) | **Kronecker Coherence**: The coherence factor of the rearranged matrix R(C). |
-| `Matrix.Coherence.kroneckerCoherence_zero` | theorem | [CoherenceCharacterization.lean:1493](../src/CoherenceCharacterization.lean#L1493) | For the zero matrix, Kronecker coherence is 1. |
-| `Matrix.Coherence.kroneckerCoherence_nonneg` | theorem | [CoherenceCharacterization.lean:1502](../src/CoherenceCharacterization.lean#L1502) | Kronecker coherence is non-negative. |
-| `Matrix.Coherence.kroneckerCoherence_pos_of_ne_zero` | theorem | [CoherenceCharacterization.lean:1508](../src/CoherenceCharacterization.lean#L1508) | For nonzero matrices, Kronecker coherence is positive. |
-| `Matrix.Coherence.kroneckerCoherence_le_one` | theorem | [CoherenceCharacterization.lean:1514](../src/CoherenceCharacterization.lean#L1514) | Kronecker coherence is at most 1. |
-| `Matrix.Coherence.kroneckerCoherence_ge_inv_sqrt_rank` | theorem | [CoherenceCharacterization.lean:1520](../src/CoherenceCharacterization.lean#L1520) | Kronecker coherence is at least 1/√rank(R(C)) when R(C) ≠ 0. |
-| `Matrix.Coherence.kroneckerCoherence_bounds` | theorem | [CoherenceCharacterization.lean:1526](../src/CoherenceCharacterization.lean#L1526) | Combined bounds for Kronecker coherence: 1/√rank ≤ μ_R(C) ≤ 1. |
-| `Matrix.Coherence.R_inv_spectral_eq_frobenius_R_outerProduct` | theorem | [CoherenceCharacterization.lean:1535](../src/CoherenceCharacterization.lean#L1535) | **The R⁻¹ bound is attained when R⁻¹ X has rank one:** for X = R(u vᵀ), ‖R⁻¹ X‖₂ = ‖X‖_F. |
-| `Matrix.Coherence.R_inv_spectral_eq_frobenius_iff_rank_le_one` | theorem | [CoherenceCharacterization.lean:1549](../src/CoherenceCharacterization.lean#L1549) | **Equality case of the R⁻¹ bound:** ‖R⁻¹ X‖₂ = ‖X‖_F exactly when R⁻¹ X has rank ≤ 1. |
-| `Matrix.Coherence.spectralGap` | def | [CoherenceCharacterization.lean:1590](../src/CoherenceCharacterization.lean#L1590) | The spectral gap of a matrix: σ₀ - σ₁, the difference between the two largest singular values (0-indexed). |
-| `Matrix.Coherence.spectralGap_nonneg` | theorem | [CoherenceCharacterization.lean:1597](../src/CoherenceCharacterization.lean#L1597) | The spectral gap is nonnegative (since singular values are sorted in decreasing order). |
-| `Matrix.Coherence.spectralGap_le_norm` | theorem | [CoherenceCharacterization.lean:1609](../src/CoherenceCharacterization.lean#L1609) | The spectral gap is at most the spectral norm: `spectralGap A ≤ ‖A‖`. |
-| `Matrix.Coherence.exists_spectral_minimizer_rank1` | theorem | [CoherenceCharacterization.lean:1625](../src/CoherenceCharacterization.lean#L1625) | **Existence of Spectral-Optimal Solution** |
-| `Matrix.Coherence.spectralOptimalRank1` | def | [CoherenceCharacterization.lean:1632](../src/CoherenceCharacterization.lean#L1632) | The spectral-optimal rank-1 approximation (chosen via `Classical.choose`). |
-| `Matrix.Coherence.spectralOptimalRank1_is_optimal` | theorem | [CoherenceCharacterization.lean:1636](../src/CoherenceCharacterization.lean#L1636) | The spectral-optimal approximation achieves the minimum. |
-| `Matrix.Coherence.spectral_error_truncatedSVD_one_eq_spectralOptimalRank1` | theorem | [CoherenceCharacterization.lean:1645](../src/CoherenceCharacterization.lean#L1645) | **The Frobenius-optimal rank-1 approximation is spectrally optimal:** ‖A - A_F‖₂ = ‖A - A_*‖₂ for A_F = trunc… |
-| `Matrix.Coherence.norm_sub_truncatedSVD_one_eq_norm_sub_spectralGap` | theorem | [CoherenceCharacterization.lean:1660](../src/CoherenceCharacterization.lean#L1660) | **Spectral error of the rank-1 truncation in terms of the gap:** ‖A - truncatedSVD A 1‖₂ = ‖A‖₂ - spectralGap… |
-| `Matrix.Coherence.norm_sub_spectralOptimalRank1_le` | theorem | [CoherenceCharacterization.lean:1679](../src/CoherenceCharacterization.lean#L1679) | `spectralOptimalRank1 A` is no worse than A_F = truncatedSVD A 1, so it satisfies the hypothesis `h_le` of th… |
-| `Matrix.Coherence.frobenius_spectral_solution_distance` | theorem | [CoherenceCharacterization.lean:1695](../src/CoherenceCharacterization.lean#L1695) | **Main Theorem: Distance Between Frobenius and Spectral Solutions** |
-| `Matrix.Coherence.frobenius_spectral_solution_distance_le_frobenius` | theorem | [CoherenceCharacterization.lean:1707](../src/CoherenceCharacterization.lean#L1707) | **Frobenius form of the solution distance:** ‖A_F - M‖₂ ≤ 2 · ‖A - A_F‖_F for every M with ‖A - M‖₂ ≤ ‖A - A_… |
-| `Matrix.Coherence.frobenius_spectral_distance_with_gap` | theorem | [CoherenceCharacterization.lean:1724](../src/CoherenceCharacterization.lean#L1724) | **Solution distance in terms of the spectral gap:** for every M with ‖A - M‖₂ ≤ ‖A - A_F‖₂ (every spectral mi… |
-| `Matrix.Coherence.frobenius_spectral_distance_coherence_aware` | theorem | [CoherenceCharacterization.lean:1784](../src/CoherenceCharacterization.lean#L1784) | **Coherence form of the distance bound** |
-| `Matrix.Coherence.decision_criterion` | theorem | [CoherenceCharacterization.lean:1806](../src/CoherenceCharacterization.lean#L1806) | **Decision criterion.** If the spectral gap is at least (1 - δ/2) · ‖A‖₂, then every M with ‖A - M‖₂ ≤ ‖A - A… |
+| `Matrix.Coherence.outerProduct_spectral_norm_eq` | theorem | [CoherenceCharacterization.lean:428](../src/CoherenceCharacterization.lean#L428) | **Main theorem**: The spectral norm of an outer product equals the product of vector norms. |
+| `Matrix.Coherence.rank_one_spectral_eq_frobenius` | theorem | [CoherenceCharacterization.lean:456](../src/CoherenceCharacterization.lean#L456) | For any vectors, the spectral and Frobenius norms of their outer product are equal. |
+| `Matrix.Coherence.nearly_coherent_iff` | theorem | [CoherenceCharacterization.lean:475](../src/CoherenceCharacterization.lean#L475) | **Near coherence in norm form:** for E ≠ 0 and ε < 1, μ(E) ≤ 1 / ((1 - ε) · √rank(E)) ↔ (1 - ε) · ‖E‖_F ≤ ‖E‖… |
+| `Matrix.Coherence.nearly_coherent_bound` | theorem | [CoherenceCharacterization.lean:500](../src/CoherenceCharacterization.lean#L500) | **Nearly coherent bound:** if μ(E) ≤ 1 / ((1 - ε) · √rank(E)) with ε < 1 and E ≠ 0, then ‖E‖_F ≤ ‖E‖₂ / (1 -… |
+| `Matrix.Coherence.nearly_coherent_spectral_lower_bound` | theorem | [CoherenceCharacterization.lean:514](../src/CoherenceCharacterization.lean#L514) | **Nearly coherent spectral lower bound:** if μ(E) ≤ 1 / ((1 - ε) · √rank(E)) with ε < 1 and E ≠ 0, then (1 -… |
+| `Matrix.Coherence.incoherent_improved_bound` | theorem | [CoherenceCharacterization.lean:547](../src/CoherenceCharacterization.lean#L547) | **Incoherent improved bound**: When coherence factor is at least α, we get ‖E‖ ≤ ‖E‖_F / (α · √rank). |
+| `Matrix.Coherence.incoherent_bound_eq_of_coherence_one` | theorem | [CoherenceCharacterization.lean:559](../src/CoherenceCharacterization.lean#L559) | The incoherent bound holds when coherence factor equals 1. |
+| `Matrix.Coherence.flat_spectrum_coherence_eq_one` | theorem | [CoherenceCharacterization.lean:586](../src/CoherenceCharacterization.lean#L586) | For a flat spectrum (all nonzero singular values equal), coherence = 1. |
+| `Matrix.Coherence.kl_divergence_nonneg` | theorem | [CoherenceCharacterization.lean:688](../src/CoherenceCharacterization.lean#L688) | KL divergence is nonnegative: For positive probability distributions p on a finite set S, ∑_{i∈S} pᵢ log(pᵢ\|S… |
+| `Matrix.Coherence.entropy_le_log_support` | theorem | [CoherenceCharacterization.lean:716](../src/CoherenceCharacterization.lean#L716) | Shannon entropy bound: For a probability distribution p with support S, the entropy H = ∑ negMulLog(pᵢ) ≤ log… |
+| `Matrix.Coherence.normalizedSingularValueSq` | def | [CoherenceCharacterization.lean:761](../src/CoherenceCharacterization.lean#L761) | Normalized singular value squared: pᵢ = σᵢ² / ‖E‖_F² Forms a probability distribution over indices. |
+| `Matrix.Coherence.normalizedSingularValueSq_nonneg` | theorem | [CoherenceCharacterization.lean:767](../src/CoherenceCharacterization.lean#L767) | The normalized singular values are nonnegative. |
+| `Matrix.Coherence.normalizedSingularValueSq_sum_eq_one` | theorem | [CoherenceCharacterization.lean:775](../src/CoherenceCharacterization.lean#L775) | The normalized singular values sum to 1 (form a probability distribution). |
+| `Matrix.Coherence.effectiveRank` | def | [CoherenceCharacterization.lean:805](../src/CoherenceCharacterization.lean#L805) | Effective rank via entropy: erank(E) = exp(-∑ᵢ pᵢ log pᵢ) where pᵢ = σᵢ²/‖E‖_F² is the normalized singular va… |
+| `Matrix.Coherence.effectiveRank_ge_one` | theorem | [CoherenceCharacterization.lean:814](../src/CoherenceCharacterization.lean#L814) | The effective rank is at least 1. |
+| `Matrix.Coherence.effectiveRank_le_rank` | theorem | [CoherenceCharacterization.lean:869](../src/CoherenceCharacterization.lean#L869) | The effective rank is at most the matrix rank. |
+| `Matrix.Coherence.effectiveRank_bounds` | theorem | [CoherenceCharacterization.lean:957](../src/CoherenceCharacterization.lean#L957) | Combined bounds for effective rank. |
+| `Matrix.Coherence.effectiveRank_eq_one_of_rank_one` | theorem | [CoherenceCharacterization.lean:964](../src/CoherenceCharacterization.lean#L964) | Effective rank equals 1 for rank-1 matrices (maximally coherent). |
+| `Matrix.Coherence.effectiveRank_eq_rank_of_flat_spectrum` | theorem | [CoherenceCharacterization.lean:1058](../src/CoherenceCharacterization.lean#L1058) | Effective rank equals rank for flat spectrum (maximally incoherent). |
+| `Matrix.Coherence.coherenceFactor_sq_mul_rank_eq` | theorem | [CoherenceCharacterization.lean:1237](../src/CoherenceCharacterization.lean#L1237) | **Coherence and stable rank:** μ(E)² · rank(E) = (‖E‖_F / ‖E‖₂)², the stable rank of E, for E ≠ 0. |
+| `Matrix.Coherence.stableRank_le_effectiveRank` | theorem | [CoherenceCharacterization.lean:1255](../src/CoherenceCharacterization.lean#L1255) | **Stable rank is at most effective rank:** (‖E‖_F / ‖E‖₂)² ≤ effectiveRank E for E ≠ 0. |
+| `Matrix.Coherence.coherenceFactor_sq_mul_rank_le_effectiveRank` | theorem | [CoherenceCharacterization.lean:1308](../src/CoherenceCharacterization.lean#L1308) | **Coherence bounds effective rank:** μ(E)² · rank(E) ≤ effectiveRank E for E ≠ 0. |
+| `Matrix.Coherence.singularValues_le_norm` | theorem | [CoherenceCharacterization.lean:1320](../src/CoherenceCharacterization.lean#L1320) | Every singular value is at most the spectral norm. |
+| `Matrix.Coherence.frobeniusNorm'_sq_eq_sum_nonzero` | theorem | [CoherenceCharacterization.lean:1326](../src/CoherenceCharacterization.lean#L1326) | ‖E‖_F² is the sum of the squared nonzero singular values. |
+| `Matrix.Coherence.card_filter_singularValues_ne_zero` | theorem | [CoherenceCharacterization.lean:1346](../src/CoherenceCharacterization.lean#L1346) | The number of nonzero singular values, as a `Finset` filter, is the rank. |
+| `Matrix.Coherence.coherenceFactor_eq_one_iff` | theorem | [CoherenceCharacterization.lean:1355](../src/CoherenceCharacterization.lean#L1355) | **Coherence factor one iff flat spectrum:** for E ≠ 0, μ(E) = 1 exactly when every nonzero singular value equ… |
+| `Matrix.Coherence.norm_eq_frobeniusNorm'_iff_rank_le_one` | theorem | [CoherenceCharacterization.lean:1387](../src/CoherenceCharacterization.lean#L1387) | **Spectral equals Frobenius iff rank at most one:** ‖E‖₂ = ‖E‖_F exactly when rank E ≤ 1. |
+| `Matrix.Coherence.kroneckerCoherence` | def | [CoherenceCharacterization.lean:1490](../src/CoherenceCharacterization.lean#L1490) | **Kronecker Coherence**: The coherence factor of the rearranged matrix R(C). |
+| `Matrix.Coherence.kroneckerCoherence_zero` | theorem | [CoherenceCharacterization.lean:1495](../src/CoherenceCharacterization.lean#L1495) | For the zero matrix, Kronecker coherence is 1. |
+| `Matrix.Coherence.kroneckerCoherence_nonneg` | theorem | [CoherenceCharacterization.lean:1504](../src/CoherenceCharacterization.lean#L1504) | Kronecker coherence is non-negative. |
+| `Matrix.Coherence.kroneckerCoherence_pos_of_ne_zero` | theorem | [CoherenceCharacterization.lean:1510](../src/CoherenceCharacterization.lean#L1510) | For nonzero matrices, Kronecker coherence is positive. |
+| `Matrix.Coherence.kroneckerCoherence_le_one` | theorem | [CoherenceCharacterization.lean:1516](../src/CoherenceCharacterization.lean#L1516) | Kronecker coherence is at most 1. |
+| `Matrix.Coherence.kroneckerCoherence_ge_inv_sqrt_rank` | theorem | [CoherenceCharacterization.lean:1522](../src/CoherenceCharacterization.lean#L1522) | Kronecker coherence is at least 1/√rank(R(C)) when R(C) ≠ 0. |
+| `Matrix.Coherence.kroneckerCoherence_bounds` | theorem | [CoherenceCharacterization.lean:1528](../src/CoherenceCharacterization.lean#L1528) | Combined bounds for Kronecker coherence: 1/√rank ≤ μ_R(C) ≤ 1. |
+| `Matrix.Coherence.R_inv_spectral_eq_frobenius_R_outerProduct` | theorem | [CoherenceCharacterization.lean:1537](../src/CoherenceCharacterization.lean#L1537) | **The R⁻¹ bound is attained when R⁻¹ X has rank one:** for X = R(u vᵀ), ‖R⁻¹ X‖₂ = ‖X‖_F. |
+| `Matrix.Coherence.R_inv_spectral_eq_frobenius_iff_rank_le_one` | theorem | [CoherenceCharacterization.lean:1551](../src/CoherenceCharacterization.lean#L1551) | **Equality case of the R⁻¹ bound:** ‖R⁻¹ X‖₂ = ‖X‖_F exactly when R⁻¹ X has rank ≤ 1. |
+| `Matrix.Coherence.spectralGap` | def | [CoherenceCharacterization.lean:1592](../src/CoherenceCharacterization.lean#L1592) | The spectral gap of a matrix: σ₀ - σ₁, the difference between the two largest singular values (0-indexed). |
+| `Matrix.Coherence.spectralGap_nonneg` | theorem | [CoherenceCharacterization.lean:1599](../src/CoherenceCharacterization.lean#L1599) | The spectral gap is nonnegative (since singular values are sorted in decreasing order). |
+| `Matrix.Coherence.spectralGap_le_norm` | theorem | [CoherenceCharacterization.lean:1611](../src/CoherenceCharacterization.lean#L1611) | The spectral gap is at most the spectral norm: `spectralGap A ≤ ‖A‖`. |
+| `Matrix.Coherence.exists_spectral_minimizer_rank1` | theorem | [CoherenceCharacterization.lean:1627](../src/CoherenceCharacterization.lean#L1627) | **Existence of Spectral-Optimal Solution** |
+| `Matrix.Coherence.spectralOptimalRank1` | def | [CoherenceCharacterization.lean:1634](../src/CoherenceCharacterization.lean#L1634) | The spectral-optimal rank-1 approximation (chosen via `Classical.choose`). |
+| `Matrix.Coherence.spectralOptimalRank1_is_optimal` | theorem | [CoherenceCharacterization.lean:1638](../src/CoherenceCharacterization.lean#L1638) | The spectral-optimal approximation achieves the minimum. |
+| `Matrix.Coherence.spectral_error_truncatedSVD_one_eq_spectralOptimalRank1` | theorem | [CoherenceCharacterization.lean:1647](../src/CoherenceCharacterization.lean#L1647) | **The Frobenius-optimal rank-1 approximation is spectrally optimal:** ‖A - A_F‖₂ = ‖A - A_*‖₂ for A_F = trunc… |
+| `Matrix.Coherence.norm_sub_truncatedSVD_one_eq_norm_sub_spectralGap` | theorem | [CoherenceCharacterization.lean:1662](../src/CoherenceCharacterization.lean#L1662) | **Spectral error of the rank-1 truncation in terms of the gap:** ‖A - truncatedSVD A 1‖₂ = ‖A‖₂ - spectralGap… |
+| `Matrix.Coherence.norm_sub_spectralOptimalRank1_le` | theorem | [CoherenceCharacterization.lean:1681](../src/CoherenceCharacterization.lean#L1681) | `spectralOptimalRank1 A` is no worse than A_F = truncatedSVD A 1, so it satisfies the hypothesis `h_le` of th… |
+| `Matrix.Coherence.frobenius_spectral_solution_distance` | theorem | [CoherenceCharacterization.lean:1697](../src/CoherenceCharacterization.lean#L1697) | **Main Theorem: Distance Between Frobenius and Spectral Solutions** |
+| `Matrix.Coherence.frobenius_spectral_solution_distance_le_frobenius` | theorem | [CoherenceCharacterization.lean:1709](../src/CoherenceCharacterization.lean#L1709) | **Frobenius form of the solution distance:** ‖A_F - M‖₂ ≤ 2 · ‖A - A_F‖_F for every M with ‖A - M‖₂ ≤ ‖A - A_… |
+| `Matrix.Coherence.frobenius_spectral_distance_with_gap` | theorem | [CoherenceCharacterization.lean:1726](../src/CoherenceCharacterization.lean#L1726) | **Solution distance in terms of the spectral gap:** for every M with ‖A - M‖₂ ≤ ‖A - A_F‖₂ (every spectral mi… |
+| `Matrix.Coherence.frobenius_spectral_distance_coherence_aware` | theorem | [CoherenceCharacterization.lean:1786](../src/CoherenceCharacterization.lean#L1786) | **Coherence form of the distance bound** |
+| `Matrix.Coherence.decision_criterion` | theorem | [CoherenceCharacterization.lean:1808](../src/CoherenceCharacterization.lean#L1808) | **Decision criterion.** If the spectral gap is at least (1 - δ/2) · ‖A‖₂, then every M with ‖A - M‖₂ ≤ ‖A - A… |
 
 ## DavisKahan.lean
 
@@ -561,24 +561,24 @@ rather than reading it whole. Files are listed so each comes after its imports.
 | `Matrix.TightBounds.conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply` | lemma | [TightBounds.lean:542](../src/TightBounds.lean#L542) | Explicit computation of (DᴴD)(j, j') for D = truncatedSingularDiagonal_rect_tail A k. |
 | `Matrix.TightBounds.DtD_diagonal_entry` | lemma | [TightBounds.lean:671](../src/TightBounds.lean#L671) | DᴴD diagonal entry at j equals σ²_{bijection(j)} when k ≤ bijection(j) < min, else 0. |
 | `Matrix.TightBounds.inner_diagonal_matrix_eq_sum` | lemma | [TightBounds.lean:685](../src/TightBounds.lean#L685) | For a diagonal Hermitian matrix H, the inner product ⟨Hx, x⟩ equals Σⱼ H_jj \|xⱼ\|². |
-| `Matrix.TightBounds.hermitian_diagonal_real` | lemma | [TightBounds.lean:713](../src/TightBounds.lean#L713) | For a Hermitian matrix, diagonal entries are real. |
-| `Matrix.TightBounds.rayleigh_diagonal_le_bound` | lemma | [TightBounds.lean:728](../src/TightBounds.lean#L728) | For a unit vector and diagonal Hermitian matrix with diagonal entries ≤ bound, the Rayleigh quotient is ≤ bou… |
-| `Matrix.TightBounds.diagonal_entry_in_spectrum` | lemma | [TightBounds.lean:765](../src/TightBounds.lean#L765) | For a diagonal-like matrix, diagonal entries are in the spectrum. |
-| `Matrix.TightBounds.eigenvalues_le_of_offDiag_eq_zero_of_re_diag_le` | lemma | [TightBounds.lean:805](../src/TightBounds.lean#L805) | For a Hermitian matrix H with zero off-diagonal entries, every eigenvalue is at most any upper bound on the r… |
-| `Matrix.TightBounds.sigma_sq_is_DtD_entry` | lemma | [TightBounds.lean:843](../src/TightBounds.lean#L843) | The k-th singular value squared is achieved as a diagonal entry. |
-| `Matrix.TightBounds.l2_opNorm_truncatedSingularDiagonal_rect_tail` | lemma | [TightBounds.lean:873](../src/TightBounds.lean#L873) | The spectral norm of the tail singular diagonal is σₖ (0-indexed): for k < min(#m, #n), ‖truncatedSingularDia… |
-| `Matrix.TightBounds.spectral_error_truncatedSVD_rect` | theorem | [TightBounds.lean:992](../src/TightBounds.lean#L992) | **Spectral error of rectangular truncated SVD:** ‖A - Aₖ‖₂ = σₖ(A), 0-indexed, so σₖ is the largest singular… |
-| `Matrix.TightBounds.frobenius_norm_unitary_conj_rect` | theorem | [TightBounds.lean:1018](../src/TightBounds.lean#L1018) | **The Frobenius norm is unitarily invariant** (rectangular): ‖U B V*‖_F = ‖B‖_F. |
-| `Matrix.TightBounds.frobenius_error_truncatedSVD_rect` | theorem | [TightBounds.lean:1034](../src/TightBounds.lean#L1034) | **Frobenius error of the rectangular truncated SVD:** ‖A - truncatedSVD_rect A k‖_F² = Σᵢ (truncatedSingularV… |
-| `Matrix.TightBounds.sum_sq_tail_le_sum_sq_singularValues_sub` | theorem | [TightBounds.lean:1108](../src/TightBounds.lean#L1108) | **Tail sum bound behind Eckart–Young:** if rank(B) ≤ k, then the squared discarded singular values of A sum t… |
-| `Matrix.TightBounds.eckart_young_frobenius_rect` | theorem | [TightBounds.lean:1165](../src/TightBounds.lean#L1165) | **Eckart–Young theorem (Frobenius norm, rectangular).** The truncated SVD is a best rank-k approximation in F… |
-| `Matrix.TightBounds.eckart_young_spectral_rect` | theorem | [TightBounds.lean:1186](../src/TightBounds.lean#L1186) | **Eckart–Young theorem (spectral norm, rectangular).** The truncated SVD is a best rank-k approximation in sp… |
-| `Matrix.TightBounds.frobenius_error_via_R_isometry` | theorem | [TightBounds.lean:1227](../src/TightBounds.lean#L1227) | **Frobenius error through the rearrangement:** ‖C - R⁻¹(X)‖_F = ‖R(C) - X‖_F for every X. |
-| `Matrix.TightBounds.exists_outerProduct_of_rank_le_one` | theorem | [TightBounds.lean:1254](../src/TightBounds.lean#L1254) | A matrix of rank at most 1 is an outer product: M = u vᵀ. |
-| `Matrix.TightBounds.kroneckerApprox` | def | [TightBounds.lean:1277](../src/TightBounds.lean#L1277) | **The Van Loan–Pitsianis Kronecker approximation** of C : Matrix (m × n) (p × q) ℂ: R⁻¹ of the rank-1 truncat… |
-| `Matrix.TightBounds.kroneckerApprox_isKronecker` | theorem | [TightBounds.lean:1281](../src/TightBounds.lean#L1281) | `kroneckerApprox C` is a Kronecker product A ⊗ B with A : Matrix m p ℂ, B : Matrix n q ℂ. |
-| `Matrix.TightBounds.kroneckerApprox_optimal` | theorem | [TightBounds.lean:1306](../src/TightBounds.lean#L1306) | **Van Loan–Pitsianis theorem.** `kroneckerApprox C` is a best Kronecker-product approximation of C in Frobeni… |
-| `Matrix.TightBounds.kroneckerApprox_error_sq` | theorem | [TightBounds.lean:1317](../src/TightBounds.lean#L1317) | **Error of the Van Loan–Pitsianis approximation:** ‖C - kroneckerApprox C‖_F² = Σᵢ (truncatedSingularValues_r… |
+| `Matrix.TightBounds.hermitian_diagonal_real` | lemma | [TightBounds.lean:712](../src/TightBounds.lean#L712) | For a Hermitian matrix, diagonal entries are real. |
+| `Matrix.TightBounds.rayleigh_diagonal_le_bound` | lemma | [TightBounds.lean:727](../src/TightBounds.lean#L727) | For a unit vector and diagonal Hermitian matrix with diagonal entries ≤ bound, the Rayleigh quotient is ≤ bou… |
+| `Matrix.TightBounds.diagonal_entry_in_spectrum` | lemma | [TightBounds.lean:764](../src/TightBounds.lean#L764) | For a diagonal-like matrix, diagonal entries are in the spectrum. |
+| `Matrix.TightBounds.eigenvalues_le_of_offDiag_eq_zero_of_re_diag_le` | lemma | [TightBounds.lean:804](../src/TightBounds.lean#L804) | For a Hermitian matrix H with zero off-diagonal entries, every eigenvalue is at most any upper bound on the r… |
+| `Matrix.TightBounds.sigma_sq_is_DtD_entry` | lemma | [TightBounds.lean:842](../src/TightBounds.lean#L842) | The k-th singular value squared is achieved as a diagonal entry. |
+| `Matrix.TightBounds.l2_opNorm_truncatedSingularDiagonal_rect_tail` | lemma | [TightBounds.lean:872](../src/TightBounds.lean#L872) | The spectral norm of the tail singular diagonal is σₖ (0-indexed): for k < min(#m, #n), ‖truncatedSingularDia… |
+| `Matrix.TightBounds.spectral_error_truncatedSVD_rect` | theorem | [TightBounds.lean:991](../src/TightBounds.lean#L991) | **Spectral error of rectangular truncated SVD:** ‖A - Aₖ‖₂ = σₖ(A), 0-indexed, so σₖ is the largest singular… |
+| `Matrix.TightBounds.frobenius_norm_unitary_conj_rect` | theorem | [TightBounds.lean:1017](../src/TightBounds.lean#L1017) | **The Frobenius norm is unitarily invariant** (rectangular): ‖U B V*‖_F = ‖B‖_F. |
+| `Matrix.TightBounds.frobenius_error_truncatedSVD_rect` | theorem | [TightBounds.lean:1033](../src/TightBounds.lean#L1033) | **Frobenius error of the rectangular truncated SVD:** ‖A - truncatedSVD_rect A k‖_F² = Σᵢ (truncatedSingularV… |
+| `Matrix.TightBounds.sum_sq_tail_le_sum_sq_singularValues_sub` | theorem | [TightBounds.lean:1107](../src/TightBounds.lean#L1107) | **Tail sum bound behind Eckart–Young:** if rank(B) ≤ k, then the squared discarded singular values of A sum t… |
+| `Matrix.TightBounds.eckart_young_frobenius_rect` | theorem | [TightBounds.lean:1164](../src/TightBounds.lean#L1164) | **Eckart–Young theorem (Frobenius norm, rectangular).** The truncated SVD is a best rank-k approximation in F… |
+| `Matrix.TightBounds.eckart_young_spectral_rect` | theorem | [TightBounds.lean:1185](../src/TightBounds.lean#L1185) | **Eckart–Young theorem (spectral norm, rectangular).** The truncated SVD is a best rank-k approximation in sp… |
+| `Matrix.TightBounds.frobenius_error_via_R_isometry` | theorem | [TightBounds.lean:1226](../src/TightBounds.lean#L1226) | **Frobenius error through the rearrangement:** ‖C - R⁻¹(X)‖_F = ‖R(C) - X‖_F for every X. |
+| `Matrix.TightBounds.exists_outerProduct_of_rank_le_one` | theorem | [TightBounds.lean:1253](../src/TightBounds.lean#L1253) | A matrix of rank at most 1 is an outer product: M = u vᵀ. |
+| `Matrix.TightBounds.kroneckerApprox` | def | [TightBounds.lean:1276](../src/TightBounds.lean#L1276) | **The Van Loan–Pitsianis Kronecker approximation** of C : Matrix (m × n) (p × q) ℂ: R⁻¹ of the rank-1 truncat… |
+| `Matrix.TightBounds.kroneckerApprox_isKronecker` | theorem | [TightBounds.lean:1280](../src/TightBounds.lean#L1280) | `kroneckerApprox C` is a Kronecker product A ⊗ B with A : Matrix m p ℂ, B : Matrix n q ℂ. |
+| `Matrix.TightBounds.kroneckerApprox_optimal` | theorem | [TightBounds.lean:1305](../src/TightBounds.lean#L1305) | **Van Loan–Pitsianis theorem.** `kroneckerApprox C` is a best Kronecker-product approximation of C in Frobeni… |
+| `Matrix.TightBounds.kroneckerApprox_error_sq` | theorem | [TightBounds.lean:1316](../src/TightBounds.lean#L1316) | **Error of the Van Loan–Pitsianis approximation:** ‖C - kroneckerApprox C‖_F² = Σᵢ (truncatedSingularValues_r… |
 
 ## FrobeniusUniqueness.lean
 

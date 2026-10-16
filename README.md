@@ -10,8 +10,8 @@ approximation, and a Davis–Kahan bound for the top eigenvector.
 
 [![Lean build](https://github.com/acomarce/FLYWHEEL/actions/workflows/lean.yml/badge.svg?branch=main)](https://github.com/acomarce/FLYWHEEL/actions/workflows/lean.yml)
 [![sorry-free](https://img.shields.io/badge/proofs-sorry--free-brightgreen)](.github/workflows/lean.yml)
-[![Lean](https://img.shields.io/badge/Lean-v4.26.0--rc2-blue)](lean-toolchain)
-[![Mathlib](https://img.shields.io/badge/Mathlib-dc19f2a-blue)](https://github.com/leanprover-community/mathlib4/tree/dc19f2a67ff55a2078ba23a4c1740a5eb0d50e41)
+[![Lean](https://img.shields.io/badge/Lean-v4.35.0-blue)](lean-toolchain)
+[![Mathlib](https://img.shields.io/badge/Mathlib-ccbef15-blue)](https://github.com/leanprover-community/mathlib4/tree/ccbef15ebdb41c2addfac682131f83c75904c3c1)
 [![License](https://img.shields.io/github/license/acomarce/FLYWHEEL)](LICENSE)
 
 </div>

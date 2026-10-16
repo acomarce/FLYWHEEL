@@ -137,7 +137,7 @@ lemma card_truncatedSingularValues_rect_nonzero_le {m' n' : Type*} [Fintype m'] 
   have h_subset : ∀ i, truncatedSingularValues_rect A k i ≠ 0 → i.val < k := by
     intro i hi
     by_contra h_not_lt
-    push_neg at h_not_lt
+    push Not at h_not_lt
     have := truncatedSingularValues_rect_eq_zero_of_ge A k i h_not_lt
     exact hi this
   -- Map nonzero indices to Fin k
@@ -166,12 +166,12 @@ lemma truncatedSingularDiagonal_rect_full {m' n' : Type*} [Fintype m'] [Fintype 
     have hk' : fi.val < k := Nat.lt_of_lt_of_le h.2 hk
     have h3 : fi.val = fj.val ∧ fi.val < min (Fintype.card m') (Fintype.card n') ∧ fi.val < k :=
       ⟨h.1, h.2, hk'⟩
-    rw [dif_pos h3, dif_pos h]
+    rw [dite_eq_left h3, dite_eq_left h]
   · -- Off diagonal: both definitions give 0
     have h' : ¬(fi.val = fj.val ∧ fi.val < min (Fintype.card m') (Fintype.card n') ∧ fi.val < k) := by
       intro ⟨heq, hmin, _⟩
       exact h ⟨heq, hmin⟩
-    rw [dif_neg h', dif_neg h]
+    rw [dite_eq_right h', dite_eq_right h]
 
 /-- Truncated singular diagonal with k=0 is the zero matrix. -/
 lemma truncatedSingularDiagonal_rect_zero {m' n' : Type*} [Fintype m'] [Fintype n']
@@ -261,11 +261,11 @@ theorem truncatedSVD_rect_rank_le {m' n' : Type*} [Fintype m'] [Fintype n']
           ext i j
           rw [mul_diagonal]
           by_cases hj : (SVD.Rectangular.eigenvaluesBijection n' j).val < k
-          · rw [if_pos hj, mul_one]
-          · rw [if_neg hj, mul_zero]
+          · rw [ite_eq_left hj, mul_one]
+          · rw [ite_eq_right hj, mul_zero]
             show truncatedSingularDiagonal_rect A k i j = 0
             simp only [truncatedSingularDiagonal_rect]
-            rw [dif_neg]
+            rw [dite_eq_right]
             rintro ⟨heq, -, hlt⟩
             omega
         have hP : (diagonal (fun j : n' =>
@@ -278,7 +278,7 @@ theorem truncatedSVD_rect_rank_le {m' n' : Type*} [Fintype m'] [Fintype n']
                 Fintype.card_le_of_injective
                   (fun j => ⟨(SVD.Rectangular.eigenvaluesBijection n' j.1).val, by
                     by_contra h
-                    exact j.2 (if_neg h)⟩)
+                    exact j.2 (ite_eq_right h)⟩)
                   (fun a b hab => by
                     apply Subtype.ext
                     apply (SVD.Rectangular.eigenvaluesBijection n').injective
@@ -389,15 +389,15 @@ lemma singularDiagonal_eq_truncated_add_tail (A : Matrix m' n' ℂ) (k : ℕ) :
       have h2 : ¬(fi.val = fj.val ∧ fi.val < min (Fintype.card m') (Fintype.card n') ∧ k ≤ fi.val) := by
         intro ⟨_, _, hge⟩
         exact Nat.not_lt.mpr hge hk
-      rw [dif_pos h_diag, dif_pos h1, dif_neg h2, add_zero]
+      rw [dite_eq_left h_diag, dite_eq_left h1, dite_eq_right h2, add_zero]
     · -- Position ≥ k: comes from tail part
-      push_neg at hk
+      push Not at hk
       have h1 : ¬(fi.val = fj.val ∧ fi.val < min (Fintype.card m') (Fintype.card n') ∧ fi.val < k) := by
         intro ⟨_, _, hlt⟩
         exact Nat.not_lt.mpr hk hlt
       have h2 : fi.val = fj.val ∧ fi.val < min (Fintype.card m') (Fintype.card n') ∧ k ≤ fi.val :=
         ⟨h_diag.1, h_diag.2, hk⟩
-      rw [dif_pos h_diag, dif_neg h1, dif_pos h2, zero_add]
+      rw [dite_eq_left h_diag, dite_eq_right h1, dite_eq_left h2, zero_add]
   · -- Off diagonal: all terms are zero
     have h1 : ¬(fi.val = fj.val ∧ fi.val < min (Fintype.card m') (Fintype.card n') ∧ fi.val < k) := by
       intro ⟨heq, hmin, _⟩
@@ -405,7 +405,7 @@ lemma singularDiagonal_eq_truncated_add_tail (A : Matrix m' n' ℂ) (k : ℕ) :
     have h2 : ¬(fi.val = fj.val ∧ fi.val < min (Fintype.card m') (Fintype.card n') ∧ k ≤ fi.val) := by
       intro ⟨heq, hmin, _⟩
       exact h_diag ⟨heq, hmin⟩
-    rw [dif_neg h_diag, dif_neg h1, dif_neg h2, add_zero]
+    rw [dite_eq_right h_diag, dite_eq_right h1, dite_eq_right h2, add_zero]
 
 /-- The tail can be expressed as U * Σ_tail * V*.
     This is the key structural lemma for the spectral error proof. -/
@@ -558,7 +558,7 @@ lemma conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply
   set fj' := SVD.Rectangular.eigenvaluesBijection n' j' with hfj'_def
   by_cases h_cond : fj.val = fj'.val ∧ k ≤ fj.val ∧ fj.val < min (Fintype.card m') (Fintype.card n')
   · -- Conditions met: sum should be σ²
-    rw [dif_pos h_cond]
+    rw [dite_eq_left h_cond]
     have h_eq : fj.val = fj'.val := h_cond.1
     have h_k : k ≤ fj.val := h_cond.2.1
     have h_min : fj.val < min (Fintype.card m') (Fintype.card n') := h_cond.2.2
@@ -588,7 +588,7 @@ lemma conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply
         · constructor
           · simp only [h_fi₀]; exact h_min
           · simp only [h_fi₀]; exact h_k
-      simp only [dif_pos h_cond_i₀_j, dif_pos h_cond_i₀_j']
+      simp only [dite_eq_left h_cond_i₀_j, dite_eq_left h_cond_i₀_j']
       -- star (↑σ) * ↑σ = ↑(σ²) since σ is real
       simp only [RCLike.star_def, Complex.conj_ofReal]
       rw [← Complex.ofReal_mul, ← sq]
@@ -607,10 +607,10 @@ lemma conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply
                          min (Fintype.card m') (Fintype.card n') ∧
                        k ≤ (SVD.Rectangular.eigenvaluesBijection m' i).val) := by
           intro ⟨h1, _, _⟩; exact h_fi_fj h1
-        rw [dif_neg h_neg, star_zero, zero_mul]
+        rw [dite_eq_right h_neg, star_zero, zero_mul]
   · -- Conditions not met: sum should be 0
-    rw [dif_neg h_cond]
-    push_neg at h_cond
+    rw [dite_eq_right h_cond]
+    push Not at h_cond
     apply Finset.sum_eq_zero
     intro i _
     by_cases h_fj_eq : fj.val = fj'.val
@@ -624,13 +624,13 @@ lemma conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply
             intro ⟨_, h_lt_min, _⟩
             rw [h_match_j] at h_lt_min
             exact Nat.not_lt.mpr h_ge_min h_lt_min
-          rw [dif_neg h_neg_j, star_zero, zero_mul]
+          rw [dite_eq_right h_neg_j, star_zero, zero_mul]
         · have h_neg_j : ¬((SVD.Rectangular.eigenvaluesBijection m' i).val = fj.val ∧
                           (SVD.Rectangular.eigenvaluesBijection m' i).val <
                             min (Fintype.card m') (Fintype.card n') ∧
                           k ≤ (SVD.Rectangular.eigenvaluesBijection m' i).val) := by
             intro ⟨h1, _, _⟩; exact h_match_j h1
-          rw [dif_neg h_neg_j, star_zero, zero_mul]
+          rw [dite_eq_right h_neg_j, star_zero, zero_mul]
       · by_cases h_match_j : (SVD.Rectangular.eigenvaluesBijection m' i).val = fj.val
         · have h_neg_j : ¬((SVD.Rectangular.eigenvaluesBijection m' i).val = fj.val ∧
                           (SVD.Rectangular.eigenvaluesBijection m' i).val <
@@ -639,13 +639,13 @@ lemma conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply
             intro ⟨_, _, h_k_le'⟩
             rw [h_match_j] at h_k_le'
             exact Nat.not_lt.mpr h_k_le' (Nat.not_le.mp h_k_le)
-          rw [dif_neg h_neg_j, star_zero, zero_mul]
+          rw [dite_eq_right h_neg_j, star_zero, zero_mul]
         · have h_neg_j : ¬((SVD.Rectangular.eigenvaluesBijection m' i).val = fj.val ∧
                           (SVD.Rectangular.eigenvaluesBijection m' i).val <
                             min (Fintype.card m') (Fintype.card n') ∧
                           k ≤ (SVD.Rectangular.eigenvaluesBijection m' i).val) := by
             intro ⟨h1, _, _⟩; exact h_match_j h1
-          rw [dif_neg h_neg_j, star_zero, zero_mul]
+          rw [dite_eq_right h_neg_j, star_zero, zero_mul]
     · by_cases h_match_j : (SVD.Rectangular.eigenvaluesBijection m' i).val = fj.val
       · have h_not_match_j' : (SVD.Rectangular.eigenvaluesBijection m' i).val ≠ fj'.val := by
           rw [h_match_j]; exact h_fj_eq
@@ -654,13 +654,13 @@ lemma conjTranspose_mul_truncatedSingularDiagonal_rect_tail_apply
                            min (Fintype.card m') (Fintype.card n') ∧
                          k ≤ (SVD.Rectangular.eigenvaluesBijection m' i).val) := by
           intro ⟨h1, _, _⟩; exact h_not_match_j' h1
-        rw [dif_neg h_neg_j', mul_zero]
+        rw [dite_eq_right h_neg_j', mul_zero]
       · have h_neg_j : ¬((SVD.Rectangular.eigenvaluesBijection m' i).val = fj.val ∧
                          (SVD.Rectangular.eigenvaluesBijection m' i).val <
                            min (Fintype.card m') (Fintype.card n') ∧
                          k ≤ (SVD.Rectangular.eigenvaluesBijection m' i).val) := by
           intro ⟨h1, _, _⟩; exact h_match_j h1
-        rw [dif_neg h_neg_j, star_zero, zero_mul]
+        rw [dite_eq_right h_neg_j, star_zero, zero_mul]
 
 /-! ### Spectral Norm of Rectangular Diagonal Matrix -/
 
@@ -687,7 +687,7 @@ lemma inner_diagonal_matrix_eq_sum
     (x : EuclideanSpace ℂ n') :
     @inner ℂ (EuclideanSpace ℂ n') _ (Matrix.toEuclideanLin H x) x =
       ∑ k, H k k * (starRingEnd ℂ (x.ofLp k) * x.ofLp k) := by
-  rw [EuclideanSpace.inner_eq_star_dotProduct, Matrix.toEuclideanLin_apply]
+  rw [EuclideanSpace.inner_eq_star_dotProduct, Matrix.toLpLin_apply]
   simp only [dotProduct, Matrix.mulVec, dotProduct, Pi.star_apply]
   -- The inner sum over j simplifies to H i i * x i for diagonal matrices
   have h_diagonal_sum : ∀ i, ∑ j, H i j * x.ofLp j = H i i * x.ofLp i := by
@@ -702,7 +702,6 @@ lemma inner_diagonal_matrix_eq_sum
   simp only [star_mul']
   -- For Hermitian H, star (H i i) = H i i
   have h_star_diag := hH.apply i i
-  simp only at h_star_diag
   rw [h_star_diag]
   -- star = starRingEnd ℂ for Complex
   simp only [starRingEnd_apply]
@@ -851,7 +850,7 @@ lemma sigma_sq_is_DtD_entry (A : Matrix m' n' ℂ) (k : ℕ)
   have h_bijection : (SVD.Rectangular.eigenvaluesBijection n' j).val = k := by
     unfold j
     rw [Matrix.SVD.Rectangular.eigenvaluesBijection_embedMinToN]
-    simp only [Fin.coe_castLE]
+    simp only [Fin.val_castLE]
   -- The two sides then differ only in the proof inside ⟨k, _⟩, which `simp` closes
   simp only [h_bijection, le_refl, hk, and_self, ↓reduceDIte]
 
@@ -1075,7 +1074,7 @@ theorem frobenius_error_truncatedSVD_rect (A : Matrix m' n' ℂ) (k : ℕ) :
       exact hb ⟨⟨b.val, hb_lt⟩, rfl⟩
     show (if h : k ≤ b.val ∧ b.val < min (Fintype.card m') (Fintype.card n') then
       (SVD.Rectangular.singularValues A ⟨b.val, h.2⟩) ^ 2 else 0) = 0
-    rw [dif_neg hcond]
+    rw [dite_eq_right hcond]
   · -- On Fin (min #m' #n') the summands agree
     intro c
     show (truncatedSingularValues_rect_tail A k c) ^ 2 =
@@ -1083,10 +1082,10 @@ theorem frobenius_error_truncatedSVD_rect (A : Matrix m' n' ℂ) (k : ℕ) :
         (SVD.Rectangular.singularValues A ⟨c.val, h.2⟩) ^ 2 else 0)
     by_cases hc : k ≤ c.val
     · have hcond : k ≤ c.val ∧ c.val < min (Fintype.card m') (Fintype.card n') := ⟨hc, c.isLt⟩
-      rw [truncatedSingularValues_rect_tail_eq_of_ge A k c hc, dif_pos hcond, Fin.eta]
+      rw [truncatedSingularValues_rect_tail_eq_of_ge A k c hc, dite_eq_left hcond, Fin.eta]
     · have hcond : ¬(k ≤ c.val ∧ c.val < min (Fintype.card m') (Fintype.card n')) :=
         fun h => hc h.1
-      rw [truncatedSingularValues_rect_tail_eq_zero_of_lt A k c (not_le.mp hc), dif_neg hcond,
+      rw [truncatedSingularValues_rect_tail_eq_zero_of_lt A k c (not_le.mp hc), dite_eq_right hcond,
         zero_pow two_ne_zero]
 
 end FrobeniusErrorRect
@@ -1122,8 +1121,8 @@ theorem sum_sq_tail_le_sum_sq_singularValues_sub (A B : Matrix m' n' ℂ) (k : �
     apply Finset.sum_congr rfl
     intro j _
     by_cases hj : k ≤ j.val
-    · rw [if_pos hj, truncatedSingularValues_rect_tail_eq_of_ge A k j hj]
-    · rw [if_neg hj, truncatedSingularValues_rect_tail_eq_zero_of_lt A k j (not_le.mp hj),
+    · rw [ite_eq_left hj, truncatedSingularValues_rect_tail_eq_of_ge A k j hj]
+    · rw [ite_eq_right hj, truncatedSingularValues_rect_tail_eq_zero_of_lt A k j (not_le.mp hj),
         zero_pow two_ne_zero]
   -- Step 2: termwise interlacing σⱼ(A) ≤ σⱼ₋ₖ(A - B)
   have h_term : ∀ j ∈ Finset.univ.filter

@@ -117,13 +117,13 @@ theorem inner_toEuclideanLin_eq_eigenvalue_sum
   intro i _
   -- Goal: ⟨Ax, uᵢ⟩ * ⟨uᵢ, x⟩ = |⟨uᵢ, x⟩|² * λᵢ
   -- Use the symmetric property: ⟨Ax, uᵢ⟩ = ⟨x, Auᵢ⟩ = ⟨x, λᵢuᵢ⟩ = λᵢ⟨x, uᵢ⟩
-  have hSym : (Matrix.toEuclideanLin A).IsSymmetric := isHermitian_iff_isSymmetric.mp hA
+  have hSym : (Matrix.toEuclideanLin A).IsSymmetric := isSymmetric_toEuclideanLin_iff.mpr hA
   -- A uᵢ = λᵢ uᵢ
   have hEigen : Matrix.toEuclideanLin A (hA.eigenvectorBasis i) =
       (hA.eigenvalues i : ℂ) • (hA.eigenvectorBasis i) := by
     ext j
     have := hA.mulVec_eigenvectorBasis i
-    simp only [Matrix.toEuclideanLin_apply] at this ⊢
+    simp only [Matrix.toLpLin_apply] at this ⊢
     exact congr_fun this j
   -- ⟨Ax, uᵢ⟩ = conj(⟨uᵢ, Ax⟩) = conj(⟨Auᵢ, x⟩) = conj(⟨λᵢuᵢ, x⟩) = conj(λᵢ) * conj(⟨uᵢ, x⟩)
   -- Since λᵢ is real: = λᵢ * ⟨x, uᵢ⟩
@@ -167,7 +167,7 @@ theorem rayleigh_eq_eigenvalue_on_eigenvector
   have h_eigen : Matrix.toEuclideanLin A v = (hA.eigenvalues i : ℂ) • v := by
     have := hA.mulVec_eigenvectorBasis i
     ext j
-    simp only [Matrix.toEuclideanLin_apply] at this ⊢
+    simp only [Matrix.toLpLin_apply] at this ⊢
     exact congr_fun this j
   rw [h_eigen]
   simp only [inner_smul_left]
@@ -298,18 +298,18 @@ theorem rayleigh_achieves_min (A : Matrix n n ℂ) (hA : A.IsHermitian) :
 /-! ### Subspace-Restricted Bounds -/
 
 /-- The span of a subset of eigenvectors. -/
-def eigenvectorSpan (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
+noncomputable def eigenvectorSpan (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
     (S : Finset n) : Submodule ℂ (EuclideanSpace ℂ n) :=
   Submodule.span ℂ (Set.range (fun i : S => hA.eigenvectorBasis i.val))
 
 /-- The span of the first k eigenvectors (in sorted eigenvalue order). -/
-def eigenvectorSpanHead (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
+noncomputable def eigenvectorSpanHead (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
     (k : Fin (Fintype.card n + 1)) : Submodule ℂ (EuclideanSpace ℂ n) :=
   Submodule.span ℂ (Set.range (fun i : Fin k =>
     hA.eigenvectorBasis ((Fintype.equivOfCardEq (Fintype.card_fin _)) (Fin.castLE (Nat.lt_succ_iff.mp k.isLt) i))))
 
 /-- The span of eigenvectors from index k to n-1 (tail of sorted order). -/
-def eigenvectorSpanTail (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
+noncomputable def eigenvectorSpanTail (hA : Matrix.IsHermitian (A : Matrix n n ℂ))
     (k : Fin (Fintype.card n)) : Submodule ℂ (EuclideanSpace ℂ n) :=
   Submodule.span ℂ (Set.range (fun i : Fin (Fintype.card n - k) =>
     hA.eigenvectorBasis ((Fintype.equivOfCardEq (Fintype.card_fin _)) ⟨k + i, by omega⟩)))
@@ -370,7 +370,7 @@ theorem rayleigh_le_on_eigenvectorSpanTail
           simp only [h_head_zero i h, norm_zero, sq, zero_mul, mul_zero, le_refl]
         · -- Tail case: eigenvalue ≤ λₖ
           apply mul_le_mul_of_nonneg_left _ (sq_nonneg _)
-          push_neg at h
+          push Not at h
           rw [eigenvalues_eq_eigenvalues₀_comp A hA i]
           exact hA.eigenvalues₀_antitone h
     _ = (∑ i, ‖@inner ℂ (EuclideanSpace ℂ n) _ (hA.eigenvectorBasis i) x‖ ^ 2) * hA.eigenvalues₀ k := by
@@ -400,7 +400,7 @@ theorem inner_eigenvectorTail_eigenvectorSpanHead_eq_zero
         Fin.castLE (Nat.lt_succ_iff.mp k.isLt) m := by
       rw [heq]; simp only [Equiv.symm_apply_apply]
     have h2 : ((Fintype.equivOfCardEq (Fintype.card_fin _)).symm j).val = m.val := by
-      rw [h1]; simp only [Fin.coe_castLE]
+      rw [h1]; simp only [Fin.val_castLE]
     omega
   -- Extend to span by linearity
   unfold eigenvectorSpanHead at hx
@@ -505,7 +505,7 @@ theorem exists_nonzero_of_finrank_pos {K : Type*} [DivisionRing K]
     (W : Submodule K E) (h : 0 < Module.finrank K W) :
     ∃ x : W, x.val ≠ 0 := by
   by_contra hne
-  push_neg at hne
+  push Not at hne
   have : W = ⊥ := by
     ext x
     simp only [Submodule.mem_bot]
@@ -771,7 +771,7 @@ theorem exists_vector_rayleigh_le_in_subspace (A : Matrix n n ℂ) (hA : A.IsHer
   have hy_Tail : y ∈ Tail := Submodule.smul_mem Tail _ hx_Tail
 
   -- Derive Nonempty n from the fact that k > 0 implies Fintype.card n ≥ 1
-  haveI : Nonempty n := by
+  have : Nonempty n := by
     rw [← Fintype.card_pos_iff]
     omega
 
@@ -861,7 +861,7 @@ theorem eigenvalue_le_rayleighInf_eigenvectorSpanHead (A : Matrix n n ℂ) (hA :
   have hHead_pos : 0 < Module.finrank ℂ (eigenvectorSpanHead hA k) := by
     rw [hHead_dim]; exact hk
   obtain ⟨⟨v, hv_mem⟩, hv_ne⟩ := exists_nonzero_of_finrank_pos (eigenvectorSpanHead hA k) hHead_pos
-  haveI : Nonempty { x : (eigenvectorSpanHead hA k) // x.val ≠ 0 } := ⟨⟨⟨v, hv_mem⟩, hv_ne⟩⟩
+  have : Nonempty { x : (eigenvectorSpanHead hA k) // x.val ≠ 0 } := ⟨⟨⟨v, hv_mem⟩, hv_ne⟩⟩
   apply le_ciInf
   intro ⟨⟨x, hx_mem⟩, hx_ne⟩
   by_cases hx_norm : ‖x‖ = 0
@@ -940,7 +940,7 @@ theorem courantFischer_maxMin_eq_iSup (A : Matrix n n ℂ) (hA : A.IsHermitian)
       ⨆ W : {W : Submodule ℂ (EuclideanSpace ℂ n) // Module.finrank ℂ W = k.val},
         rayleighInf A W.1 := by
   have hHead := finrank_eigenvectorSpanHead A hA k
-  haveI : Nonempty {W : Submodule ℂ (EuclideanSpace ℂ n) // Module.finrank ℂ W = k.val} :=
+  have : Nonempty {W : Submodule ℂ (EuclideanSpace ℂ n) // Module.finrank ℂ W = k.val} :=
     ⟨⟨eigenvectorSpanHead hA k, hHead⟩⟩
   -- Every value is at most λₖ₋₁
   have h_le : ∀ W : {W : Submodule ℂ (EuclideanSpace ℂ n) // Module.finrank ℂ W = k.val},
@@ -1059,7 +1059,7 @@ theorem rayleighSup_le_eigenvalue_eigenvectorSpanTail (A : Matrix n n ℂ) (hA :
   have hTail_ne_bot : eigenvectorSpanTail hA k_pred ≠ ⊥ := by
     rwa [← Submodule.one_le_finrank_iff, Nat.one_le_iff_ne_zero, ← Nat.pos_iff_ne_zero]
   obtain ⟨v, hv_mem, hv_ne⟩ := Submodule.exists_mem_ne_zero_of_ne_bot hTail_ne_bot
-  haveI : Nonempty { x : (eigenvectorSpanTail hA k_pred) // (x : EuclideanSpace ℂ n) ≠ 0 } := ⟨⟨⟨v, hv_mem⟩, hv_ne⟩⟩
+  have : Nonempty { x : (eigenvectorSpanTail hA k_pred) // (x : EuclideanSpace ℂ n) ≠ 0 } := ⟨⟨⟨v, hv_mem⟩, hv_ne⟩⟩
   apply ciSup_le
   intro ⟨⟨x, hx_mem⟩, hx_ne⟩
   by_cases hx_norm : ‖x‖ = 0
@@ -1152,7 +1152,7 @@ theorem courantFischer_minMax_eq_iInf (A : Matrix n n ℂ) (hA : A.IsHermitian)
           Module.finrank ℂ W = Fintype.card n - k.val + 1},
         rayleighSup A W.1 := by
   have hTail := finrank_eigenvectorSpanTail_pred A hA k hk
-  haveI : Nonempty {W : Submodule ℂ (EuclideanSpace ℂ n) //
+  have : Nonempty {W : Submodule ℂ (EuclideanSpace ℂ n) //
       Module.finrank ℂ W = Fintype.card n - k.val + 1} :=
     ⟨⟨eigenvectorSpanTail hA ⟨k.val - 1, by omega⟩, hTail⟩⟩
   -- Every value is at least λₖ₋₁
@@ -1216,7 +1216,7 @@ theorem norm_sq_mul_eq_inner_AHA {m : Type*} [Fintype m] [DecidableEq m]
     -- Need to show: toEuclideanLin Aᴴ (toEuclideanLin A x) = toEuclideanLin (Aᴴ * A) x
     congr 1
     -- Use the fact that toEuclideanLin preserves matrix multiplication
-    simp only [Matrix.toEuclideanLin_apply, Matrix.mulVec_mulVec]
+    simp only [Matrix.toLpLin_apply, Matrix.mulVec_mulVec]
   rw [h2]
 
 end EckartYoungBridge

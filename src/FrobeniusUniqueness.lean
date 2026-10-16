@@ -68,9 +68,9 @@ theorem sum_mul_le_sum_of_threshold (s w : ι → ℝ) (T : Finset ι) (τ : ℝ
   have h_term : ∀ i, 0 ≤ (s i - τ) * ((if i ∈ T then (1 : ℝ) else 0) - w i) := by
     intro i
     by_cases hi : i ∈ T
-    · rw [if_pos hi]
+    · rw [ite_eq_left hi]
       exact mul_nonneg (by linarith [hT i hi]) (by linarith [hw1 i])
-    · rw [if_neg hi]
+    · rw [ite_eq_right hi]
       exact mul_nonneg_of_nonpos_of_nonpos (by linarith [hTc i hi]) (by linarith [hw0 i])
   -- The gap identity
   have h_key : ∑ i, s i * (if i ∈ T then (1 : ℝ) else 0) - ∑ i, s i * w i =
@@ -334,7 +334,7 @@ theorem eq_mul_indicator_of_frobenius_sq_le (S C : Matrix m n ℂ) (d : n → �
     ext i j
     rw [diagonal_apply]
     by_cases hj : j ∈ T
-    · have hwj : (Q j j).re = 1 := by rw [hw_eq j, if_pos hj]
+    · have hwj : (Q j j).re = 1 := by rw [hw_eq j, ite_eq_left hj]
       have hQjj : Q j j = 1 := Complex.ext (by simpa using hwj) (by simpa using hQjj_im j)
       have h_rest : ∑ l ∈ Finset.univ.erase j, Complex.normSq (Q l j) = 0 := by
         have h_split : Complex.normSq (Q j j) +
@@ -348,9 +348,9 @@ theorem eq_mul_indicator_of_frobenius_sq_le (S C : Matrix m n ℂ) (d : n → �
       · have h0 := (Finset.sum_eq_zero_iff_of_nonneg
           (fun l _ => Complex.normSq_nonneg (Q l j))).mp h_rest i
           (Finset.mem_erase.mpr ⟨hij, Finset.mem_univ i⟩)
-        rw [if_neg hij]
+        rw [ite_eq_right hij]
         exact Complex.normSq_eq_zero.mp h0
-    · have hwj : (Q j j).re = 0 := by rw [hw_eq j, if_neg hj]
+    · have hwj : (Q j j).re = 0 := by rw [hw_eq j, ite_eq_right hj]
       have h0 := (Finset.sum_eq_zero_iff_of_nonneg
         (fun l _ => Complex.normSq_nonneg (Q l j))).mp ((hw_sum j).symm.trans hwj) i
         (Finset.mem_univ i)
