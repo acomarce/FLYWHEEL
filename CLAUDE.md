@@ -9,17 +9,18 @@ There are no `sorry`/`axiom`/`admit`, and it must stay that way.
 - Lake project at the repo root:
   - `lakefile.toml` sets `srcDir = "src"`.
   - `lean-toolchain` pins `leanprover/lean4:v4.35.0`.
-  - `lake-manifest.json` pins Mathlib at `ccbef15e…`.
+  - `lakefile.toml` (`rev`) and `lake-manifest.json` (`rev`, `inputRev`) pin Mathlib at
+    commit `ccbef15e…`.
 - All Lean sources are flat in `src/`. Each file is its own `lean_lib` of the same name (module
   `SVD` = `src/SVD.lean`). Every file is a Lean module (see "Module system" below).
-- To add a file: give it the module header (see Conventions), add a `[[lean_lib]]` and put it in
-  `defaultTargets`. The index check fails otherwise.
+- To add a file: give it the module header (see Conventions), add a `[[lean_lib]]`, put it in
+  `defaultTargets` and import it in `scripts/CheckAxioms.lean`. The index check fails otherwise.
 - `docs/INDEX.md`: every top-level declaration with full name, kind, `file:line` and a doc
   summary. It is generated, so **grep it** to find a lemma instead of reading the sources.
 - `docs/svd.md`, `docs/eckart-young.md`, `docs/kronecker.md`, `docs/davis-kahan.md`: proof
   architecture notes and known traps.
-- `scripts/gen_index.py`: generates and checks the index. `.claude/hooks/session-start.sh`:
-  cloud-session setup.
+- `scripts/gen_index.py`: generates and checks the index. `scripts/CheckAxioms.lean`: the CI
+  axiom check (imports every library). `.claude/hooks/session-start.sh`: cloud-session setup.
 
 ## Build
 
@@ -28,13 +29,18 @@ lake exe cache get          # prebuilt Mathlib oleans; needed once
 lake build                  # builds all 12 libraries (defaultTargets lists them all)
 lake build TightBounds      # one library plus its imports
 lake env lean src/SVD.lean  # elaborate a single file
+lake env lean scripts/CheckAxioms.lean  # after a build: only propext, Classical.choice, Quot.sound
 python3 -I scripts/gen_index.py   # regenerate docs/INDEX.md after editing any .lean file
 ```
 
-- **Never run `lake update`.** `lakefile.toml` requires Mathlib `rev = "master"`, so an update
-  would jump far past the pinned revision and toolchain.
-- The build is warning-free. Keep it that way and fix any warning your change introduces.
-  CI does not fail on warnings, so read the `build` log.
+- Mathlib is pinned by commit, so `lake update` does not move it. Still don't run it in a cloud
+  session: Mathlib's post-update hook runs `lake exe cache get`, which stalls on the blocked
+  cache hosts (set `MATHLIB_NO_CACHE_ON_UPDATE=1` to skip it).
+- To bump Mathlib: set `rev` in `lakefile.toml` to the new commit and `lean-toolchain` to
+  Mathlib's at that commit, then `lake update mathlib` (or edit `lake-manifest.json` by hand, as
+  the v4.35 bump did; keep `rev` and `inputRev` equal to the lakefile's `rev`, or Lake warns
+  "manifest out of date").
+- The build is warning-free and CI keeps it so: it runs `lake build --wfail`.
 
 ### Cloud sessions (claude.ai/code)
 
@@ -177,11 +183,15 @@ Traps:
 
 - `.github/workflows/lean.yml`, job `build`, runs:
   1. lean-action with the Mathlib cache;
-  2. `lake build`;
+  2. `lake build --wfail`, which fails on any warning;
   3. a fail on `declaration uses 'sorry'` in the log, or a grep hit in `src/**/*.lean`. The
      grep catches `axiom` at line start and the words `sorry`/`admit` **anywhere, comments
      included**;
-  4. `python3 -I scripts/gen_index.py --check`, which runs even if the build failed.
+  4. `lake env lean scripts/CheckAxioms.lean`: every declaration of the 12 libraries may
+     depend only on `propext`, `Classical.choice` and `Quot.sound`. This also catches what the
+     grep cannot, such as `private axiom` or `native_decide` (`Lean.ofReduceBool`);
+  5. `python3 -I scripts/gen_index.py --check`, which runs even if the build failed. It also
+     fails if `scripts/CheckAxioms.lean` does not import exactly the `src/` modules.
 - The `main` ruleset requires a PR, requires the status check `build`, and allows **rebase
   merges only**.
 - `docs/INDEX.md` records line numbers, so almost every `.lean` edit needs it regenerated.

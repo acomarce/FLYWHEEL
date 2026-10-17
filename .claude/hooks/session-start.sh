@@ -89,7 +89,7 @@ fi
 # --- Mathlib ---------------------------------------------------------------
 cd "$PROJECT_DIR" || exit 0
 # Clone the dependencies pinned in lake-manifest.json without building
-# anything. Never `lake update`: lakefile.toml tracks Mathlib master.
+# anything. Never `lake update`: Mathlib's post-update hook runs `lake exe cache get`.
 if timeout 900 lake env true >> "$LOG" 2>&1; then
   clone="Mathlib sources are in .lake/packages/mathlib (grep them for lemma names)"
 else

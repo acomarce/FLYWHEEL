@@ -22,7 +22,9 @@ defaultTargets = [
 [[require]]
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4"
-rev = "master"
+# Pinned to a commit (the same one as lake-manifest.json), so `lake update` cannot move it.
+# To bump: set rev to the new commit and lean-toolchain to Mathlib's, then `lake update mathlib`.
+rev = "ccbef15ebdb41c2addfac682131f83c75904c3c1"
 
 [[lean_lib]]
 name = "SVD"

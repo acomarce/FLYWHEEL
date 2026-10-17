@@ -26,11 +26,12 @@ jobs:
           use-mathlib-cache: true
 
       # defaultTargets in lakefile.toml lists every library, so a bare
-      # `lake build` checks the whole project.
+      # `lake build` checks the whole project. The build is warning-free, so
+      # --wfail fails it on any warning.
       - name: Build all libraries
         run: |
           set -o pipefail
-          lake build 2>&1 | tee build.log
+          lake build --wfail 2>&1 | tee build.log
 
       - name: Check for sorry and axioms
         run: |
@@ -40,6 +41,10 @@ jobs:
           if grep -nE "^\s*(axiom|sorry\b)|\bsorry\b|\badmit\b" --include=*.lean -r src; then
             echo "::error::Source contains axiom/sorry/admit"; exit 1
           fi
+
+      # Every declaration may use only propext, Classical.choice and Quot.sound.
+      - name: Check the axioms of every declaration
+        run: lake env lean scripts/CheckAxioms.lean
 
       # Runs even when the build fails, so one CI run reports both.
       - name: Check docs/INDEX.md and lakefile targets are in sync

@@ -11,6 +11,8 @@ Both modes also check the source structure and the lakefile:
     `defaultTargets` (so a bare `lake build` really builds everything);
   * every src/*.lean file starts with a `module` header (the project uses the
     module system, and a module cannot import a non-module file);
+  * scripts/CheckAxioms.lean imports exactly the src modules (so CI's axiom
+    check covers every library);
   * block comments are terminated (Lean comments nest, so a stray `/-`
     silently comments out the rest of a file);
   * `namespace`/`section`/`end` lines match.
@@ -33,6 +35,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 LAKEFILE = ROOT / "lakefile.toml"
 INDEX = ROOT / "docs" / "INDEX.md"
+AXIOM_CHECK = ROOT / "scripts" / "CheckAxioms.lean"
 
 KINDS = ("theorem", "lemma", "def", "abbrev", "instance", "structure", "class",
          "inductive", "opaque", "axiom")
@@ -259,6 +262,17 @@ def load_modules() -> tuple[list[ModuleInfo], list[str]]:
             problems.append(f"lakefile.toml: lean_lib {name} has no source file")
         if name not in defaults:
             problems.append(f"lakefile.toml: lean_lib {name} missing from defaultTargets")
+
+    check_rel = AXIOM_CHECK.relative_to(ROOT)
+    if AXIOM_CHECK.exists():
+        checked = {m.group(1) for line in AXIOM_CHECK.read_text(encoding="utf-8").splitlines()
+                   if (m := IMPORT_RE.match(line))}
+        for mod in sorted(modules.keys() - checked):
+            problems.append(f"{check_rel}: does not import src module {mod}")
+        for mod in sorted(checked - modules.keys()):
+            problems.append(f"{check_rel}: imports {mod}, which is not a src module")
+    else:
+        problems.append(f"{check_rel} is missing")
 
     infos: list[ModuleInfo] = []
     for mod, path in modules.items():
