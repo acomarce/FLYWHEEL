@@ -102,7 +102,8 @@ Proof notes: [SVD](docs/svd.md) · [Eckart–Young](docs/eckart-young.md) ·
 ## Build
 
 [elan](https://github.com/leanprover/elan) installs the toolchain pinned in
-[`lean-toolchain`](lean-toolchain); Mathlib is pinned in [`lake-manifest.json`](lake-manifest.json).
+[`lean-toolchain`](lean-toolchain); Mathlib is pinned by commit in [`lakefile.toml`](lakefile.toml)
+and [`lake-manifest.json`](lake-manifest.json).
 
 ```bash
 lake exe cache get   # prebuilt Mathlib, once
@@ -110,11 +111,15 @@ lake build           # all 12 libraries
 lake build SVD       # one library and its imports
 ```
 
-Don't run `lake update`: `lakefile.toml` tracks Mathlib `master`, so it would jump past the
-pinned revision.
+To bump Mathlib, set `rev` in `lakefile.toml` to the new commit and `lean-toolchain` to
+Mathlib's, then run `lake update mathlib`.
 
-CI builds every library on each push to `main` and each pull request, fails on any `sorry`, `admit` or `axiom`,
-and checks that `docs/INDEX.md` is current.
+CI builds every library on each push to `main` and each pull request, and fails on:
+- any build warning;
+- a declaration that depends on an axiom other than `propext`, `Classical.choice` and
+  `Quot.sound` ([`scripts/CheckAxioms.lean`](scripts/CheckAxioms.lean));
+- `sorry`, `admit` or `axiom` in the sources;
+- a stale `docs/INDEX.md`.
 
 ## Citation
 
