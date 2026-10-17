@@ -44,7 +44,7 @@ run_cmd do
   -- The project modules: the direct imports, minus the implicit `Init`
   let imports := env.imports.filter (·.module != `Init)
   let projectMods := imports.filterMap fun i => (env.getModuleIdx? i.module).map (·.toNat)
-  let mut checked := 0
+  let mut checked : Nat := 0
   let mut used : NameSet := {}
   let mut bad : Array (Name × Array Name) := #[]
   for (name, idx) in env.const2ModIdx do
