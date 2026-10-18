@@ -194,6 +194,11 @@ Traps:
      fails if `scripts/CheckAxioms.lean` does not import exactly the `src/` modules.
 - The `main` ruleset requires a PR, requires the status check `build`, and allows **rebase
   merges only**.
+- **Releases:** `.github/workflows/release.yml` (manual, run from `main`, input `tag`) tags
+  `main`'s head and publishes a release with the notes in `docs/releases/<tag>.md`. It refuses
+  an existing tag or a commit whose `build` check has not passed. A cloud session cannot push
+  tags or create releases itself: merge the notes, wait for `build` on `main`, then run the
+  workflow with the GitHub MCP `actions_run_trigger` (`run_workflow`, `ref` = `main`).
 - `docs/INDEX.md` records line numbers, so almost every `.lean` edit needs it regenerated.
   Commit the regenerated file in the same PR.
 

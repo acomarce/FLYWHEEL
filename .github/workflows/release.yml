@@ -1,0 +1,67 @@
+name: Release
+
+# Run by hand from main (Actions tab, or the workflow_dispatch API). Tags
+# main's head and publishes a GitHub release whose notes are
+# docs/releases/<tag>.md.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to create, e.g. v2.1"
+        required: true
+        type: string
+      prerelease:
+        description: "Mark the release as a pre-release"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  checks: read
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ inputs.tag }}
+      PRERELEASE: ${{ inputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check the ref, tag name and release notes
+        run: |
+          if [ "$GITHUB_REF" != refs/heads/main ]; then
+            echo "::error::Run this workflow from main, not $GITHUB_REF"; exit 1
+          fi
+          if ! [[ "$TAG" =~ ^v?[0-9]+(\.[0-9]+)*(-[0-9A-Za-z.]+)?$ ]]; then
+            echo "::error::'$TAG' is not a version tag such as v2.1"; exit 1
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
+            echo "::error::Tag $TAG already exists"; exit 1
+          fi
+          if [ ! -f "docs/releases/$TAG.md" ]; then
+            echo "::error::Missing release notes docs/releases/$TAG.md"; exit 1
+          fi
+
+      # Release only a commit on which the Lean build (job `build` in
+      # lean.yml) passed.
+      - name: Check that CI passed on this commit
+        run: |
+          conclusion=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/check-runs?check_name=build" \
+            --jq '[.check_runs[] | select(.status == "completed")] | sort_by(.completed_at) | last | .conclusion // "none"')
+          if [ "$conclusion" != success ]; then
+            echo "::error::Check 'build' has not passed on $GITHUB_SHA (latest completed run: $conclusion)"; exit 1
+          fi
+
+      - name: Create the tag and release
+        run: |
+          flags=()
+          if [ "$PRERELEASE" = true ]; then flags+=(--prerelease); fi
+          gh release create "$TAG" --target "$GITHUB_SHA" --title "FLYWHEEL $TAG" \
+            --notes-file "docs/releases/$TAG.md" "${flags[@]}"
