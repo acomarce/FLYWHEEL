@@ -491,6 +491,13 @@ section L2
 attribute [local instance] Matrix.instL2OpNormedAddCommGroup
 
 set_option linter.unusedSectionVars false in
+/-- ‖F x‖ ≤ ‖F‖₂ ‖x‖, stated for a variable matrix so that applying it to Ã - A or (Ã - A)ᴴ
+    does not unfold the matrix. -/
+theorem norm_toEuclideanLin_le_l2 (F : Matrix m n ℂ) (x : EuclideanSpace ℂ n) :
+    ‖toEuclideanLin F x‖ ≤ ‖F‖ * ‖x‖ :=
+  Matrix.l2_opNorm_mulVec F x
+
+set_option linter.unusedSectionVars false in
 /-- **Wedin's sin Θ theorem in ‖E‖₂.** Under the hypotheses of `wedin_sin_theta`, with
     E = Ã - A and δ = σₖ₋₁(Ã) - σₖ(A),
     ‖sin Θ(U, Ũ)‖_F² + ‖sin Θ(V, Ṽ)‖_F² ≤ 2 k ‖E‖₂² / δ². -/
@@ -523,12 +530,8 @@ theorem wedin_sin_theta_l2 (A Ã : Matrix m n ℂ) (k : ℕ) (hk : k < Fintype.c
       have h := inner_leftSingularVector Ã _ hÃpos j hj j hj
       rw [ite_eq_left rfl] at h
       rw [← inner_self_eq_norm_sq (𝕜 := ℂ), h, RCLike.one_re]
-    have h1 : ‖toEuclideanLin (Ã - A) (rightSingularVector Ã j)‖ ≤
-        ‖Ã - A‖ * ‖rightSingularVector Ã j‖ :=
-      Matrix.l2_opNorm_mulVec (Ã - A) _
-    have h2 : ‖toEuclideanLin (Ã - A)ᴴ (leftSingularVector Ã j)‖ ≤
-        ‖(Ã - A)ᴴ‖ * ‖leftSingularVector Ã j‖ :=
-      Matrix.l2_opNorm_mulVec (Ã - A)ᴴ _
+    have h1 := norm_toEuclideanLin_le_l2 (Ã - A) (rightSingularVector Ã j)
+    have h2 := norm_toEuclideanLin_le_l2 (Ã - A)ᴴ (leftSingularVector Ã j)
     rw [hv1, mul_one] at h1
     rw [Matrix.l2_opNorm_conjTranspose] at h2
     have h1' := pow_le_pow_left₀ (norm_nonneg _) h1 2
