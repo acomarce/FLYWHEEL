@@ -6,7 +6,8 @@
 
 Machine-checked matrix analysis on Mathlib: the SVD, Courant–Fischer, Weyl and Thompson
 interlacing, Eckart–Young (with uniqueness under a gap), Kronecker (Van Loan–Pitsianis)
-approximation, and a Davis–Kahan bound for the top eigenvector.
+approximation, Davis–Kahan bounds for eigenvectors, and Wedin's sin Θ theorem for singular
+subspaces.
 
 [![Lean build](https://github.com/acomarce/FLYWHEEL/actions/workflows/lean.yml/badge.svg?branch=main)](https://github.com/acomarce/FLYWHEEL/actions/workflows/lean.yml)
 [![sorry-free](https://img.shields.io/badge/proofs-sorry--free-brightgreen)](.github/workflows/lean.yml)
@@ -43,6 +44,7 @@ eigenvalues λ₀ ≥ λ₁ ≥ ⋯ are sorted and 0-indexed, as in the code. A�
 | **Davis–Kahan** (top eigenvector)<br>`davis_kahan_top_eigenvector` | A, E Hermitian, ‖E‖₂ < δ = λ₀(A) − λ₁(A), u₀ the top vector of A's eigenvector basis, v a unit top eigenvector of A + E ⇒ ‖v − ⟨u₀, v⟩u₀‖ ≤ ‖E‖₂ / (δ − ‖E‖₂) |
 | **Davis–Kahan sin Θ** (top-k, Frobenius)<br>`davis_kahan_sin_theta` | A, E Hermitian, ‖E‖₂ < δ = λₖ₋₁(A) − λₖ(A), P the projection onto A's top-k eigenvectors, ũⱼ the top-k eigenvectors of A + E ⇒ Σⱼ ‖ũⱼ − Pũⱼ‖² ≤ k (‖E‖₂ / (δ − ‖E‖₂))² |
 | **Top right singular vector**<br>`top_right_singular_vector_perturbation`<br>`top_right_singular_vector_perturbation_of_spectralGap` | The top-eigenvector bound for AᴴA vs ÃᴴÃ with gap σ₀(A)² − σ₁(A)²; with η = ‖Ã − A‖₂(‖Ã‖₂ + ‖A‖₂) < γ = (σ₀ − σ₁)‖A‖₂ the bound is η / (γ − η) |
+| **Wedin sin Θ** (Frobenius, m × n)<br>`wedin_sin_theta`<br>`wedin_sin_theta_l2` | Ã = A + E, σₖ₋₁(A) > 0, δ = σₖ₋₁(Ã) − σₖ(A) > 0, ũⱼ, ṽⱼ the top-k left and right singular vectors of Ã, P_U, P_V the projections onto A's top-k singular subspaces ⇒ Σⱼ (‖ũⱼ − P_U ũⱼ‖² + ‖ṽⱼ − P_V ṽⱼ‖²) ≤ Σⱼ (‖E ṽⱼ‖² + ‖Eᴴ ũⱼ‖²) / δ² ≤ 2k ‖E‖₂² / δ² |
 
 Names are abbreviated. [`docs/INDEX.md`](docs/INDEX.md) lists every declaration with its full name,
 file, line and summary.
@@ -51,9 +53,8 @@ file, line and summary.
 > Uniqueness is proved only in the Frobenius norm and only under the gap σₖ < σₖ₋₁; in the spectral
 > norm the repo shows by one counterexample that optima need not be unique. Kronecker factors are
 > unique only as the product A ⊗ B, not as the pair (A, B), which can be rescaled. The sin Θ
-> bound for k > 1 is the Frobenius form with a factor k, not the operator-norm form, and the
-> singular-vector bounds go through AᴴA (square matrices, top right singular vector only): Wedin's
-> theorem is not formalized.
+> bounds for k > 1 are in Frobenius form (Davis–Kahan with a factor k; Wedin with the gap
+> σₖ₋₁(Ã) − σₖ(A)); neither operator-norm form is formalized.
 
 ## Layout
 
@@ -71,6 +72,7 @@ file, line and summary.
 | [`TightBounds`](src/TightBounds.lean) | Rectangular truncated SVD: error formulas, rank bound, Eckart–Young, Van Loan–Pitsianis |
 | [`FrobeniusUniqueness`](src/FrobeniusUniqueness.lean) | Uniqueness of the Frobenius-optimal truncation under a gap (square, m × n, Kronecker) |
 | [`DavisKahan`](src/DavisKahan.lean) | sin θ bounds for the top eigenvector and top-k eigenspaces; top right singular vector |
+| [`Wedin`](src/Wedin.lean) | Wedin's sin Θ theorem (Frobenius form) for the left and right singular subspaces of m × n matrices |
 
 <details>
 <summary>Import graph (an arrow points to the file that imports)</summary>
@@ -92,6 +94,7 @@ graph TD
   SpectralNormGap --> TightBounds
   TightBounds --> FrobeniusUniqueness
   CoherenceCharacterization --> DavisKahan
+  DavisKahan --> Wedin
 ```
 
 </details>
@@ -107,7 +110,7 @@ and [`lake-manifest.json`](lake-manifest.json).
 
 ```bash
 lake exe cache get   # prebuilt Mathlib, once
-lake build           # all 12 libraries
+lake build           # all 13 libraries
 lake build SVD       # one library and its imports
 ```
 
