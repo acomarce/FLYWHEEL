@@ -59,6 +59,8 @@ sorted, σᵢ = √λᵢ(Aᴴ A).
 | Σⱼ (‖xⱼ − P_U xⱼ‖² + ‖yⱼ − P_V yⱼ‖²) ≤ Σⱼ (‖μⱼ xⱼ − T yⱼ‖² + ‖μⱼ yⱼ − S xⱼ‖²) / δ² for μⱼ ≥ c + δ | `wedin_sin_theta_residual` |
 | ‖sin Θ_U‖_F² + ‖sin Θ_V‖_F² ≤ Σⱼ (‖E ṽⱼ‖² + ‖Eᴴ ũⱼ‖²) / δ², δ = σₖ₋₁(Ã) − σₖ(A) | `wedin_sin_theta` |
 | The same bounded by 2k ‖E‖₂² / δ² | `wedin_sin_theta_l2` |
+| Weyl for m × n: σₖ(A) ≤ σₖ(Ã) + ‖A − Ã‖₂, and \|σₖ(A) − σₖ(Ã)\| ≤ ‖A − Ã‖₂ | `weyl_singularValue_rect_le`, `weyl_singularValue_rect_perturbation` |
+| A's own gap: ‖E‖₂ < δ_A = σₖ₋₁(A) − σₖ(A) ⇒ bound 2k ‖E‖₂² / (δ_A − ‖E‖₂)² | `wedin_sin_theta_l2_of_norm_lt_gap` |
 
 The first two rows hold for any linear maps T, S between complex inner product spaces with
 ⟨x, T y⟩ = ⟨S x, y⟩, pairs (uᵢ, vᵢ) orthonormal on an index set with T vᵢ = σᵢ uᵢ and
@@ -95,9 +97,8 @@ Proof of `wedin_residual`, with x₂ = x − P_U x and y₂ = y − P_V y:
 - The Gram-matrix singular-vector results above are square-only, and their bound for small
   ‖Ã − A‖₂ is about 2 ‖Ã − A‖₂ / (σ₀ − σ₁), twice Wedin's. Wedin's theorem itself, below, covers
   both singular subspaces of rectangular matrices.
-- Wedin in operator-norm form, max(‖sin Θ_U‖₂, ‖sin Θ_V‖₂) ≤ max(‖E Ṽ‖₂, ‖Eᴴ Ũ‖₂) / δ, and
-  Wedin with A's own gap σₖ₋₁(A) − σₖ(A) − ‖E‖₂ in place of δ. The latter needs Weyl's bound
-  σₖ₋₁(Ã) ≥ σₖ₋₁(A) − ‖E‖₂ for rectangular singular values; only the square one is proved.
+- Wedin in operator-norm form, max(‖sin Θ_U‖₂, ‖sin Θ_V‖₂) ≤ max(‖E Ṽ‖₂, ‖Eᴴ Ũ‖₂) / δ. (Wedin
+  with A's own gap is proved, `wedin_sin_theta_l2_of_norm_lt_gap`.)
 - The top vector u₀ is the specific vector of Mathlib's eigenvector basis. When λ₀ > λ₁ any other
   unit top eigenvector differs from it by a phase, and ‖v − ⟨u₀, v⟩u₀‖ does not depend on the
   phase, but no lemma states this.

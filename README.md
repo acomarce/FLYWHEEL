@@ -27,7 +27,7 @@ eigenvalues λ₀ ≥ λ₁ ≥ ⋯ are sorted and 0-indexed, as in the code. A�
 | **SVD**<br>`svd_decomposition`<br>`svd_decomposition_rectangular`<br>`Real.svd_decomposition` | A = UΣVᴴ with U, V unitary and Σ diagonal, σᵢ ≥ 0. Also for m × n matrices (Σ rectangular diagonal, σ sorted) and for real matrices (U, V orthogonal). |
 | **Norms from σ** (m × n)<br>`spectral_norm_eq_max_singularValue_rect`<br>`frobeniusNorm_sq_eq_sum_singularValues_sq_rect` | ‖A‖₂ = σ₀ and ‖A‖<sub>F</sub>² = Σᵢ σᵢ² |
 | **Courant–Fischer**<br>`courantFischer_maxMin_bounds`<br>`courantFischer_minMax_bounds` | For Hermitian A with Rayleigh quotient R: λₖ = max<sub>dim W = k+1</sub> min<sub>0 ≠ x ∈ W</sub> R(x) = min<sub>dim W = n−k</sub> max<sub>0 ≠ x ∈ W</sub> R(x) |
-| **Weyl**<br>`weyl_eigenvalue_bounds`<br>`weyl_singularValue_perturbation` | For Hermitian A, B: λₖ(A) + λₙ₋₁(B) ≤ λₖ(A + B) ≤ λₖ(A) + λ₀(B). For any A, B: \|σₖ(A) − σₖ(B)\| ≤ σ₀(A − B) |
+| **Weyl**<br>`weyl_eigenvalue_bounds`<br>`weyl_singularValue_perturbation`<br>`weyl_singularValue_rect_perturbation` | For Hermitian A, B: λₖ(A) + λₙ₋₁(B) ≤ λₖ(A + B) ≤ λₖ(A) + λ₀(B). For any A, B: \|σₖ(A) − σₖ(B)\| ≤ σ₀(A − B), square or m × n (with σᵢ = √λᵢ(AᴴA) and ‖A − B‖₂) |
 | **Thompson interlacing**<br>`thompson_interlacing`<br>`thompson_interlacing_rect` | rank B ≤ r ⇒ σᵢ₊ᵣ(A) ≤ σᵢ(A + B) (square / m × n) |
 | **Eckart–Young** (Frobenius)<br>`FrobeniusNorm.eckart_young_frobenius`<br>`eckart_young_frobenius_rect` | rank B ≤ k ⇒ ‖A − Aₖ‖<sub>F</sub> ≤ ‖A − B‖<sub>F</sub> (square / m × n) |
 | **Eckart–Young** (spectral)<br>`eckart_young_spectral`<br>`eckart_young_spectral_rect` | rank B ≤ k ⇒ ‖A − Aₖ‖₂ ≤ ‖A − B‖₂ (square / m × n) |
@@ -44,7 +44,7 @@ eigenvalues λ₀ ≥ λ₁ ≥ ⋯ are sorted and 0-indexed, as in the code. A�
 | **Davis–Kahan** (top eigenvector)<br>`davis_kahan_top_eigenvector` | A, E Hermitian, ‖E‖₂ < δ = λ₀(A) − λ₁(A), u₀ the top vector of A's eigenvector basis, v a unit top eigenvector of A + E ⇒ ‖v − ⟨u₀, v⟩u₀‖ ≤ ‖E‖₂ / (δ − ‖E‖₂) |
 | **Davis–Kahan sin Θ** (top-k, Frobenius)<br>`davis_kahan_sin_theta` | A, E Hermitian, ‖E‖₂ < δ = λₖ₋₁(A) − λₖ(A), P the projection onto A's top-k eigenvectors, ũⱼ the top-k eigenvectors of A + E ⇒ Σⱼ ‖ũⱼ − Pũⱼ‖² ≤ k (‖E‖₂ / (δ − ‖E‖₂))² |
 | **Top right singular vector**<br>`top_right_singular_vector_perturbation`<br>`top_right_singular_vector_perturbation_of_spectralGap` | The top-eigenvector bound for AᴴA vs ÃᴴÃ with gap σ₀(A)² − σ₁(A)²; with η = ‖Ã − A‖₂(‖Ã‖₂ + ‖A‖₂) < γ = (σ₀ − σ₁)‖A‖₂ the bound is η / (γ − η) |
-| **Wedin sin Θ** (Frobenius, m × n)<br>`wedin_sin_theta`<br>`wedin_sin_theta_l2` | Ã = A + E, σₖ₋₁(A) > 0, δ = σₖ₋₁(Ã) − σₖ(A) > 0, ũⱼ, ṽⱼ the top-k left and right singular vectors of Ã, P_U, P_V the projections onto A's top-k singular subspaces ⇒ Σⱼ (‖ũⱼ − P_U ũⱼ‖² + ‖ṽⱼ − P_V ṽⱼ‖²) ≤ Σⱼ (‖E ṽⱼ‖² + ‖Eᴴ ũⱼ‖²) / δ² ≤ 2k ‖E‖₂² / δ² |
+| **Wedin sin Θ** (Frobenius, m × n)<br>`wedin_sin_theta`<br>`wedin_sin_theta_l2`<br>`wedin_sin_theta_l2_of_norm_lt_gap` | Ã = A + E, σₖ₋₁(A) > 0, δ = σₖ₋₁(Ã) − σₖ(A) > 0, ũⱼ, ṽⱼ the top-k left and right singular vectors of Ã, P_U, P_V the projections onto A's top-k singular subspaces ⇒ Σⱼ (‖ũⱼ − P_U ũⱼ‖² + ‖ṽⱼ − P_V ṽⱼ‖²) ≤ Σⱼ (‖E ṽⱼ‖² + ‖Eᴴ ũⱼ‖²) / δ² ≤ 2k ‖E‖₂² / δ². With A's own gap: ‖E‖₂ < δ_A = σₖ₋₁(A) − σₖ(A) ⇒ the same sum ≤ 2k ‖E‖₂² / (δ_A − ‖E‖₂)² |
 
 Names are abbreviated. [`docs/INDEX.md`](docs/INDEX.md) lists every declaration with its full name,
 file, line and summary.
@@ -54,7 +54,8 @@ file, line and summary.
 > norm the repo shows by one counterexample that optima need not be unique. Kronecker factors are
 > unique only as the product A ⊗ B, not as the pair (A, B), which can be rescaled. The sin Θ
 > bounds for k > 1 are in Frobenius form (Davis–Kahan with a factor k; Wedin with the gap
-> σₖ₋₁(Ã) − σₖ(A)); neither operator-norm form is formalized.
+> σₖ₋₁(Ã) − σₖ(A), or A's own gap σₖ₋₁(A) − σₖ(A) when ‖E‖₂ is below it); neither
+> operator-norm form is formalized.
 
 ## Layout
 
