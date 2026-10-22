@@ -44,6 +44,14 @@ from the eigenvector basis of the Gram matrix Aᴴ A: vᵢ is its i-th eigenvect
 uᵢ = σᵢ⁻¹ A vᵢ (`rightSingularVector`, `leftSingularVector`). The index set of the top k
 singular values is `DavisKahan.topIndices k`, the same set for A and Ã.
 
+## A's own gap
+
+Weyl's bound for rectangular singular values, σₖ(A) ≤ σₖ(Ã) + ‖A - Ã‖₂
+(`weyl_singularValue_rect_le`), gives δ ≥ δ_A - ‖E‖₂ with δ_A = σₖ₋₁(A) - σₖ(A). So if
+‖E‖₂ < δ_A, the bound holds with A's own gap (`wedin_sin_theta_l2_of_norm_lt_gap`):
+
+  ‖sin Θ(U, Ũ)‖_F² + ‖sin Θ(V, Ṽ)‖_F² ≤ 2 k ‖E‖₂² / (δ_A - ‖E‖₂)²
+
 Not formalized: the operator-norm form max(‖sin Θ_U‖₂, ‖sin Θ_V‖₂) ≤ max(‖E Ṽ‖₂, ‖Eᴴ Ũ‖₂) / δ.
 -/
 
@@ -498,6 +506,140 @@ theorem norm_toEuclideanLin_le_l2 (F : Matrix m n ℂ) (x : EuclideanSpace ℂ n
   Matrix.l2_opNorm_mulVec F x
 
 set_option linter.unusedSectionVars false in
+/-- **Weyl's bound for rectangular singular values:** σₖ(A) ≤ σₖ(Ã) + ‖A - Ã‖₂, with
+    σᵢ = √λᵢ(Aᴴ A) (0-indexed). On the tail eigenspace W of Ãᴴ Ã, of dimension n - k,
+    ‖A x‖ ≤ ‖Ã x‖ + ‖(A - Ã) x‖ ≤ σₖ(Ã) + ‖A - Ã‖₂ for unit x, and Courant–Fischer for Aᴴ A
+    gives λₖ(Aᴴ A) ≤ sup_{x ∈ W} ‖A x‖². This is `WeylInequality.weyl_singularValue_upper_aux`
+    for m × n matrices. -/
+theorem weyl_singularValue_rect_le (A Ã : Matrix m n ℂ) (k : Fin (Fintype.card n)) :
+    √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ k) ≤
+      √((posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues₀ k) + ‖A - Ã‖ := by
+  -- the Courant–Fischer lemmas assume `Nonempty n`, which follows from k < card n
+  have hn : Nonempty n := Fintype.card_pos_iff.mp k.pos
+
+  -- Step 1: the tail eigenspace W of Ãᴴ Ã, of dimension n - k
+  let hBHB := (posSemidef_conjTranspose_mul_self Ã).isHermitian
+  let W := CourantFischer.eigenvectorSpanTail hBHB k
+
+  have h_dim_W : Module.finrank ℂ W = Fintype.card n - k.val :=
+    CourantFischer.finrank_eigenvectorSpanTail (Ãᴴ * Ã) hBHB k
+
+  -- Step 2: for unit x ∈ W, ‖Ã x‖² = Re⟨Ãᴴ Ã x, x⟩ ≤ λₖ(Ãᴴ Ã), so ‖Ã x‖ ≤ σₖ(Ã)
+  have h_Bx_norm_bound : ∀ x : EuclideanSpace ℂ n, x ∈ W → ‖x‖ = 1 →
+      ‖toEuclideanLin Ã x‖ ≤ √(hBHB.eigenvalues₀ k) := by
+    intro x hx hx_unit
+    have h_sq : ‖toEuclideanLin Ã x‖ ^ 2 ≤ hBHB.eigenvalues₀ k := by
+      rw [CourantFischer.norm_sq_mul_eq_inner_AHA Ã x]
+      exact CourantFischer.rayleigh_le_on_eigenvectorSpanTail (Ãᴴ * Ã) hBHB k x hx_unit hx
+    exact (le_abs_self _).trans (Real.abs_le_sqrt h_sq)
+
+  -- Step 3: for unit x ∈ W, ‖A x‖ ≤ ‖Ã x‖ + ‖(A - Ã) x‖ ≤ σₖ(Ã) + ‖A - Ã‖₂; square it
+  have h_combined_sq : ∀ x : EuclideanSpace ℂ n, x ∈ W → ‖x‖ = 1 →
+      ‖toEuclideanLin A x‖ ^ 2 ≤ (√(hBHB.eigenvalues₀ k) + ‖A - Ã‖) ^ 2 := by
+    intro x hx hx_unit
+    have h_split : toEuclideanLin A x = toEuclideanLin Ã x + toEuclideanLin (A - Ã) x := by
+      rw [map_sub, LinearMap.sub_apply, add_sub_cancel]
+    have h_op := norm_toEuclideanLin_le_l2 (A - Ã) x
+    rw [hx_unit, mul_one] at h_op
+    have h_le : ‖toEuclideanLin A x‖ ≤ √(hBHB.eigenvalues₀ k) + ‖A - Ã‖ := by
+      rw [h_split]
+      linarith [norm_add_le (toEuclideanLin Ã x) (toEuclideanLin (A - Ã) x),
+        h_Bx_norm_bound x hx hx_unit]
+    exact pow_le_pow_left₀ (norm_nonneg _) h_le 2
+
+  -- Step 4: for unit x, ‖A x‖² = Re⟨Aᴴ A x, x⟩ (Rayleigh quotient of Aᴴ A)
+  have h_rayleigh_AHA : ∀ x : EuclideanSpace ℂ n, ‖x‖ = 1 →
+      ‖toEuclideanLin A x‖^2 =
+        (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin (Aᴴ * A) x) x).re := by
+    intro x _hx_unit
+    exact CourantFischer.norm_sq_mul_eq_inner_AHA A x
+
+  -- Step 5: by Courant–Fischer, λₖ(Aᴴ A) ≤ rayleighSup of Aᴴ A on W
+  let hAHA := (posSemidef_conjTranspose_mul_self A).isHermitian
+  let k_succ : Fin (Fintype.card n + 1) := ⟨k.val + 1, Nat.add_lt_add_right k.isLt 1⟩
+
+  have h_dim_adjusted : Module.finrank ℂ W = Fintype.card n - k_succ.val + 1 := by
+    rw [h_dim_W]
+    have h_eq : k_succ.val = k.val + 1 := rfl
+    rw [h_eq]
+    omega
+
+  have hk_pos : (0 : Fin (Fintype.card n + 1)) < k_succ := by
+    simp only [Fin.lt_def, Fin.val_zero]
+    exact Nat.zero_lt_succ k.val
+
+  -- W has a nonzero vector, so rayleighSup is a supremum over a nonempty set
+  have hW_nonempty : ∃ x : W, x.val ≠ 0 := by
+    have h_pos : 0 < Module.finrank ℂ W := by
+      rw [h_dim_W]
+      exact Nat.sub_pos_of_lt k.isLt
+    exact CourantFischer.exists_nonzero_of_finrank_pos W h_pos
+
+  have h_CF := CourantFischer.eigenvalue_le_rayleighSup (Aᴴ * A) hAHA k_succ hk_pos W h_dim_adjusted
+
+  -- Step 6: bound rayleighSup(Aᴴ A, W) by (σₖ(Ã) + ‖A - Ã‖₂)²
+  have h_rayleighSup_bound : CourantFischer.rayleighSup (Aᴴ * A) W ≤
+      (√(hBHB.eigenvalues₀ k) + ‖A - Ã‖) ^ 2 := by
+    unfold CourantFischer.rayleighSup CourantFischer.rayleighQuotient
+    have : Nonempty { x : W // x.val ≠ 0 } := by
+      obtain ⟨x, hx⟩ := hW_nonempty
+      exact ⟨⟨x, hx⟩⟩
+    apply ciSup_le
+    intro ⟨⟨x, hx_mem⟩, hx_ne⟩
+    by_cases hx_norm : ‖x‖ = 0
+    · exfalso; exact hx_ne (norm_eq_zero.mp hx_norm)
+    · have hx_pos : 0 < ‖x‖ := norm_pos_iff.mpr (fun h => hx_ne h)
+      let y := (1 / ‖x‖ : ℂ) • x
+      have hy_unit : ‖y‖ = 1 := by
+        simp only [y, norm_smul, one_div]
+        rw [norm_inv, Complex.norm_real, Real.norm_eq_abs, abs_of_pos hx_pos,
+            inv_mul_cancel₀ (ne_of_gt hx_pos)]
+      have hy_mem : y ∈ W := Submodule.smul_mem W _ hx_mem
+
+      -- The Rayleigh quotient R(x)/‖x‖² = R(y) for unit y
+      have h_scale :
+          (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin (Aᴴ * A) x) x).re / ‖x‖^2 =
+            (@inner ℂ (EuclideanSpace ℂ n) _ (Matrix.toEuclideanLin (Aᴴ * A) y) y).re := by
+        have hc_ne : (1 / ‖x‖ : ℂ) ≠ 0 := by
+          simp only [one_div, ne_eq, inv_eq_zero, Complex.ofReal_eq_zero]
+          exact ne_of_gt hx_pos
+        have h := CourantFischer.rayleigh_scale_complex (A := Aᴴ * A) hx_ne (1 / ‖x‖ : ℂ) hc_ne
+        simp only [y] at hy_unit ⊢
+        rw [hy_unit, one_pow, div_one] at h
+        exact h.symm
+
+      rw [h_scale]
+      -- Re⟨AᴴAy, y⟩ = ‖Ay‖² for unit y
+      rw [← h_rayleigh_AHA y hy_unit]
+      -- ‖Ay‖² ≤ (σₖ(Ã) + ‖A - Ã‖₂)²
+      exact h_combined_sq y hy_mem hy_unit
+
+  -- Step 7: λₖ(Aᴴ A) ≤ rayleighSup ≤ (σₖ(Ã) + ‖A - Ã‖₂)²; h_CF is stated at index k_succ - 1
+  have h_index : (⟨k_succ.val - 1, by omega⟩ : Fin (Fintype.card n)) = k := by
+    ext; simp only [k_succ]; omega
+
+  have h_eigenvalue_bound : hAHA.eigenvalues₀ k ≤ (√(hBHB.eigenvalues₀ k) + ‖A - Ã‖) ^ 2 := by
+    rw [← h_index]
+    exact le_trans h_CF h_rayleighSup_bound
+
+  -- Step 8: take square roots
+  calc √(hAHA.eigenvalues₀ k) ≤ √((√(hBHB.eigenvalues₀ k) + ‖A - Ã‖) ^ 2) :=
+        Real.sqrt_le_sqrt h_eigenvalue_bound
+    _ = √(hBHB.eigenvalues₀ k) + ‖A - Ã‖ :=
+        Real.sqrt_sq (add_nonneg (Real.sqrt_nonneg _) (norm_nonneg _))
+
+set_option linter.unusedSectionVars false in
+/-- **Weyl's perturbation bound for rectangular singular values:**
+    |σₖ(A) - σₖ(Ã)| ≤ ‖A - Ã‖₂, with σᵢ = √λᵢ(Aᴴ A) (0-indexed). -/
+theorem weyl_singularValue_rect_perturbation (A Ã : Matrix m n ℂ) (k : Fin (Fintype.card n)) :
+    |√((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ k) -
+        √((posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues₀ k)| ≤ ‖A - Ã‖ := by
+  have h1 := weyl_singularValue_rect_le A Ã k
+  have h2 := weyl_singularValue_rect_le Ã A k
+  rw [norm_sub_rev Ã A] at h2
+  exact abs_sub_le_iff.mpr ⟨by linarith, by linarith⟩
+
+set_option linter.unusedSectionVars false in
 /-- **Wedin's sin Θ theorem in ‖E‖₂.** Under the hypotheses of `wedin_sin_theta`, with
     E = Ã - A and δ = σₖ₋₁(Ã) - σₖ(A),
     ‖sin Θ(U, Ũ)‖_F² + ‖sin Θ(V, Ṽ)‖_F² ≤ 2 k ‖E‖₂² / δ². -/
@@ -547,6 +689,53 @@ theorem wedin_sin_theta_l2 (A Ã : Matrix m n ℂ) (k : ℕ) (hk : k < Fintype.c
         ring
   exact (wedin_sin_theta A Ã k hk hA hgap).trans
     (div_le_div₀ (by positivity) h_num (pow_pos (sub_pos.mpr hgap) 2) le_rfl)
+
+set_option linter.unusedSectionVars false in
+/-- **Wedin's sin Θ theorem with A's own gap.** Let A, Ã be m × n, k < n, E = Ã - A, and
+    δ_A = σₖ₋₁(A) - σₖ(A) (σᵢ = √λᵢ of the Gram matrix, 0-indexed). If ‖E‖₂ < δ_A, then
+    ‖sin Θ(U, Ũ)‖_F² + ‖sin Θ(V, Ṽ)‖_F² ≤ 2 k ‖E‖₂² / (δ_A - ‖E‖₂)². By
+    `weyl_singularValue_rect_le`, σₖ₋₁(Ã) - σₖ(A) ≥ δ_A - ‖E‖₂ > 0, so `wedin_sin_theta_l2`
+    applies. For k = 0 the hypothesis says ‖E‖₂ < 0 and cannot hold. -/
+theorem wedin_sin_theta_l2_of_norm_lt_gap (A Ã : Matrix m n ℂ) (k : ℕ) (hk : k < Fintype.card n)
+    (h_small : ‖Ã - A‖ <
+      √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩) -
+        √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩)) :
+    ∑ j ∈ DavisKahan.topIndices k hk,
+        (‖leftSingularVector Ã j - ∑ i ∈ DavisKahan.topIndices k hk,
+            ⟪leftSingularVector A i, leftSingularVector Ã j⟫ • leftSingularVector A i‖ ^ 2 +
+          ‖rightSingularVector Ã j - ∑ i ∈ DavisKahan.topIndices k hk,
+            ⟪rightSingularVector A i, rightSingularVector Ã j⟫ • rightSingularVector A i‖ ^ 2) ≤
+      2 * k * ‖Ã - A‖ ^ 2 /
+        (√((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩) -
+          √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩) -
+            ‖Ã - A‖) ^ 2 := by
+  -- σₖ₋₁(A) > σₖ(A) + ‖E‖₂ ≥ 0
+  have hA : 0 < (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀
+      ⟨k - 1, by omega⟩ := by
+    refine Real.sqrt_pos.mp ?_
+    linarith [norm_nonneg (Ã - A), Real.sqrt_nonneg
+      ((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩)]
+  -- Weyl: σₖ₋₁(A) ≤ σₖ₋₁(Ã) + ‖E‖₂
+  have h_weyl :
+      √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩) ≤
+        √((posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩) +
+          ‖Ã - A‖ := by
+    have h := weyl_singularValue_rect_le A Ã ⟨k - 1, by omega⟩
+    rwa [norm_sub_rev A Ã] at h
+  -- so the gap δ = σₖ₋₁(Ã) - σₖ(A) of `wedin_sin_theta_l2` is at least δ_A - ‖E‖₂ > 0
+  have h_le :
+      √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩) -
+          √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩) -
+            ‖Ã - A‖ ≤
+        √((posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩) -
+          √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩) := by
+    linarith
+  have hgap : √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩) <
+      √((posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩) := by
+    linarith
+  exact (wedin_sin_theta_l2 A Ã k hk hA hgap).trans
+    (div_le_div₀ (by positivity) le_rfl (pow_pos (sub_pos.mpr h_small) 2)
+      (pow_le_pow_left₀ (sub_pos.mpr h_small).le h_le 2))
 
 end L2
 
