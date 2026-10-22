@@ -225,7 +225,14 @@ Traps:
 - **Commit messages:** `<File or area>: <imperative summary>`, e.g. `TightBounds: fix
   injectivity argument in rank bound`.
 - **Proof-writing traps** (met while writing FrobeniusUniqueness and DavisKahan):
-  - `λ` is a keyword, so it cannot appear in identifiers (`hλ` does not parse).
+  - `λ` is a keyword, so it cannot appear in identifiers (`hλ` does not parse). The parse error
+    silently cuts off the rest of that declaration while later ones still elaborate, so read
+    every error line.
+  - Applying `Matrix.l2_opNorm_mulVec` to a compound matrix (`‖toEuclideanLin (Ã - A)ᴴ x‖ ≤ …`)
+    ran out of heartbeats. Use `Matrix.Wedin.norm_toEuclideanLin_le_l2 F x`, stated for a
+    variable F. Heartbeats are per declaration, and one timeout can add a second error at the
+    declaration's first line: fix the first one.
+  - An unused hypothesis in a theorem signature is a linter warning, so `--wfail` fails CI.
   - `have h := foo (fun x => …) …` keeps beta-redexes like `(fun x => …) a` in the type of `h`,
     and a later `rw … at h` cannot see through them. Give `h` its type explicitly.
   - `simp only [Matrix.mul_assoc, h]` re-associates products inside the goal but not in `h`'s
@@ -277,6 +284,8 @@ Details are in the `docs/` notes.
   `top_right_singular_vector_perturbation_of_spectralGap`).
 - Wedin (`Matrix.Wedin`): the Frobenius sin Θ theorem for left and right singular subspaces of
   m × n matrices (`wedin_sin_theta`, `wedin_sin_theta_l2`), with the gap σₖ₋₁(Ã) - σₖ(A), for
-  k < n and rank A ≥ k. Not formalized: the operator-norm sin Θ for k > 1 (Davis–Kahan or
-  Wedin), and Wedin with A's own gap σₖ₋₁(A) - σₖ(A) - ‖E‖₂, which needs Weyl's bound for
-  rectangular singular values (only the square one is proved).
+  k < n and rank A ≥ k; and with A's own gap δ_A = σₖ₋₁(A) - σₖ(A) when ‖E‖₂ < δ_A
+  (`wedin_sin_theta_l2_of_norm_lt_gap`, denominator (δ_A - ‖E‖₂)²). That uses Weyl's bound
+  for rectangular singular values, σᵢ = √λᵢ(Aᴴ A), proved in Wedin.lean
+  (`weyl_singularValue_rect_le`, two-sided `weyl_singularValue_rect_perturbation`). Not
+  formalized: the operator-norm sin Θ for k > 1 (Davis–Kahan or Wedin).
