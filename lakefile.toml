@@ -16,7 +16,8 @@ defaultTargets = [
   "TightBounds",
   "TruncatedSVDRank1",
   "FrobeniusUniqueness",
-  "DavisKahan"
+  "DavisKahan",
+  "Wedin"
 ]
 
 [[require]]
@@ -61,3 +62,6 @@ name = "FrobeniusUniqueness"
 
 [[lean_lib]]
 name = "DavisKahan"
+
+[[lean_lib]]
+name = "Wedin"

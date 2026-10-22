@@ -15,6 +15,7 @@ import CoherenceCharacterization
 import TightBounds
 import FrobeniusUniqueness
 import DavisKahan
+import Wedin
 
 /-!
 # Axiom check
