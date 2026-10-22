@@ -48,14 +48,56 @@ orthogonal projection onto the span of the eigenvectors for λ₀, …, λₖ₋
    ‖Ã − A‖₂ (‖Ã‖₂ + ‖A‖₂), and `spectralGap_mul_norm_le_sq_sub_sq` bounds the gap σ₀² − σ₁² below by
    `spectralGap A * ‖A‖₂` = (σ₀ − σ₁) σ₀.
 
+## Wedin's theorem (`src/Wedin.lean`)
+
+Namespace `Matrix.Wedin`. Matrices are m × n, Ã = A + E, and singular values are 0-indexed and
+sorted, σᵢ = √λᵢ(Aᴴ A).
+
+| Result | Name |
+|---|---|
+| (μ − c)² (‖x − P_U x‖² + ‖y − P_V y‖²) ≤ ‖μ x − T y‖² + ‖μ y − S x‖² for μ ≥ c | `wedin_residual` |
+| Σⱼ (‖xⱼ − P_U xⱼ‖² + ‖yⱼ − P_V yⱼ‖²) ≤ Σⱼ (‖μⱼ xⱼ − T yⱼ‖² + ‖μⱼ yⱼ − S xⱼ‖²) / δ² for μⱼ ≥ c + δ | `wedin_sin_theta_residual` |
+| ‖sin Θ_U‖_F² + ‖sin Θ_V‖_F² ≤ Σⱼ (‖E ṽⱼ‖² + ‖Eᴴ ũⱼ‖²) / δ², δ = σₖ₋₁(Ã) − σₖ(A) | `wedin_sin_theta` |
+| The same bounded by 2k ‖E‖₂² / δ² | `wedin_sin_theta_l2` |
+
+The first two rows hold for any linear maps T, S between complex inner product spaces with
+⟨x, T y⟩ = ⟨S x, y⟩, pairs (uᵢ, vᵢ) orthonormal on an index set with T vᵢ = σᵢ uᵢ and
+S uᵢ = σᵢ vᵢ, and ‖T y‖ ≤ c ‖y‖ for y orthogonal to every vᵢ. For matrices, T = A, S = Aᴴ and
+c = σₖ(A).
+
+- **Singular triples.** `rightSingularVector A i` is the i-th vector of the eigenvector basis of
+  Aᴴ A, σᵢ is `SVD.Rectangular.singularValueFromEigenvalue A i`, and `leftSingularVector A i` is
+  σᵢ⁻¹ A vᵢ. The left vectors are orthonormal wherever λᵢ > 0 (`inner_leftSingularVector`). The
+  top-k index set is `DavisKahan.topIndices k`, the same set for A and Ã.
+- **Hypotheses.** `wedin_sin_theta` needs k < n, so that σₖ exists, and λₖ₋₁(Aᴴ A) > 0, i.e.
+  rank A ≥ k. Without the rank condition the top-k left singular vectors are not of the form
+  σᵢ⁻¹ A vᵢ.
+- **No factor k.** The Frobenius form is a sum over columns, and each column (ũⱼ, ṽⱼ) satisfies
+  the one-vector bound with the same gap.
+
+Proof of `wedin_residual`, with x₂ = x − P_U x and y₂ = y − P_V y:
+1. T maps span {vᵢ} into span {uᵢ} and S maps span {uᵢ} into span {vᵢ}, so T y₂ ⊥ uᵢ and
+   S x₂ ⊥ vᵢ. By Pythagoras, splitting off the spans does not increase either residual
+   (`norm_sq_residual_proj_le`).
+2. ‖T y₂‖ ≤ c ‖y₂‖ by hypothesis. Then ‖S x₂‖² = ⟨x₂, T S x₂⟩ ≤ ‖x₂‖ c ‖S x₂‖ gives
+   ‖S x₂‖ ≤ c ‖x₂‖. For matrices the hypothesis is `norm_toEuclideanLin_le_of_orthogonal`:
+   ‖A y‖² ≤ ‖Aᴴ A y‖ ‖y‖ ≤ λₖ ‖y‖², by Parseval in the eigenbasis.
+3. The triangle inequality gives ‖μ x₂ − T y₂‖ ≥ μ ‖x₂‖ − c ‖y₂‖ and ‖μ y₂ − S x₂‖ ≥ μ ‖y₂‖ − c ‖x₂‖.
+   `sq_sub_mul_add_sq_le` turns these into (μ − c)² (‖x₂‖² + ‖y₂‖²): multiplying the first by
+   ‖x₂‖ and the second by ‖y₂‖ gives (μ − c)(‖x₂‖² + ‖y₂‖²) ≤ P ‖x₂‖ + Q ‖y₂‖, and then
+   Cauchy–Schwarz in ℝ² finishes it.
+
 ## What is not proved
 
 - The operator-norm sin Θ ‖(I − P) P̃‖₂ ≤ ‖E‖₂ / δ for k > 1. The vector-by-vector argument
   above only reaches the Frobenius form with the factor k; the operator-norm version needs the
   Sylvester-equation bound ‖X Λ̃ − Λ X‖ ≥ δ ‖X‖.
-- Wedin's theorem. The singular-vector results go through Aᴴ A, so they are square-only and
-  their bound for small ‖Ã − A‖₂ is about 2 ‖Ã − A‖₂ / (σ₀ − σ₁), twice Wedin's. Left singular
-  vectors and rectangular matrices are not covered.
+- The Gram-matrix singular-vector results above are square-only, and their bound for small
+  ‖Ã − A‖₂ is about 2 ‖Ã − A‖₂ / (σ₀ − σ₁), twice Wedin's. Wedin's theorem itself, below, covers
+  both singular subspaces of rectangular matrices.
+- Wedin in operator-norm form, max(‖sin Θ_U‖₂, ‖sin Θ_V‖₂) ≤ max(‖E Ṽ‖₂, ‖Eᴴ Ũ‖₂) / δ, and
+  Wedin with A's own gap σₖ₋₁(A) − σₖ(A) − ‖E‖₂ in place of δ. The latter needs Weyl's bound
+  σₖ₋₁(Ã) ≥ σₖ₋₁(A) − ‖E‖₂ for rectangular singular values; only the square one is proved.
 - The top vector u₀ is the specific vector of Mathlib's eigenvector basis. When λ₀ > λ₁ any other
   unit top eigenvector differs from it by a phase, and ‖v − ⟨u₀, v⟩u₀‖ does not depend on the
   phase, but no lemma states this.

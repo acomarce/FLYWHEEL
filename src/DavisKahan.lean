@@ -28,8 +28,8 @@ With Weyl's inequality (μ = λ₀(A + E) ≥ λ₀(A) - ‖E‖₂ for Hermitia
 Applied to the Gram matrices Aᴴ A and Ãᴴ Ã it bounds the top right singular vector of a
 perturbed matrix (`top_right_singular_vector_perturbation`), with the gap σ₀² - σ₁²; that gap is
 at least `Matrix.Coherence.spectralGap A * ‖A‖₂` (`spectralGap_mul_norm_le_sq_sub_sq`). This is
-a Wedin-type bound through the Gram matrix, not Wedin's theorem itself (which has the gap
-σ₀ - σ₁ and the perturbation ‖E‖₂ directly).
+a Wedin-type bound through the Gram matrix; Wedin's theorem itself, with the gap
+σₖ₋₁(Ã) - σₖ(A), is `Matrix.Wedin.wedin_sin_theta` in Wedin.lean.
 
 The same argument with the indices of λ₀, …, λₖ₋₁ (`topIndices k`) in place of the top index
 gives the top-k version: if μ > λₖ and P is the orthogonal projection onto the span of the
@@ -41,8 +41,8 @@ Here ‖·‖ on square matrices is the L2 operator norm (the global instance of
 MatrixNormRelations).
 
 Not formalized: the operator-norm sin Θ bound ‖sin Θ‖₂ ≤ ‖E‖₂ / δ for k > 1 (it needs a
-Sylvester-equation argument, not a vector-by-vector one), and Wedin's theorem for left and right
-singular subspaces of rectangular matrices.
+Sylvester-equation argument, not a vector-by-vector one). Wedin's theorem for the left and right
+singular subspaces of rectangular matrices is in Wedin.lean.
 -/
 
 @[expose] public section

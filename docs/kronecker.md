@@ -120,4 +120,5 @@ best rank-1 approximation of `R C`.
   - Singular vectors: `Matrix.DavisKahan.top_right_singular_vector_perturbation_of_spectralGap`
     bounds how far the top right singular vector of a square A moves, by η / (γ − η) with
     η = ‖Ã − A‖₂ (‖Ã‖₂ + ‖A‖₂) and γ = spectralGap A · ‖A‖₂, through the Gram matrix
-    (`docs/davis-kahan.md`). Wedin's theorem itself is not formalized.
+    (`docs/davis-kahan.md`). Wedin's theorem for both singular subspaces of rectangular
+    matrices, in Frobenius form, is `Matrix.Wedin.wedin_sin_theta`.

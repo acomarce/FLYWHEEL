@@ -26,7 +26,7 @@ There are no `sorry`/`axiom`/`admit`, and it must stay that way.
 
 ```bash
 lake exe cache get          # prebuilt Mathlib oleans; needed once
-lake build                  # builds all 12 libraries (defaultTargets lists them all)
+lake build                  # builds all 13 libraries (defaultTargets lists them all)
 lake build TightBounds      # one library plus its imports
 lake env lean src/SVD.lean  # elaborate a single file
 lake env lean scripts/CheckAxioms.lean  # after a build: only propext, Classical.choice, Quot.sound
@@ -78,6 +78,7 @@ CoherenceCharacterization     ← MatrixNormRelations, SpectralNormGap
 TightBounds                   ← MatrixNormRelations, SpectralNormGap
 FrobeniusUniqueness           ← TightBounds
 DavisKahan                    ← CoherenceCharacterization
+Wedin                         ← DavisKahan
 ```
 
 `CourantFischer` and `WeylInequality` do `public import Mathlib`, so every file downstream of
@@ -121,6 +122,7 @@ Namespaces do not match file names. Always look a name up in `docs/INDEX.md`.
 | TightBounds | `Matrix.TightBounds` (rectangular `truncatedSVD_rect`, rectangular Eckart–Young, Van Loan–Pitsianis `kroneckerApprox`) |
 | FrobeniusUniqueness | `Matrix.FrobeniusUniqueness` (uniqueness of the Frobenius-optimal truncation under a gap: square, rectangular, `kroneckerApprox`) |
 | DavisKahan | `Matrix.DavisKahan` (sin θ for the top eigenvector, Frobenius sin Θ for top-k eigenspaces, Gram-matrix corollaries for the top right singular vector) |
+| Wedin | `Matrix.Wedin` (Wedin's sin Θ theorem in Frobenius form: a residual bound for any adjoint pair of linear maps, then rectangular matrices with singular triples built from the eigenbasis of Aᴴ A) |
 
 Traps:
 - **Square vs rectangular Eckart–Young.** The square theorems are
@@ -150,7 +152,7 @@ Traps:
 - **There is one global instance.** `Matrix.SpectralNorm.instCStarAlgebraMatrix :
   CStarAlgebra (Matrix n n ℂ)` in MatrixNormRelations.lean is not local.
   - Consequence: from that point on, and in SpectralNormGap, CoherenceCharacterization,
-    TightBounds, FrobeniusUniqueness and DavisKahan, square complex matrices have the L2 norm by
+    TightBounds, FrobeniusUniqueness, DavisKahan and Wedin, square complex matrices have the L2 norm by
     default.
   - To get Frobenius there, write the norm explicitly (next bullet) or use an explicit function
     such as `frobeniusNorm'`. No code here relies on overriding the global instance with
@@ -187,7 +189,7 @@ Traps:
   3. a fail on `declaration uses 'sorry'` in the log, or a grep hit in `src/**/*.lean`. The
      grep catches `axiom` at line start and the words `sorry`/`admit` **anywhere, comments
      included**;
-  4. `lake env lean scripts/CheckAxioms.lean`: every declaration of the 12 libraries may
+  4. `lake env lean scripts/CheckAxioms.lean`: every declaration of the 13 libraries may
      depend only on `propext`, `Classical.choice` and `Quot.sound`. This also catches what the
      grep cannot, such as `private axiom` or `native_decide` (`Lean.ofReduceBool`);
   5. `python3 -I scripts/gen_index.py --check`, which runs even if the build failed. It also
@@ -272,6 +274,9 @@ Details are in the `docs/` notes.
   top-k eigenspace in Frobenius form with a factor k (`davis_kahan_sin_theta`), and, through the
   Gram matrix, the top right singular vector of a square matrix
   (`top_right_singular_vector_perturbation`,
-  `top_right_singular_vector_perturbation_of_spectralGap`). Not formalized: the
-  operator-norm sin Θ for k > 1, and Wedin's theorem (gap σₖ₋₁ - σₖ, ‖E‖₂ directly, left and
-  right singular subspaces, rectangular matrices).
+  `top_right_singular_vector_perturbation_of_spectralGap`).
+- Wedin (`Matrix.Wedin`): the Frobenius sin Θ theorem for left and right singular subspaces of
+  m × n matrices (`wedin_sin_theta`, `wedin_sin_theta_l2`), with the gap σₖ₋₁(Ã) - σₖ(A), for
+  k < n and rank A ≥ k. Not formalized: the operator-norm sin Θ for k > 1 (Davis–Kahan or
+  Wedin), and Wedin with A's own gap σₖ₋₁(A) - σₖ(A) - ‖E‖₂, which needs Weyl's bound for
+  rectangular singular values (only the square one is proved).
