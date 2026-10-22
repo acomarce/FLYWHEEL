@@ -371,7 +371,7 @@ theorem norm_gram_le_of_orthogonal (A : Matrix m n ℂ) (k : ℕ) (hk : k < Fint
       (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩ * ‖y‖ := by
   have hG := (posSemidef_conjTranspose_mul_self A).isHermitian
   have hSym : (toEuclideanLin (Aᴴ * A)).IsSymmetric := isSymmetric_toEuclideanLin_iff.mpr hG
-  have hλk := PosSemidef_eigenvalues₀_nonneg (posSemidef_conjTranspose_mul_self A) ⟨k, hk⟩
+  have h_ev := PosSemidef_eigenvalues₀_nonneg (posSemidef_conjTranspose_mul_self A) ⟨k, hk⟩
   -- coefficients of (Aᴴ A) y in the eigenbasis: ⟨vₗ, Aᴴ A y⟩ = λₗ ⟨vₗ, y⟩
   have hcoef : ∀ l, ⟪hG.eigenvectorBasis l, toEuclideanLin (Aᴴ * A) y⟫ =
       (hG.eigenvalues l : ℂ) * ⟪hG.eigenvectorBasis l, y⟫ := by
@@ -397,7 +397,7 @@ theorem norm_gram_le_of_orthogonal (A : Matrix m n ℂ) (k : ℕ) (hk : k < Fint
     refine Finset.sum_le_sum fun l _ => ?_
     rw [hcoef l, norm_mul, mul_pow, Complex.norm_real, Real.norm_eq_abs, sq_abs]
     exact h_term l
-  exact le_of_sq_le_sq h_sq (mul_nonneg hλk (norm_nonneg y))
+  exact le_of_sq_le_sq h_sq (mul_nonneg h_ev (norm_nonneg y))
 
 set_option linter.unusedSectionVars false in
 /-- If y is orthogonal to the top-k right singular vectors, then ‖A y‖ ≤ σₖ ‖y‖ with
@@ -407,14 +407,14 @@ theorem norm_toEuclideanLin_le_of_orthogonal (A : Matrix m n ℂ) (k : ℕ)
     (hy : ∀ i ∈ DavisKahan.topIndices k hk, ⟪rightSingularVector A i, y⟫ = 0) :
     ‖toEuclideanLin A y‖ ≤
       √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩) * ‖y‖ := by
-  have hλk := PosSemidef_eigenvalues₀_nonneg (posSemidef_conjTranspose_mul_self A) ⟨k, hk⟩
+  have h_ev := PosSemidef_eigenvalues₀_nonneg (posSemidef_conjTranspose_mul_self A) ⟨k, hk⟩
   -- ‖A y‖² ≤ ‖Aᴴ A y‖ ‖y‖ ≤ λₖ ‖y‖²
   have h1 := norm_sq_le_of_inner_eq (toEuclideanLin A) (toEuclideanLin Aᴴ)
     (inner_toEuclideanLin_eq A) y
   rw [toEuclideanLin_conjTranspose_apply] at h1
   have h2 := mul_le_mul_of_nonneg_right (norm_gram_le_of_orthogonal A k hk y hy) (norm_nonneg y)
   refine le_of_sq_le_sq ?_ (mul_nonneg (Real.sqrt_nonneg _) (norm_nonneg y))
-  rw [mul_pow, Real.sq_sqrt hλk]
+  rw [mul_pow, Real.sq_sqrt h_ev]
   nlinarith [h1, h2]
 
 /-! ## Wedin's theorem -/
@@ -483,6 +483,69 @@ theorem wedin_sin_theta (A Ã : Matrix m n ℂ) (k : ℕ) (hk : k < Fintype.card
   refine h.trans (le_of_eq ?_)
   congr 1
   exact Finset.sum_congr rfl h_res
+
+/-! ## The bound in the operator norm of E -/
+
+section L2
+
+attribute [local instance] Matrix.instL2OpNormedAddCommGroup
+
+set_option linter.unusedSectionVars false in
+/-- **Wedin's sin Θ theorem in ‖E‖₂.** Under the hypotheses of `wedin_sin_theta`, with
+    E = Ã - A and δ = σₖ₋₁(Ã) - σₖ(A),
+    ‖sin Θ(U, Ũ)‖_F² + ‖sin Θ(V, Ṽ)‖_F² ≤ 2 k ‖E‖₂² / δ². -/
+theorem wedin_sin_theta_l2 (A Ã : Matrix m n ℂ) (k : ℕ) (hk : k < Fintype.card n)
+    (hA : 0 < (posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩)
+    (hgap : √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩) <
+      √((posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩)) :
+    ∑ j ∈ DavisKahan.topIndices k hk,
+        (‖leftSingularVector Ã j - ∑ i ∈ DavisKahan.topIndices k hk,
+            ⟪leftSingularVector A i, leftSingularVector Ã j⟫ • leftSingularVector A i‖ ^ 2 +
+          ‖rightSingularVector Ã j - ∑ i ∈ DavisKahan.topIndices k hk,
+            ⟪rightSingularVector A i, rightSingularVector Ã j⟫ • rightSingularVector A i‖ ^ 2) ≤
+      2 * k * ‖Ã - A‖ ^ 2 /
+        (√((posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues₀ ⟨k - 1, by omega⟩) -
+          √((posSemidef_conjTranspose_mul_self A).isHermitian.eigenvalues₀ ⟨k, hk⟩)) ^ 2 := by
+  have hÃ0 : 0 < (posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues₀
+      ⟨k - 1, by omega⟩ :=
+    Real.sqrt_pos.mp ((Real.sqrt_nonneg _).trans_lt hgap)
+  have hÃpos : ∀ j ∈ DavisKahan.topIndices k hk,
+      0 < (posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvalues j := fun j hj =>
+    hÃ0.trans_le (DavisKahan.le_eigenvalues_of_mem_topIndices _ hk hj)
+  -- each term is at most 2 ‖E‖₂², since ũⱼ and ṽⱼ are unit vectors and ‖Eᴴ‖₂ = ‖E‖₂
+  have h_each : ∀ j ∈ DavisKahan.topIndices k hk,
+      ‖toEuclideanLin (Ã - A) (rightSingularVector Ã j)‖ ^ 2 +
+          ‖toEuclideanLin (Ã - A)ᴴ (leftSingularVector Ã j)‖ ^ 2 ≤ 2 * ‖Ã - A‖ ^ 2 := by
+    intro j hj
+    have hv1 : ‖rightSingularVector Ã j‖ = 1 :=
+      (posSemidef_conjTranspose_mul_self Ã).isHermitian.eigenvectorBasis.orthonormal.1 j
+    have hu1 : ‖leftSingularVector Ã j‖ ^ 2 = 1 := by
+      have h := inner_leftSingularVector Ã _ hÃpos j hj j hj
+      rw [ite_eq_left rfl] at h
+      rw [← inner_self_eq_norm_sq (𝕜 := ℂ), h, RCLike.one_re]
+    have h1 : ‖toEuclideanLin (Ã - A) (rightSingularVector Ã j)‖ ≤
+        ‖Ã - A‖ * ‖rightSingularVector Ã j‖ :=
+      Matrix.l2_opNorm_mulVec (Ã - A) _
+    have h2 : ‖toEuclideanLin (Ã - A)ᴴ (leftSingularVector Ã j)‖ ≤
+        ‖(Ã - A)ᴴ‖ * ‖leftSingularVector Ã j‖ :=
+      Matrix.l2_opNorm_mulVec (Ã - A)ᴴ _
+    rw [hv1, mul_one] at h1
+    rw [Matrix.l2_opNorm_conjTranspose] at h2
+    have h1' := pow_le_pow_left₀ (norm_nonneg _) h1 2
+    have h2' := pow_le_pow_left₀ (norm_nonneg _) h2 2
+    rw [mul_pow, hu1, mul_one] at h2'
+    linarith
+  have h_num : ∑ j ∈ DavisKahan.topIndices k hk,
+      (‖toEuclideanLin (Ã - A) (rightSingularVector Ã j)‖ ^ 2 +
+        ‖toEuclideanLin (Ã - A)ᴴ (leftSingularVector Ã j)‖ ^ 2) ≤ 2 * k * ‖Ã - A‖ ^ 2 := by
+    calc _ ≤ ∑ j ∈ DavisKahan.topIndices k hk, 2 * ‖Ã - A‖ ^ 2 := Finset.sum_le_sum h_each
+      _ = 2 * k * ‖Ã - A‖ ^ 2 := by
+        rw [Finset.sum_const, DavisKahan.card_topIndices, nsmul_eq_mul]
+        ring
+  exact (wedin_sin_theta A Ã k hk hA hgap).trans
+    (div_le_div₀ (by positivity) h_num (pow_pos (sub_pos.mpr hgap) 2) le_rfl)
+
+end L2
 
 end Matrices
 
